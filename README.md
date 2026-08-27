@@ -1,2 +1,11 @@
 # DevelopLayout
-DevelopLayout: Plantilla base multiplataforma y escalable. Incluye backend en Spring Boot, frontend web en React (TypeScript) y aplicación móvil nativa en Flutter. Diseñada para acelerar el desarrollo y estandarizar la arquitectura de nuevos proyectos."
+
+Plantilla de arquitectura full-stack: Spring Boot + React (Vite) + Flutter, con infraestructura Docker lista para desarrollo.
+
+## Estructura
+
+- Backend (Spring Boot)
+- Frontend (React)
+- Mobile (Flutter)
+
+Toda la documentación se encuentra en la carpeta `/docs`.
