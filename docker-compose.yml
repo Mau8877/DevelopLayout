@@ -181,8 +181,8 @@ networks:
 
 volumes:
   postgres_data:
-    name: postgres_data
+    name: app-postgres_data
   redis_data:
-    name: redis_data
+    name: app-redis_data
   minio_data:
-    name: minio_data
+    name: app-minio_data
