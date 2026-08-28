@@ -104,3 +104,24 @@ para confirmar que el stack completo (proxy, frontend, backend, postgres, redis,
 curl http://localhost:8080/health        # "status":"UP"
 curl http://localhost:8080/prometheus | head   # métricas en texto plano
 ```
+
+## Actualizando versiones (Spring Boot, React, Flutter, Docker)
+
+Importante: la plantilla (`DevelopLayout`) y un proyecto ya generado a partir de ella (ej. renombrado a `Acme`) **no están enlazados**. Una vez que copiás/renombrás el template quedan como repos independientes — actualizar `DevelopLayout` después no le llega solo a un proyecto ya creado. Hay que aplicar el mismo cambio a mano (o vía diff/cherry-pick) en cada proyecto que lo necesite.
+
+### Actualizar un major de framework (poco frecuente)
+
+| Stack | Dónde está pineado | Cómo se actualiza |
+|---|---|---|
+| Spring Boot | `projects/backend/pom.xml`: `spring-boot-starter-parent` y `java.version` | Subís el `<version>` del parent (y `java.version` si el major lo pide), corrés `mvn dependency:resolve`, y revisás el changelog de Spring Boot por breaking changes. Si subís `java.version`, subí también la imagen `maven:3.9-eclipse-temurin-21-alpine` en `docker-compose.yml` para que coincida. |
+| React/Vite | `projects/frontend/package.json`, lockfile en [pnpm-lock.yaml](../pnpm-lock.yaml) (raíz, workspace pnpm) | `pnpm update` (dentro de rango semver) o `pnpm add react@latest` para saltar de major. Como el lockfile vive en la raíz del monorepo, corré los comandos ahí, no dentro de `projects/frontend`. |
+| Flutter | `sdk: ^3.12.2` en `projects/mobile/pubspec.yaml` | Cambiás el SDK (con `fvm` o el instalador de Flutter) y corrés `flutter pub upgrade --major-versions`. Este template no commitea `pubspec.lock` (se regenera con `flutter pub get` en cada proyecto nuevo) — a propósito, para que cada proyecto arranque con versiones frescas, pero implica que no hay reproducibilidad de build entre máquinas hasta generar tu propio lock. |
+| Infra Docker | Tags de imagen en `docker-compose.yml` (`postgres:18-alpine`, `redis:8-alpine`, `node:22-alpine`, etc.) | Cambiás el tag y corrés `docker compose pull && docker compose up`. `prometheus:latest` y `grafana:latest` quedan sin pin por comodidad en dev — si te importa la reproducibilidad, conviene fijarlos a una versión concreta. |
+
+### Actualizar librerías de rutina (parches/minor) en un proyecto ya generado
+
+- **Backend**: `mvn versions:display-dependency-updates` (requiere agregar el plugin `versions-maven-plugin`, no viene por defecto) lista qué dependencias tienen versión nueva.
+- **Frontend**: `pnpm outdated` y `pnpm update` (respeta los rangos del `package.json`); para saltar de major, `pnpm up --latest` paquete por paquete.
+- **Mobile**: `flutter pub outdated` y `flutter pub upgrade`.
+
+Estos comandos se corren en el proyecto ya renombrado, no en la plantilla — salvo que quieras que el *próximo* proyecto que arranques desde cero ya venga con esas versiones más nuevas, en cuyo caso el cambio va en `DevelopLayout`.
