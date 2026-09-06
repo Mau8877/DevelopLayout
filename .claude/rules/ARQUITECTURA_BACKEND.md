@@ -27,6 +27,7 @@ com.example.backend
 └── features/
     └── {modulo}/
         ├── controller/  # Entrada HTTP
+        ├── enums/       # Enumeraciones de negocio (si aplica)
         ├── service/     # Lógica de negocio
         ├── repository/  # Acceso a datos (Spring Data JPA)
         ├── dto/         # Contrato con el cliente (Request/Response)
@@ -84,6 +85,7 @@ detalle completo:
 | --- | --- | --- |
 | Sobre de respuesta (`ApiResponse`, `PageMeta`) | `common/response/` | [RESPONSES_BACKEND.md](backend/RESPONSES_BACKEND.md) |
 | Jerarquía de excepciones + `GlobalExceptionHandler` | `common/exception/` | [EXCEPCIONES_BACKEND.md](backend/EXCEPCIONES_BACKEND.md) |
+| `BaseModel` (id interno + codigo UUID público, timestamps, soft delete) | `common/model/` | [CONVENCIONES_JAVA_BACKEND.md](backend/CONVENCIONES_JAVA_BACKEND.md) |
 | Autenticación JWT, `RateLimitFilter`, `@CurrentUserId` | `security/` | [SEGURIDAD_AUTH_BACKEND.md](backend/SEGURIDAD_AUTH_BACKEND.md) |
 | `SecurityConfig` y demás config de Spring | `config/` | — |
 | Convención de rutas, verbos HTTP, paginación | (no es código, es contrato) | [ENDPOINTS_BACKEND.md](backend/ENDPOINTS_BACKEND.md) |

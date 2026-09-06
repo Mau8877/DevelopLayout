@@ -4,6 +4,46 @@ globs: projects/backend/**/*
 
 # Persistencia / Base de Datos — Backend
 
+## Identificador de fila: `id` interno + `codigo` público (patrón `BaseModel`)
+
+Todo Model extiende
+[`common/model/BaseModel.java`](../../../projects/backend/src/main/java/com/example/backend/common/model/BaseModel.java)
+(ver [ARQUITECTURA_BACKEND.md](../ARQUITECTURA_BACKEND.md)), que define
+**dos identificadores distintos**, ambos obligatorios y con roles que no
+se mezclan:
+
+| Campo | Tipo | Rol |
+| --- | --- | --- |
+| `id` | `Long`, `@Id @GeneratedValue(strategy = GenerationType.IDENTITY)` | Clave primaria real de la tabla. **Nunca** se expone en un DTO, una URL, un JWT, ni ningún contrato con el cliente — es un detalle interno de persistencia. |
+| `codigo` | `UUID` | El identificador **público** de la fila — el que sí viaja en DTOs, URLs (`/api/v1/{recurso}/{codigo}`), y claims de JWT. Se genera en la aplicación (`@PrePersist`, `UUID.randomUUID()` si es `null`), no lo genera la base de datos. |
+
+- El nombre de columna de `id` es siempre `id` (genérico, igual en todas
+  las tablas). El de `codigo`, en cambio, se define **por entidad**
+  (`codigo_usuario`, `codigo_pedido`, etc. — se decide al crear el Model,
+  antes de escribir su migración Flyway) porque `BaseModel` es una única
+  clase compartida por todos los Models. Cada entidad concreta fija el
+  nombre de columna real con `@AttributeOverride` sobre el campo heredado:
+
+  ```java
+  @Entity
+  @Table(name = "users")
+  @AttributeOverride(name = "codigo", column = @Column(name = "codigo_usuario"))
+  public class Usuario extends BaseModel {
+      // ...
+  }
+  ```
+
+- `createdAt`/`updatedAt`/`deletedAt` (los otros tres campos de
+  `BaseModel`) **sí** usan el mismo nombre de columna en todas las tablas
+  (`created_at`/`updated_at`/`deleted_at`) — solo `codigo` cambia de
+  nombre por entidad.
+- `JpaRepository<Entidad, Long>` — el tipo de ID del repositorio es
+  siempre `Long` (el de `id`), nunca `UUID`. Para buscar por el
+  identificador público se agrega un finder propio,
+  `findByCodigo(UUID codigo)`, en el repositorio de cada Model — no se usa
+  `findById(UUID)` para eso (no compilaría, y conceptualmente sería
+  buscar por la clave equivocada).
+
 ## Nombres de migraciones Flyway
 
 Formato obligatorio: **`V{yyyyMMddHHmmss}__descripcion.sql`**, ej.:
