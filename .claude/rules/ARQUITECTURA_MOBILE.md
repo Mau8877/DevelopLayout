@@ -11,21 +11,25 @@ transversal a toda la app vive en `core/`.
 
 ## Estructura de `lib/`
 
-Ya scaffoldeada — la estructura real que existe hoy en el repo (`core/`
-con sus tres subcarpetas, y `features/auth/` como ejemplo de referencia
-para toda feature nueva):
+Ya scaffoldeada — la estructura real que existe hoy en el repo (`core/network`
+y `core/theme` ya implementados; `core/routing` todavía vacío; `layouts/`
+y `features/health/` como ejemplo de referencia real; `features/auth/`
+como ejemplo de referencia vacío):
 
 ```
 lib/
 ├── core/
-│   ├── network/     # Cliente dio centralizado (ver CONSUMO_API_MOBILE.md)
-│   ├── routing/     # GoRouter único, con el redirect global (ver NAVEGACION_MOBILE.md)
-│   └── theme/       # ThemeData del proyecto (placeholder hasta que exista la paleta final)
+│   ├── network/     # ApiClient (Dio + interceptor de sobre), ya implementado (ver CONSUMO_API_MOBILE.md)
+│   ├── routing/     # GoRouter único, con el redirect global -- todavía vacío (ver NAVEGACION_MOBILE.md)
+│   └── theme/       # AppColors/AppTheme, ya implementado con paleta neutra de placeholder
+├── layouts/
+│   └── {rol}/       # Shell por rol (AdminShell, UsuarioShell, ya scaffoldeados como ejemplo)
 ├── shared/
 │   └── widgets/     # Widgets usados por 2+ features (ver WIDGETS_UI_MOBILE.md) -- no existe todavía
 ├── features/
+│   ├── health/      # Feature de diagnóstico end-to-end (service+provider+screen) contra el backend real
 │   └── {feature}/   # Un feature de negocio (ver estructura abajo)
-└── main.dart         # Entry point, monta MaterialApp + el GoRouter de core/routing/
+└── main.dart         # Entry point, monta MaterialApp + ProviderScope (sin GoRouter todavía)
 ```
 
 `core/` es la única carpeta de nivel superior con código transversal real
@@ -33,6 +37,21 @@ además de `features/` — no hay una carpeta `common/`/`utils/` genérica
 todavía; si aparece una necesidad concreta de utilidades puramente
 transversales (no ligadas a red, routing ni tema), se define esa carpeta
 en su momento, no se anticipa vacía.
+
+`features/health/` no es una feature de negocio real — existe para probar
+de punta a punta que `ApiClient` (Dio + interceptor) y Riverpod
+(provider + `AsyncValue`) funcionan contra el backend real antes de que
+exista la primera feature real. Se borra o se reemplaza el día que haya un
+mejor lugar para un chequeo de conectividad, mismo criterio que
+`features/home/` en el frontend web.
+
+`layouts/{rol}/` sigue el mismo patrón que
+[ARQUITECTURA_FRONTEND.md](ARQUITECTURA_FRONTEND.md#estructura-de-src) del
+lado web: un shell delgado por rol (`AdminShell`, `UsuarioShell`, ya
+scaffoldeados) que no conoce lógica de negocio, solo la navegación de
+nivel superior de ese rol. Ninguno está conectado a `core/routing/`
+todavía (esa carpeta sigue vacía) — quedan disponibles para montarse
+cuando el proyecto defina su propio `GoRouter`.
 
 ## Estructura de un feature (`lib/features/{feature}/`)
 

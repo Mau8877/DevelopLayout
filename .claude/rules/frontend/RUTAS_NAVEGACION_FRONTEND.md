@@ -94,9 +94,16 @@ layout usuario común, ver [SEGURIDAD_AUTH_BACKEND.md](../backend/SEGURIDAD_AUTH
 para el esquema de roles del lado del backend — el frontend usa el mismo
 `role` que viaja en el JWT/en la respuesta de login).
 
-- `src/layouts/AdminLayout.tsx`, `src/layouts/UsuarioLayout.tsx` — un
-  componente de layout por rol, no un único layout con `if (role === 'ADMIN')`
+- `src/layouts/{rol}/{Rol}Layout.tsx` (ej. `admin/AdminLayout.tsx`,
+  `usuario/UsuarioLayout.tsx`, ya scaffoldeados como ejemplo de referencia)
+  — una subcarpeta por rol con su layout, sus `navItems` (`{rol}NavItems.ts`)
+  y sus tipos (`{rol}Types.ts`), no un único layout con `if (role === 'ADMIN')`
   esparcido dentro (eso se vuelve ilegible apenas se agregan dos roles más).
+  Cada `{Rol}Layout` es un wrapper delgado sobre el `AppShell` genérico de
+  `components/layout/` (ver
+  [ESTADO_GLOBAL_FRONTEND.md](ESTADO_GLOBAL_FRONTEND.md) para dónde vive el
+  estado de sidebar/tema que `AppShell` consume) — le pasa su `appName` y
+  `navItems` propios, nunca al revés (`AppShell` no conoce roles).
 - Asociación ruta ↔ layout: se agrupan las rutas de cada rol bajo su propio
   layout pathless dentro de `_authenticated/`, ej.
   `_authenticated/_admin/...` usa `AdminLayout`, `_authenticated/_usuario/...`

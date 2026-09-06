@@ -31,11 +31,14 @@ src/
 └── index.css             # Directivas de Tailwind + tokens de tema
 ```
 
-`shared/`, `utils/` y `layouts/` no existen todavía como carpetas reales
-(se crean recién cuando aparece el primer caso concreto que las necesita —
-ver el criterio de "no anticipar" en
-[TANSTACK_QUERY_FRONTEND.md](frontend/TANSTACK_QUERY_FRONTEND.md#endpoints-usados-por-más-de-una-feature)),
-salvo `utils/` que ya existe (tiene `debounce.ts`).
+`shared/` no existe todavía como carpeta real (se crea recién cuando
+aparece el primer caso concreto que la necesita — ver el criterio de "no
+anticipar" en
+[TANSTACK_QUERY_FRONTEND.md](frontend/TANSTACK_QUERY_FRONTEND.md#endpoints-usados-por-más-de-una-feature)).
+`utils/` y `layouts/` ya existen: `utils/` tiene `debounce.ts`,
+`dayjsEs.ts`, `formatRelativeDate.ts` y `runThemeTransition.ts`; `layouts/`
+tiene un layout por rol de ejemplo (`admin/`, `usuario/`) — ver
+[Layouts por rol](frontend/RUTAS_NAVEGACION_FRONTEND.md#layouts-por-rol).
 
 ## Estructura de un feature (`src/features/{feature}/`)
 

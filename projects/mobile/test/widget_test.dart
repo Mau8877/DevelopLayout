@@ -1,30 +1,21 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:mobile/main.dart';
+import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/layouts/usuario/usuario_shell.dart';
 
+// * No se testea `MyApp` completo -- `main()` depende de `dotenv.load()`
+// * (lee un archivo real), que no tiene sentido resolver en un widget test.
+// * `UsuarioShell` no depende de ningún router (core/routing/ todavía no
+// * existe, ver ARQUITECTURA_MOBILE.md), así que se monta directo en un
+// * MaterialApp para verificar que el shell de un rol renderiza bien.
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('muestra la sección inicial del shell de usuario', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(theme: AppTheme.light, home: const UsuarioShell()),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Inicio'), findsWidgets);
+    expect(find.byIcon(Icons.person_outline), findsOneWidget);
   });
 }
