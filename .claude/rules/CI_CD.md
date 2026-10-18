@@ -49,6 +49,12 @@ sin nada adicional inventado solo para CI:
 | `frontend` | `pnpm install --frozen-lockfile` (desde la raíz, ver [docs/README.md](../../docs/README.md)) → `pnpm lint` → `pnpm test` → `pnpm build` |
 | `mobile` | `flutter pub get` → `flutter analyze` → `flutter test` |
 
+- El job de `backend` levanta `postgres:18-alpine` y `redis:8-alpine` como
+  `services:` del job (mismas versiones que `docker-compose.yml`) y le pasa
+  `SPRING_DATASOURCE_*`/`SPRING_DATA_REDIS_HOST` al paso de tests: el test
+  `@SpringBootTest` (`AppBackendApplicationTests`) arranca el contexto completo,
+  y sin base de datos ni Redis Flyway/el health check lo harían fallar. Si
+  se renombra la base (`POSTGRES_DB`), se actualiza también en `ci.yml`.
 - El job de `backend` corre en un runner de Ubuntu, que trae Docker nativo
   disponible — a diferencia del setup local en Windows (ver
   [TESTING_BACKEND.md](backend/TESTING_BACKEND.md)), acá los tests que

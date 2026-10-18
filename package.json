@@ -1,6 +1,9 @@
 {
 	"name": "developlayout",
 	"private": true,
+	"engines": {
+		"node": ">=22"
+	},
 	"scripts": {
 		"prepare": "husky"
 	},

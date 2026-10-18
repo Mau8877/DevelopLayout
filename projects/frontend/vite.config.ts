@@ -38,5 +38,8 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/setupTests.ts',
+    // * Node 25+ trae un `localStorage` experimental que tapa el de jsdom y rompe los tests que lo usan;
+    // * se apaga para que la suite pase igual en cualquier versión de Node.
+    execArgv: ['--no-experimental-webstorage'],
   },
 })

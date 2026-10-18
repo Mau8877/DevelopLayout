@@ -41,6 +41,33 @@ jobs:
     defaults:
       run:
         working-directory: projects/backend
+    # * Servicios reales para los tests que arrancan el contexto completo de Spring
+    # * (AppBackendApplicationTests: Flyway necesita Postgres; el health check de /health
+    # * necesita Redis). Mismas versiones que docker-compose.yml. Credenciales descartables
+    # * de CI, no secretos: la base vive solo mientras dura el job.
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: app_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d app_db"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -58,6 +85,11 @@ jobs:
         run: ./mvnw -B checkstyle:check
       - name: Tests
         run: ./mvnw -B test
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/app_db
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: postgres
+          SPRING_DATA_REDIS_HOST: localhost
       - name: Build
         run: ./mvnw -B clean package -DskipTests
 

@@ -154,11 +154,11 @@ pasar por el proxy.
 
 ### 2.6 `minio` + `minio-init` — almacenamiento de archivos (S3-compatible)
 
-- **`minio`**: imagen `minio/minio`, expone la API S3 en `9000` y la
+- **`minio`**: imagen `cgr.dev/chainguard/minio` (`minio/minio` ya no existe en Docker Hub; corre con `user: '0'` y su healthcheck usa `/dev/tcp` de bash porque no trae curl), expone la API S3 en `9000` y la
   consola web de administración en `9001`. Credenciales de
   `${MINIO_ROOT_USER}`/`${MINIO_ROOT_PASSWORD}`. Volumen `minio_data:/data`
   para persistencia.
-- **`minio-init`**: contenedor de **una sola corrida** (imagen `minio/mc`,
+- **`minio-init`**: contenedor de **una sola corrida** (imagen `bitnamilegacy/minio-client`, porque `minio/mc` ya no se publica en Docker Hub y la de Chainguard no trae `sh`;
   el cliente de línea de comandos de MinIO). Corre
   `infrastructure/minio/create-buckets.sh` una vez, crea el bucket, y
   termina (`Exited (0)` es su estado normal y esperado — **no** es un
