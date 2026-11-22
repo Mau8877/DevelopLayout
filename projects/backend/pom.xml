@@ -176,6 +176,16 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<!-- Perfil test: ver src/test/resources/application-test.properties -->
+					<systemPropertyVariables>
+						<spring.profiles.active>test</spring.profiles.active>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+			<plugin>
 				<!-- No atado a ninguna fase del build, mvn test/package no lo corren.
 				     Se invoca a mano con `mvn checkstyle:check`, igual que ESLint se
 				     invoca aparte de `pnpm build` en el frontend. Ver checkstyle.xml
