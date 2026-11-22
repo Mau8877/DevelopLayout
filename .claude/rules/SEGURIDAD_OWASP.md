@@ -57,7 +57,7 @@ terminada si incumple un punto de acá. Si una regla más específica
 
 ## Frontend (aplica A01/A02/A05 del lado cliente)
 
-- Access token **solo en memoria** (ver [SEGURIDAD_AUTH_BACKEND.md](backend/SEGURIDAD_AUTH_BACKEND.md)); nunca `localStorage`/`sessionStorage` para tokens.
+- Web: tokens **solo en cookies `HttpOnly`** con CSRF double-submit (ver [SEGURIDAD_AUTH_BACKEND.md](backend/SEGURIDAD_AUTH_BACKEND.md)); nunca `localStorage`/`sessionStorage` ni memoria de JS para tokens.
 - Prohibido `dangerouslySetInnerHTML` con contenido no sanitizado, `eval`, `new Function`, y `target="_blank"` sin `rel="noopener noreferrer"`.
 - Las rutas protegidas son una comodidad de UX; **la autorización real es del backend**. Nunca ocultar un botón como único control.
 - Producción: la CSP, HSTS y demás cabeceras las pone nginx (ver [INFRAESTRUCTURA](../../docs/INFRAESTRUCTURA.md)).

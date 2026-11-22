@@ -21,68 +21,52 @@ arranque). Esto es **solo un placeholder de desarrollo** y debe
 reemplazarse por la implementación real descrita abajo antes de considerar
 la autenticación "hecha" — no es un requisito opcional.
 
-## Flujo: JWT + refresh token
+## Flujo: JWT + refresh token (web: solo cookies)
 
-> **Decisión de diseño: cookie `HttpOnly` para el refresh token, access
-> token en memoria — no "todo en cookies".** Se evaluó explícitamente
-> mover también el access token a una cookie `HttpOnly` (para que ningún
-> token sea legible por JavaScript en ningún momento) contra el esquema
-> híbrido documentado abajo (access token en memoria + refresh token en
-> cookie `HttpOnly`), y se **confirmó el híbrido** — es el patrón estándar
-> de la industria para SPAs (mismo enfoque que recomiendan proveedores
-> como Auth0/Okta), por dos razones concretas:
-> 1. **Inmunidad a CSRF en los endpoints de negocio.** El header
->    `Authorization` nunca se auto-envía (a diferencia de una cookie, que
->    el browser adjunta solo) — un endpoint que exige ese header queda
->    protegido contra CSRF sin necesitar un token anti-CSRF adicional. Si
->    el access token también fuera cookie, **todos** los endpoints de
->    negocio necesitarían esa protección extra (`SameSite=Strict` no
->    alcanza solo, o un patrón de doble-submit) — complejidad real sin un
->    beneficio de seguridad proporcional para el alcance de este proyecto.
-> 2. **El refresh token (el credential de larga vida, el que más importa
->    proteger) sí queda completamente fuera del alcance de JavaScript**
->    vía `HttpOnly` — el access token, al ser de vida corta (~15 min) y
->    nunca tocar disco (ni `localStorage` ni cookie), acota el daño de un
->    XSS exitoso a esa ventana de tiempo.
-> No se reabre esta decisión sin una razón concreta nueva (un requisito de
-> seguridad que el esquema actual no cubra) — no "por prolijidad" de tener
-> todo en cookies.
+> **Decisión de diseño (revisada): en web, TODO viaja en cookies
+> `HttpOnly`; nada de tokens en `localStorage`/`sessionStorage` ni en
+> memoria de JavaScript.** Antes se había elegido un esquema híbrido
+> (access token en memoria + refresh en cookie). Se cambió por pedido
+> explícito del proyecto: ningún token es legible por JavaScript, lo que
+> reduce el robo de credenciales por XSS. El costo es que una cookie se
+> adjunta sola, así que **todos los endpoints de negocio quedan expuestos
+> a CSRF y necesitan protección anti-CSRF** (ver abajo). No se vuelve a
+> guardar un token en el storage del navegador.
 
-- **Access token**: JWT de corta duración (ej. 15 minutos). Va en el header
-  `Authorization: Bearer <token>` en cada request. Contiene el identificador
-  del usuario y la lista de sus roles activos (ver
-  [Roles](#roles-y-permisos)) como claims — nada sensible además de eso.
-  Viaja en el **body** de la respuesta de login (el cliente lo guarda en
-  memoria, nunca en `localStorage`/cookie).
-- **Refresh token**: de larga duración (ej. 7 días), opaco (UUID aleatorio,
-  no JWT), persistido en **Redis** (ver abajo). Se usa únicamente contra el
-  endpoint de refresh, nunca contra endpoints de negocio.
-- **Transporte del refresh token: cookie `HttpOnly`, no en el body.** El
-  cliente (browser) nunca ve ni maneja el valor del refresh token —
-  `document.cookie` no puede leerla, lo que mitiga robo por XSS. El backend
-  la setea/borra explícitamente en cada respuesta relevante:
+- **Access token**: JWT firmado de corta duración (15 minutos) con el
+  `codigo` del usuario (`sub`) y la lista de roles activos como claims,
+  nada más. Viaja en la cookie `accessToken`; el backend también lo acepta
+  en `Authorization: Bearer` para clientes que no son navegador (mobile).
+- **Refresh token**: opaco (UUID aleatorio, no JWT), 7 días, persistido en
+  **Redis** con TTL y rotado en cada uso. Viaja en la cookie
+  `refreshToken`. Solo se usa contra `/api/v1/auth/refresh` y `/logout`.
+- **Cookies (web)**:
 
-  | Cookie | `refreshToken` |
-  | --- | --- |
-  | Atributos | `HttpOnly`; `SameSite=Lax`; `Path=/api/v1/auth`; `Max-Age` = duración del refresh token (ej. 7 días en segundos) |
-  | `Secure` | `true` en producción; `false` en `dev` (el stack local corre sobre HTTP) — controlado por `app.cookies.secure` (`application-dev.properties` lo pisa a `false`) |
-  | La setea | `POST /api/v1/auth/login` (al emitir uno nuevo) y `POST /api/v1/auth/refresh` si rota el token |
-  | La borra | `POST /api/v1/auth/logout` (`Max-Age=0`) |
-  | La lee | `POST /api/v1/auth/refresh` y `POST /api/v1/auth/logout` — **nunca** del body del request, del header `Cookie` vía `@CookieValue` |
+  | Cookie | `accessToken` | `refreshToken` |
+  | --- | --- | --- |
+  | Atributos comunes | `HttpOnly`; `SameSite=Strict`; `Secure` en producción (`app.cookies.secure`, `false` en `dev`) | igual |
+  | `Path` | `/api` | `/api/v1/auth` |
+  | `Max-Age` | 15 minutos | 7 días |
+  | La setea | login y refresh | login y refresh (rota) |
+  | La borra | logout (`Max-Age=0`) | logout (`Max-Age=0`) |
 
-  `SameSite=Lax` alcanza porque frontend y backend son **same-site** (mismo
-  dominio registrable `localhost` en dev vía puertos distintos, mismo
-  origen real detrás de nginx en producción, ver
-  [`docker-compose.yml`](../../../docker-compose.yml)) — un request
-  programático (`fetch`/axios) same-site igual envía la cookie aunque sea
-  `Lax`, esa restricción solo afecta navegación cross-site de nivel
-  superior. El cliente HTTP (`apiClient`/`axios`) necesita
-  `withCredentials: true` para que el browser adjunte/acepte esta cookie
-  entre orígenes distintos (ver
-  [TANSTACK_QUERY_FRONTEND.md](../frontend/TANSTACK_QUERY_FRONTEND.md)), y
-  `SecurityConfig` ya tiene `allowCredentials(true)` en su configuración de
-  CORS — necesario para que el browser acepte la cookie en una respuesta
-  cross-origin.
+  Frontend y backend son same-site (puertos distintos en dev, mismo origen
+  tras nginx en producción), por eso `SameSite=Strict` funciona con
+  `fetch`/axios. El cliente HTTP usa `withCredentials: true` y
+  `SecurityConfig` ya tiene `allowCredentials(true)` en CORS.
+- **Protección CSRF (obligatoria con cookies)**: patrón *double submit*
+  de Spring Security (`CookieCsrfTokenRepository.withHttpOnlyFalse()` +
+  `CsrfTokenRequestAttributeHandler`). El backend setea la cookie
+  `XSRF-TOKEN` (legible por JS, no es una credencial) y el cliente la
+  devuelve en el header `X-XSRF-TOKEN` en todo `POST/PUT/PATCH/DELETE`
+  (axios lo hace solo con `xsrfCookieName`/`xsrfHeaderName`). Las
+  peticiones con `Authorization: Bearer` (mobile) no usan cookies y quedan
+  exentas. Además, `CORS` limita los orígenes a `CORS_ALLOWED_ORIGINS`.
+- **Clientes mobile (excepción)**: una app no tiene cookies del navegador.
+  Con el header `X-Client-Type: mobile`, login y refresh devuelven ambos
+  tokens en el **body** y la app los guarda en `flutter_secure_storage`
+  (Keystore/Keychain, MASVS-STORAGE); refresh y logout reciben el refresh
+  token en el body. Sin ese header se usa siempre cookie.
 - **Endpoints** (`/api/v1/auth/...`):
   - `POST /api/v1/auth/login` → valida credenciales, responde
     `{ accessToken, usuario }` en el body y setea la cookie `refreshToken`.

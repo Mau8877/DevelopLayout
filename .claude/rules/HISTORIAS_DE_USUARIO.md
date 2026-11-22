@@ -24,6 +24,17 @@ códigos de error de
 una vez no se reasigna a otra cosa). El nombre corto del archivo coincide
 con el campo "Nombre corto de HU" de la tabla interna (ver abajo).
 
+## HU iniciales (`HU-INICIAL-{Nombre}`)
+
+El layout trae HU ya redactadas para la autenticación, en
+`docs/HistoriasDeUsuario/HU-INICIAL-{Nombre}.md` (`Base`, `Login`,
+`Refresh`, `Logout`, `OlvidePassword`). Van **fuera de la numeración**
+`HU{NN}`: no consumen números, así que las HU propias de cada proyecto
+nuevo siguen empezando en `HU01`. Su Id es `HU-INICIAL-{NOMBRE}` y sus UT
+usan el código `UT-HUI-{NOMBRE}-{CAPA}-{NN}` (ej. `UT-HUI-LOGIN-BE-01`),
+con la carpeta `docs/UnidadesTrabajo/HU-INICIAL-{Nombre}/`. El resto del
+formato de esta rule aplica igual.
+
 ## Granularidad: una HU, un flujo
 
 **Si una funcionalidad agrupa más de un flujo de usuario independiente,

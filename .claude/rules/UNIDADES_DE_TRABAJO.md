@@ -63,6 +63,11 @@ El código es único en todo el repositorio (no solo dentro de su carpeta)
 — sirve para citarlo en un commit o un PR sin ambigüedad
 (`feat[BACK]: UT-HU01-BE-07 -- AuthService.login()`).
 
+> **HU iniciales:** para las `HU-INICIAL-{Nombre}` (ver
+> [HISTORIAS_DE_USUARIO.md](HISTORIAS_DE_USUARIO.md#hu-iniciales-hu-inicial-nombre))
+> la carpeta es `docs/UnidadesTrabajo/HU-INICIAL-{Nombre}/` y el código es
+> `UT-HUI-{NOMBRE}-{CAPA}-{NN}`.
+
 ## El `README.md` de cada capa
 
 Es el índice y el "mapa de diseño" de esa capa para esa HU puntual —
