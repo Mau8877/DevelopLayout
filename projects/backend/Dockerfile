@@ -2,7 +2,7 @@
 # ETAPA 1: CONSTRUCCIÓN (Builder)
 # ==========================================
 # Utilizamos una imagen pesada que contiene Maven y el JDK completo
-FROM maven:3.9-eclipse-temurin-21-alpine AS builder
+FROM maven:3.9-eclipse-temurin-26-alpine AS builder
 
 WORKDIR /build
 
