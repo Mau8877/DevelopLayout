@@ -29,13 +29,24 @@ RUN pnpm install --frozen-lockfile --filter frontend...
 
 # 2. Copiamos el código fuente del frontend y compilamos
 COPY projects/frontend ./projects/frontend
+# Vite incrusta VITE_* en el bundle al compilar (no se leen en runtime). En
+# producción el frontend y la API comparten origen detrás del proxy, así
+# que la URL es relativa.
+ARG VITE_API_BASE_URL=/api/v1
+ARG VITE_ENABLE_API_LOGS=false
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL VITE_ENABLE_API_LOGS=$VITE_ENABLE_API_LOGS
 RUN pnpm --filter frontend build
 
 # ==========================================
 # ETAPA 2: SERVIR CON NGINX (producción)
 # ==========================================
-FROM nginx:alpine
+# nginx-unprivileged: corre como usuario sin privilegios y escucha en 8080
+# (un puerto >1024 no necesita root). Sirve solo estáticos; el proxy de
+# infrastructure/nginx/nginx.prod.conf es el que enruta /api al backend.
+FROM nginxinc/nginx-unprivileged:stable-alpine
+COPY projects/frontend/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/projects/frontend/dist /usr/share/nginx/html
 
-EXPOSE 80
+USER 101
+EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
