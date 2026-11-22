@@ -18,7 +18,7 @@ propios permisos.
 
 | Schema | Dominio | Tablas |
 | --- | --- | --- |
-| `authentication` | Identidad, acceso y trazabilidad. **Siempre existe**, en todo proyecto que nazca de esta plantilla. | `usuarios`, `roles`, `usuarios_roles`, `sesiones`, `bitacora` |
+| `authentication` | Identidad, acceso y trazabilidad. **Siempre existe**, en todo proyecto que nazca de esta plantilla. | `usuario`, `rol`, `usuario_rol`, `sesion`, `bitacora` |
 | `public` | Solo lo técnico: `flyway_schema_history` y extensiones. **Ninguna tabla de negocio.** | — |
 
 Cada proyecto agrega los suyos (`orders`, `teams`, ...) y los lista en esta
@@ -70,8 +70,12 @@ migración; fusionar schemas después también, pero con más dolor.
 - Schema: **minúscula, `snake_case`, sustantivo del dominio** (`authentication`,
   `orders`, `teams`). Inmutable una vez creado: renombrarlo rompe migraciones
   ya aplicadas.
+- **Los schemas siempre en inglés** (`authentication`, `orders`, `teams`,
+  `billing`), aunque tablas y columnas estén en español: el schema es el
+  nombre del dominio como "módulo" del sistema, no una tabla.
 - Las tablas siguen [PERSISTENCIA_BD_BACKEND.md](PERSISTENCIA_BD_BACKEND.md)
-  (plural, `snake_case`).
+  (en español, **singular**, `snake_case`: `usuario`, `rol`, `usuario_rol`,
+  `sesion`, `bitacora`).
 
 ## Cómo se implementa
 
@@ -81,7 +85,7 @@ migración; fusionar schemas después también, pero con más dolor.
   schema de negocio).
 - La primera migración de un schema lo crea:
   `CREATE SCHEMA IF NOT EXISTS orders;`. Después, **todo objeto se escribe
-  calificado** (`orders.pedidos`, `orders.idx_pedidos_usuario`), nunca
+  calificado** (`orders.pedido`, `orders.idx_pedido_usuario`), nunca
   dependiendo del `search_path`.
 - Una migración toca **un solo schema** salvo que la dependencia sea
   explícita (ej. una FK hacia `authentication.usuarios`).
@@ -117,7 +121,7 @@ El schema va **explícito en el Model**, no en una configuración global:
 
 ```java
 @Entity
-@Table(name = "usuarios", schema = "authentication")
+@Table(name = "usuario", schema = "authentication")
 @AttributeOverride(name = "codigo", column = @Column(name = "codigo_usuario"))
 public class Usuario extends BaseModel { ... }
 ```
@@ -133,7 +137,7 @@ RLS sigue exactamente igual
 ([BASE_DE_DATOS_PRIVADA_RLS.md](BASE_DE_DATOS_PRIVADA_RLS.md)): por tabla,
 con `ENABLE` + `FORCE` y políticas en la misma migración. Los prefijos de
 código de error y el campo `module` de los logs siguen al módulo Java
-(`auth`, `pedidos`), no al nombre del schema.
+(`auth`, `pedidos`), no al nombre del schema ni al de la tabla.
 
 ## Dependencias entre schemas
 
@@ -141,7 +145,12 @@ Mismo sentido que la regla de dependencia de
 [ARQUITECTURA_BACKEND.md](../ARQUITECTURA_BACKEND.md#regla-de-dependencia):
 
 - Un schema de negocio **puede** referenciar a `authentication` con una
-  FK (ej. `orders.pedidos.usuario_id → authentication.usuarios.id`).
+  FK, **siempre por `codigo` (UUID), nunca por `id`** (ej.
+  `orders.pedido.usuario_codigo → authentication.usuario.codigo_usuario`).
+  Esto vale para toda FK entre schemas. En el Model Java esa columna se
+  mapea como un `UUID` simple (`usuarioCodigo`), **sin** `@ManyToOne` hacia
+  el Model de otro schema: el acceso al dato ajeno pasa por el `service` de
+  su dueño. Cada FK de este tipo lleva su índice.
 - `authentication` **nunca** referencia a un schema de negocio.
 - Entre schemas de negocio no hay FKs salvo justificación escrita en el
   `README.md` de las UT. Aun con FK, desde Java un módulo accede a los datos

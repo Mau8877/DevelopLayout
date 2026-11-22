@@ -21,10 +21,10 @@ Toda tabla nueva se crea con RLS **activado y forzado**, y con al menos una
 política. Es el default; la excepción es la que se justifica.
 
 ```sql
-ALTER TABLE orders.pedidos ENABLE ROW LEVEL SECURITY;
-ALTER TABLE orders.pedidos FORCE ROW LEVEL SECURITY;   -- aplica también al dueño de la tabla
+ALTER TABLE orders.pedido ENABLE ROW LEVEL SECURITY;
+ALTER TABLE orders.pedido FORCE ROW LEVEL SECURITY;   -- aplica también al dueño de la tabla
 
-CREATE POLICY pedidos_aislamiento ON orders.pedidos
+CREATE POLICY pedido_aislamiento ON orders.pedido
     USING (usuario_codigo = current_setting('app.current_user', true)::uuid)
     WITH CHECK (usuario_codigo = current_setting('app.current_user', true)::uuid);
 ```

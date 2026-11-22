@@ -83,8 +83,10 @@ evitar conflictos de merge, no un descuido.
 
 - **Java (Models/campos)**: `camelCase`. Clases en `PascalCase` singular
   (`Usuario`, `PedidoItem`).
-- **Base de datos (tablas/columnas)**: `snake_case`. Tablas en plural
-  (`usuarios`, `pedido_items`).
+- **Base de datos (tablas/columnas)**: `snake_case`, en español. Tablas en
+  **singular**, igual que el Model (`usuario`, `pedido_item`, `usuario_rol`):
+  una tabla es la definición de una fila. Los **schemas** van en inglés (ver
+  [SCHEMAS_BD_BACKEND.md](SCHEMAS_BD_BACKEND.md)).
 - La conversión `camelCase` (Java) → `snake_case` (columna) es **automática**
   vía la estrategia de nombrado default de Spring Boot/Hibernate
   (`SpringPhysicalNamingStrategy` sobre `CamelCaseToUnderscoresNamingStrategy`)
@@ -92,15 +94,21 @@ evitar conflictos de merge, no un descuido.
   convertir el case. Se usa `@Column(name = "...")` explícito únicamente
   cuando el nombre de columna necesita diferir del derivado automáticamente
   por alguna razón puntual (ej. una palabra reservada de SQL).
-- Nombre de tabla explícito (`@Table(name = "...")`) cuando el plural
-  automático no da el resultado correcto en español (ej. un Model
-  `MenuSemanal` no debería terminar en una tabla mal pluralizada) — se revisa
-  caso por caso, no se asume que el default siempre acierta en español.
+- El `@Table` siempre lleva `name` y `schema` explícitos
+  (`@Table(name = "usuario_rol", schema = "authentication")`): el nombre de
+  tabla no se deriva del nombre de la clase, así un cambio de nombre de clase
+  nunca renombra una tabla sin que alguien lo decida en una migración.
 
 ## Claves foráneas e índices
 
-- Nombre de columna FK: `{model_referenciado_singular}_id` (ej.
-  `usuario_id` en la tabla `pedidos`).
+- **FK dentro del mismo schema**: columna `{tabla_referenciada}_id` hacia el
+  `id` de la tabla referenciada (ej. `usuario_id` en `authentication.sesion`).
+- **FK entre schemas distintos: nunca por `id`, siempre por `codigo`.** La
+  columna se llama `{tabla_referenciada}_codigo` (`UUID`) y apunta a la
+  columna `codigo_{tabla}` (única) de la tabla referenciada (ej.
+  `orders.pedido.usuario_codigo → authentication.usuario.codigo_usuario`).
+  El `id` interno nunca sale del schema que lo posee, igual que nunca sale
+  de la API. Ver [SCHEMAS_BD_BACKEND.md](SCHEMAS_BD_BACKEND.md#dependencias-entre-schemas).
 - Toda FK lleva su índice correspondiente si se va a filtrar/joinear por ella
   con frecuencia (no depender del default de Postgres, que no indexa FKs
   automáticamente).

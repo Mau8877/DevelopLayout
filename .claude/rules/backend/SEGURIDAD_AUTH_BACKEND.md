@@ -38,7 +38,7 @@ la autenticación "hecha" — no es un requisito opcional.
   nada más. Viaja en la cookie `accessToken`; el backend también lo acepta
   en `Authorization: Bearer` para clientes que no son navegador (mobile).
 - **Refresh token**: opaco (UUID aleatorio, no JWT), 7 días, rotado en cada
-  uso. Se guarda **solo su hash** en la tabla `sesiones` (Postgres es la fuente
+  uso. Se guarda **solo su hash** en la tabla `sesion` (Postgres es la fuente
   de verdad: una fila por inicio de sesión, con tipo de cliente, IP, user
   agent, estado y fechas). Viaja en la cookie `refreshToken` y solo se usa
   contra `/api/v1/auth/refresh` y `/logout`. La sesión dura 7 días desde su
@@ -79,7 +79,7 @@ la autenticación "hecha" — no es un requisito opcional.
   - `POST /api/v1/auth/login` → valida credenciales, responde
     `{ accessToken, usuario }` en el body y setea la cookie `refreshToken`.
   - `POST /api/v1/auth/refresh` → lee el refresh token de la cookie, busca
-    su hash en `sesiones`, valida que la sesión esté `ACTIVA` y no vencida,
+    su hash en `sesion`, valida que la sesión esté `ACTIVA` y no vencida,
     rota el hash (guardando el anterior para detectar reutilización) y
     responde con un access token nuevo y la cookie nueva.
   - `POST /api/v1/auth/logout` → revoca la sesión (`REVOCADA`), la agrega a la
@@ -94,7 +94,7 @@ la autenticación "hecha" — no es un requisito opcional.
 
 ## Reemplazo del `InMemoryUserDetailsManager`
 
-- Model `Usuario` (tabla `users`, `features/usuarios/model/Usuario.java`,
+- Model `Usuario` (tabla `usuario`, schema `authentication`, `features/usuarios/model/Usuario.java`,
   extiende `BaseModel` — ver [ARQUITECTURA_BACKEND.md](../ARQUITECTURA_BACKEND.md))
   con al menos: `username` (único), `correo`/`email` (único), `passwordHash`
   (BCrypt, nunca texto plano), `estado` (enum de negocio — ej.
@@ -146,7 +146,7 @@ que va a hacer falta esa flexibilidad.
 - Los nombres de rol conocidos por el sistema (ej. `"SUPER_ADMIN"`, `"USUARIO"`)
   se validan/usan como constantes de texto (`RolNombres` o similar, en
   `features/usuarios/`), **no** como un enum Java cerrado — los roles son
-  datos (filas de la tabla `ROL`), administrables sin desplegar código
+  datos (filas de la tabla `rol`), administrables sin desplegar código
   nuevo.
 - El JWT lleva la lista de nombres de roles activos como claim (array de
   strings, ver [Flujo JWT](#flujo-jwt--refresh-token)) — `UserDetailsServiceImpl`
