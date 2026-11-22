@@ -81,7 +81,7 @@ pasar por el proxy.
   - `frontend_node_modules_root` y `frontend_node_modules_pkg` — **aislados**
     del bind mount de arriba, a propósito.
 
-### 2.3 `backend` — Spring Boot 4.1 / Java 21 (modo desarrollo)
+### 2.3 `backend` — Spring Boot 4.2 / Java 21 (modo desarrollo)
 
 - **Imagen**: `maven:3.9-eclipse-temurin-21-alpine` (Maven + JDK 21, imagen
   genérica).
@@ -438,6 +438,20 @@ del repo.
 Probado real: build exitoso, contenedor corriendo, `200` +
 `<title>frontend</title>` al pedir `/`.
 
+## 7b. Seguridad de la infraestructura (resumen)
+
+- Todos los puertos publicados al host van en `127.0.0.1`.
+- Redis exige `REDIS_PASSWORD`; Grafana exige `GRAFANA_ADMIN_PASSWORD`;
+  `POSTGRES_PASSWORD` y `MINIO_ROOT_PASSWORD` no tienen default
+  (`docker compose` falla si faltan).
+- El bucket de MinIO es **privado**.
+- Imágenes con tag fijo (`prom/prometheus:v3.14.0`, `grafana/grafana:13.3.0`,
+  `nginx:stable-alpine`).
+- nginx: `server_tokens off`, cabeceras de seguridad, `limit_req` en `/api/`
+  y `X-Forwarded-For` sobrescrito (no acumulado).
+- Config base del backend segura; lo cómodo (Swagger, `show-sql`, health
+  detallado) solo en el perfil `dev`.
+
 ## 8. Qué NO está implementado todavía (para que quede explícito, no ambiguo)
 
 - **Sin dashboards de Grafana** — solo el datasource de Prometheus está
@@ -450,8 +464,16 @@ Probado real: build exitoso, contenedor corriendo, `200` +
   `SEGURIDAD_AUTH_BACKEND.md#rate-limit`).
 - **Redis está levantado y conectado, pero sin ningún uso real** todavía
   (el caso de uso planeado —refresh tokens— no está implementado).
-- **Sin CI** — no hay `.github/workflows/` ni ningún pipeline que corra
-  tests/lint automáticamente en un push o PR.
+- **CI sin controles de seguridad todavía** — `ci.yml` corre lint/test/build,
+  pero faltan auditoría de dependencias y detección de secretos (ver
+  `CI_CD.md`).
+- **Sin compose de producción** — `docker-compose.yml` es solo desarrollo
+  (monta `docker.sock`, bind mounts, `mvn spring-boot:run`). Falta un
+  `docker-compose.prod.yml` sin `ports:` para BD/Redis/MinIO, sin socket y
+  con TLS en nginx; depende de decidir el destino de despliegue.
+- **Sin rol `app_runtime` en Postgres** — la app aún se conecta con el
+  superusuario del contenedor, que **ignora RLS**. Se crea junto con la
+  autenticación (ver `BASE_DE_DATOS_PRIVADA_RLS.md`).
 - **`infrastructure/postgres/init/` y `infrastructure/docker/` están
   vacías** (`.gitkeep`) — reservadas para scripts de inicialización de
   Postgres o configuración Docker adicional que todavía no hizo falta.

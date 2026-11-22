@@ -8,7 +8,7 @@ desarrollo que los conecta a todos.
 
 | Proyecto | Tecnología |
 | --- | --- |
-| **Backend** (`projects/backend`) | Java 21 + Spring Boot 4.1 (Maven), PostgreSQL + Flyway, Redis (caché), MinIO (archivos) |
+| **Backend** (`projects/backend`) | Java 21 + Spring Boot 4.2 (Maven), PostgreSQL + Flyway, Redis (caché), MinIO (archivos) |
 | **Frontend** (`projects/frontend`) | React 19 + TypeScript + Vite, TanStack (Query/Router/Form/Table), Tailwind CSS 4 + shadcn |
 | **Mobile** (`projects/mobile`) | Flutter/Dart, Riverpod (estado), `go_router` (navegación), `dio` (HTTP) |
 | **Infraestructura** (`infrastructure/`) | Docker Compose: nginx (proxy), postgres, redis, minio, prometheus, grafana |
