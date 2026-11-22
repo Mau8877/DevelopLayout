@@ -26,6 +26,7 @@ Existe `POST /api/v1/auth/password/forgot` con respuesta uniforme.
 - Límite propio: por IP y por correo (clave `auth:forgot:{hash}`), p. ej. 3 por hora por correo; excedido → 429 con el sobre estándar y `ERR_SYS_02`.
 - `SecurityConfig`: `permitAll` SOLO para esta ruta, con comentario (el usuario no tiene sesión); CSRF activo en web.
 - Logs: `INFO` sin token; `WARN` al exceder límite.
+- Registra `AUTH_RECUPERACION_SOLICITADA` en la bitácora solo cuando el usuario existe, con el correo como hash corto.
 
 **Archivos esperados (crear/tocar):**
 
@@ -34,6 +35,7 @@ Existe `POST /api/v1/auth/password/forgot` con respuesta uniforme.
 - `projects/backend/src/main/java/com/example/backend/features/auth/dto/ForgotPasswordRequest.java`
 - `projects/backend/src/main/java/com/example/backend/config/SecurityConfig.java`
 - `projects/backend/src/main/java/com/example/backend/security/RateLimitFilter.java`
+- `projects/backend/src/main/java/com/example/backend/features/auth/AuthAcciones.java`
 
 ## Fuera de alcance (no tocar)
 

@@ -27,6 +27,7 @@ Existen `GET /api/v1/auth/csrf`, `POST /api/v1/auth/login` y `GET /api/v1/auth/m
 - `LoginRequest` con `@Email` y `@Size(min=8,max=72)` en `password`; rechaza propiedades desconocidas.
 - `SecurityConfig`: `permitAll` SOLO para `GET /api/v1/auth/csrf` y `POST /api/v1/auth/login` (públicos por diseño: aún no hay sesión); `/me` queda autenticado. Justificación en un comentario junto a la regla.
 - Rate limit más estricto para `/api/v1/auth/login` por IP, además del global.
+- Pasa al service la IP (`request.getRemoteAddr()`), el user agent y el tipo de cliente (header `X-Client-Type`).
 
 **Archivos esperados (crear/tocar):**
 

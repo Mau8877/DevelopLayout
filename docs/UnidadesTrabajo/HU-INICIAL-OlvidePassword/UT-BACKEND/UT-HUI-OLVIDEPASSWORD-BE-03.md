@@ -5,7 +5,7 @@
 | **Código** | `UT-HUI-OLVIDEPASSWORD-BE-03` |
 | **Nombre** | PasswordResetTokenService |
 | **Historia** | HU-INICIAL-OlvidePassword-BE |
-| **Depende de** | Redis (existente), HU-INICIAL-Refresh: RefreshTokenService.revocarTodas |
+| **Depende de** | Redis (existente), HU-INICIAL-Refresh: SesionService.revocar |
 
 ## Antes de implementar
 

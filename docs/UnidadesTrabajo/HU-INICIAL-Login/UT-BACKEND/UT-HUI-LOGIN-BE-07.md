@@ -5,7 +5,7 @@
 | **Código** | `UT-HUI-LOGIN-BE-07` |
 | **Nombre** | AuthService.login y me |
 | **Historia** | HU-INICIAL-Login-BE |
-| **Depende de** | UT-HUI-LOGIN-BE-02, UT-HUI-LOGIN-BE-03, UT-HUI-LOGIN-BE-04, UT-HUI-LOGIN-BE-05 |
+| **Depende de** | UT-HUI-LOGIN-BE-02, UT-HUI-LOGIN-BE-03, UT-HUI-LOGIN-BE-04, UT-HUI-LOGIN-BE-05, UT-HUI-LOGIN-BE-05, HU-INICIAL-Base: BitacoraService (UT-HUI-BASE-BE-06) |
 
 ## Antes de implementar
 
@@ -27,6 +27,8 @@ Es la lógica de entrar al sistema, con las defensas anti-enumeración y de fuer
 - `UsuarioSesionResponse` (`codigo`, `email`, `roles`) sin `passwordHash` ni `id`.
 - Logs con `module=auth` y `errorCode`; nunca contraseña ni tokens, y en `WARN` el correo va como hash corto.
 - `ERR_AUTH_01/02/03` en `AuthErrorCodes` y sus secciones en `docs/errors/auth/ERRORES_AUTH.md` + índice.
+- Crea la sesión con `SesionService.crear(usuario, tipoCliente, ip, userAgent)` y usa el `sid` al emitir el JWT (`LoginCommand` lleva IP, user agent y tipo de cliente).
+- Bitácora (`BitacoraService`, constantes en `AuthAcciones`): `AUTH_LOGIN_OK` en la transacción del login; `AUTH_LOGIN_FALLO` y `AUTH_CUENTA_BLOQUEADA` con `registrarEnTransaccionPropia` (el error provoca rollback), con el correo solo como hash corto en `detalle`.
 
 **Archivos esperados (crear/tocar):**
 
@@ -35,6 +37,7 @@ Es la lógica de entrar al sistema, con las defensas anti-enumeración y de fuer
 - `projects/backend/src/main/java/com/example/backend/features/auth/AuthErrorCodes.java`
 - `docs/errors/auth/ERRORES_AUTH.md`
 - `docs/errors/README.md`
+- `projects/backend/src/main/java/com/example/backend/features/auth/AuthAcciones.java`
 
 ## Fuera de alcance (no tocar)
 
@@ -51,6 +54,7 @@ Credenciales correctas devuelven tokens; incorrectas, bloqueo e inactivo produce
 1. Tests de servicio: éxito, contraseña mala (401), correo inexistente (401 mismo mensaje), 5 fallos → 423, inactivo → 403.
 2. Test de tiempo: la diferencia entre correo inexistente y contraseña mala está dentro de un margen razonable (ambos ejecutan BCrypt).
 3. Logs capturados: sin contraseña ni token.
+4. Tras un login exitoso hay una fila en `sesiones` (`ACTIVA`) y un evento `AUTH_LOGIN_OK`; tras uno fallido, un evento `AUTH_LOGIN_FALLO` sin contraseña, aunque la operación haya hecho rollback.
 
 ## Seguridad
 

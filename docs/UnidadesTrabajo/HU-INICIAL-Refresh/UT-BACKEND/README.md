@@ -10,14 +10,15 @@ Leer las rules de [`backend/`](../../../../.claude/rules/backend/) y [`SEGURIDAD
 
 ## Decisiones de diseño
 
-- Se guarda un marcador `used` por 7 días para distinguir un token reutilizado de uno inexistente.
+- `refresh_hash_anterior` en la misma fila de `sesiones` permite distinguir un token reutilizado de uno inexistente, sin guardar nada en Redis.
+- Redis solo guarda la lista de sesiones revocadas (TTL = vida del access token).
 
 ## Orden de ejecución
 
 | Código | Nombre | Depende de |
 |--------|--------|------------|
-| [UT-HUI-REFRESH-BE-01](./UT-HUI-REFRESH-BE-01.md) | RefreshTokenService: rotar y detectar reutilización | Login: RefreshTokenService.emitir (HU-INICIAL-Login) |
-| [UT-HUI-REFRESH-BE-02](./UT-HUI-REFRESH-BE-02.md) | AuthService.refresh y endpoint POST /refresh | UT-HUI-REFRESH-BE-01 |
+| [UT-HUI-REFRESH-BE-01](./UT-HUI-REFRESH-BE-01.md) | SesionService.rotar, revocación y detección de reutilización | Login: SesionService.crear (HU-INICIAL-Login) |
+| [UT-HUI-REFRESH-BE-02](./UT-HUI-REFRESH-BE-02.md) | AuthService.refresh y endpoint POST /refresh | UT-HUI-REFRESH-BE-01, UT-HUI-REFRESH-BE-01 |
 | [UT-HUI-REFRESH-BE-03](./UT-HUI-REFRESH-BE-03.md) | Tests de renovación | UT-HUI-REFRESH-BE-02 |
 
 **Cadena:** 01 → 02 → 03
@@ -32,6 +33,7 @@ Leer las rules de [`backend/`](../../../../.claude/rules/backend/) y [`SEGURIDAD
 | CA05 | Usuario desactivado | 02, 03 |
 | CA06 | Redis caído | 03 |
 | CA07 | CSRF | 02, 03 |
+| CA08 | Vida máxima de la sesión | 01, 03 |
 
 ## Follow-ups (no se implementan en estas UT)
 

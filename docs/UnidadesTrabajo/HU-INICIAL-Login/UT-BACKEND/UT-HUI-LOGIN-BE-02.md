@@ -21,9 +21,9 @@ Existe un servicio que emite y valida JWT firmados de 15 minutos.
 
 ## Alcance
 
-- `security/JwtService.java` con `emitir(UUID codigoUsuario, List<String> roles)` y `validar(String token)` (devuelve `codigo` y roles o lanza `UnauthorizedException` `ERR_AUTH_07`).
+- `security/JwtService.java` con `emitir(UUID codigoUsuario, List<String> roles, UUID sesionCodigo)` y `validar(String token)` (devuelve `codigo`, `sid` y roles o lanza `UnauthorizedException` `ERR_AUTH_07`).
 - JJWT con HS256 y clave de al menos 256 bits; se rechaza `alg=none` y cualquier algoritmo distinto del configurado.
-- Claims: `sub` (codigo), `roles`, `iat`, `exp` (15 min), `iss`; sin datos personales.
+- Claims: `sub` (codigo), `sid` (codigo de la sesión), `roles`, `iat`, `exp` (15 min), `iss`; sin datos personales.
 - `app.jwt.secret` (`JWT_SECRET`, sin default; la app falla al arrancar si falta o es corta) y `app.jwt.access-ttl` (15 min). Variable nueva en `.env.example` raíz/backend y en ambos compose.
 
 **Archivos esperados (crear/tocar):**

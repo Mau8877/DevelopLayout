@@ -21,7 +21,8 @@ Tests que cubren CA01, CA02, CA05 y CA06.
 
 ## Alcance
 
-- `AuthLogoutTest` con Redis de Testcontainers y verificación del sobre `ApiResponse`.
+- `AuthLogoutTest` con Postgres (`app_runtime`) y Redis de Testcontainers y verificación del sobre `ApiResponse`.
+- Casos: cierre efectivo, access token rechazado de inmediato, idempotencia, CSRF ausente → 403, evento de bitácora sin secretos.
 
 **Archivos esperados (crear/tocar):**
 

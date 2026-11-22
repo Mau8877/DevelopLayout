@@ -16,7 +16,7 @@ Leer las rules de [`backend/`](../../../../.claude/rules/backend/) y [`SEGURIDAD
 
 | Código | Nombre | Depende de |
 |--------|--------|------------|
-| [UT-HUI-LOGOUT-BE-01](./UT-HUI-LOGOUT-BE-01.md) | Revocar token, AuthService.logout y endpoint POST /logout | Refresh: RefreshTokenService (HU-INICIAL-Refresh) |
+| [UT-HUI-LOGOUT-BE-01](./UT-HUI-LOGOUT-BE-01.md) | SesionService.cerrar, AuthService.logout y endpoint POST /logout | Refresh: SesionService.revocar (HU-INICIAL-Refresh) |
 | [UT-HUI-LOGOUT-BE-02](./UT-HUI-LOGOUT-BE-02.md) | Tests de logout | UT-HUI-LOGOUT-BE-01 |
 
 **Cadena:** 01 → 02
@@ -29,6 +29,7 @@ Leer las rules de [`backend/`](../../../../.claude/rules/backend/) y [`SEGURIDAD
 | CA02 | Idempotencia | 01, 02 |
 | CA05 | Token anterior inválido | 01, 02 |
 | CA06 | CSRF | 01, 02 |
+| CA07 | Access token rechazado de inmediato y evento | 01, 02 |
 
 ## Follow-ups (no se implementan en estas UT)
 

@@ -24,6 +24,7 @@ Quedan tests de controller que cubren los CA de la HU.
 - `features/auth/AuthControllerTest` (`MockMvc`) verificando el sobre `ApiResponse` completo, no solo el status.
 - Casos: éxito web (cookies y atributos), éxito mobile (body, sin cookies), 401 genérico igual para ambos fallos, 423, 403 inactivo, 400 con campos inválidos o extra, CSRF ausente → 403, `/me` con y sin sesión, header mobile con cookie → no autenticado.
 - Endpoint privado con y sin token (permitido y denegado).
+- Verifica la fila creada en `sesiones` y los eventos de bitácora (`AUTH_LOGIN_OK`, `AUTH_LOGIN_FALLO`, `AUTH_CUENTA_BLOQUEADA`) sin datos sensibles.
 
 **Archivos esperados (crear/tocar):**
 

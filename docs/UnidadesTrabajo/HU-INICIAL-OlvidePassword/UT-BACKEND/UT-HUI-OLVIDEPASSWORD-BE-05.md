@@ -21,10 +21,12 @@ Existe `POST /api/v1/auth/password/reset` que cambia la contraseña y cierra tod
 
 ## Alcance
 
-- Editar `AuthService` agregando solo `restablecer(String token, String nuevaPassword)`: consume el token, fija `RlsContext.usarUsuario(codigo)`, rechaza (400 `ERR_AUTH_06`) si la contraseña nueva coincide con la actual, guarda el hash BCrypt, llama a `RefreshTokenService.revocarTodas`, `LoginAttemptService.reiniciar` y registra `INFO` sin contraseña ni token.
+- Editar `AuthService` agregando solo `restablecer(String token, String nuevaPassword)`: consume el token, fija `RlsContext.usarUsuario(codigo)`, rechaza (400 `ERR_AUTH_06`) si la contraseña nueva coincide con la actual, guarda el hash BCrypt, llama a `SesionService.revocarTodas(usuario, RESET_PASSWORD)`, `LoginAttemptService.reiniciar` y registra `INFO` sin contraseña ni token.
 - Editar `AuthController`: `POST /password/reset` (`ResetPasswordRequest`: `token`, `password` con `@Size(min=8,max=72)`; el token va en el body, nunca en la URL de la API). `permitAll` solo para esta ruta, con comentario.
 - `ERR_AUTH_06` en `AuthErrorCodes` y su sección en docs/errors + índice.
 - Límite propio por IP.
+- Editar `SesionService` agregando solo `revocarTodas(UUID usuario, MotivoRevocacion motivo)`: revoca todas las sesiones `ACTIVA` del usuario usando `revocar`.
+- Bitácora: `AUTH_PASSWORD_RESTABLECIDA` (misma transacción), sin token ni contraseña.
 
 **Archivos esperados (crear/tocar):**
 
@@ -35,6 +37,8 @@ Existe `POST /api/v1/auth/password/reset` que cambia la contraseña y cierra tod
 - `projects/backend/src/main/java/com/example/backend/config/SecurityConfig.java`
 - `docs/errors/auth/ERRORES_AUTH.md`
 - `docs/errors/README.md`
+- `projects/backend/src/main/java/com/example/backend/features/auth/service/SesionService.java`
+- `projects/backend/src/main/java/com/example/backend/features/auth/AuthAcciones.java`
 
 ## Fuera de alcance (no tocar)
 

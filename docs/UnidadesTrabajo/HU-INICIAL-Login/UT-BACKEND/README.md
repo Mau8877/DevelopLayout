@@ -22,9 +22,9 @@ Leer las rules de [`backend/`](../../../../.claude/rules/backend/) y [`SEGURIDAD
 | [UT-HUI-LOGIN-BE-02](./UT-HUI-LOGIN-BE-02.md) | JwtService: emitir y validar access token | — |
 | [UT-HUI-LOGIN-BE-03](./UT-HUI-LOGIN-BE-03.md) | UserDetailsService y contexto RLS por transacción | Models y repositorios de usuarios (HU-INICIAL-Base) |
 | [UT-HUI-LOGIN-BE-04](./UT-HUI-LOGIN-BE-04.md) | Bloqueo temporal por intentos fallidos (Redis) | — |
-| [UT-HUI-LOGIN-BE-05](./UT-HUI-LOGIN-BE-05.md) | RefreshTokenService: emitir refresh token | — |
+| [UT-HUI-LOGIN-BE-05](./UT-HUI-LOGIN-BE-05.md) | SesionService: crear la sesión y emitir el refresh token | Models y repositorios de sesiones (HU-INICIAL-Base) |
 | [UT-HUI-LOGIN-BE-06](./UT-HUI-LOGIN-BE-06.md) | JwtAuthenticationFilter: autenticar por cookie o Bearer | UT-HUI-LOGIN-BE-01, UT-HUI-LOGIN-BE-02 |
-| [UT-HUI-LOGIN-BE-07](./UT-HUI-LOGIN-BE-07.md) | AuthService.login y me | UT-HUI-LOGIN-BE-02, UT-HUI-LOGIN-BE-03, UT-HUI-LOGIN-BE-04, UT-HUI-LOGIN-BE-05 |
+| [UT-HUI-LOGIN-BE-07](./UT-HUI-LOGIN-BE-07.md) | AuthService.login y me | UT-HUI-LOGIN-BE-02, UT-HUI-LOGIN-BE-03, UT-HUI-LOGIN-BE-04, UT-HUI-LOGIN-BE-05, UT-HUI-LOGIN-BE-05, HU-INICIAL-Base: BitacoraService (UT-HUI-BASE-BE-06) |
 | [UT-HUI-LOGIN-BE-08](./UT-HUI-LOGIN-BE-08.md) | AuthController: csrf, login y me, cookies y permisos | UT-HUI-LOGIN-BE-06, UT-HUI-LOGIN-BE-07 |
 | [UT-HUI-LOGIN-BE-09](./UT-HUI-LOGIN-BE-09.md) | Tests de autenticación (login, lockout, autorización) | UT-HUI-LOGIN-BE-08 |
 
@@ -44,6 +44,8 @@ Leer las rules de [`backend/`](../../../../.claude/rules/backend/) y [`SEGURIDAD
 | CA08 | `/me` al recargar | 03, 08, 09 |
 | CA09 | CSRF 403 | 01, 09 |
 | CA10 | Tiempo equivalente | 07, 09 |
+| CA11 | Sesión creada en `sesiones` y evento OK | 05, 07, 09 |
+| CA12 | Eventos de fallo y bloqueo | 07, 09 |
 
 ## Follow-ups (no se implementan en estas UT)
 

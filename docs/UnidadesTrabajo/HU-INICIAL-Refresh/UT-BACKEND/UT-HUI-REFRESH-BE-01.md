@@ -1,54 +1,62 @@
-# UT-HUI-REFRESH-BE-01 — RefreshTokenService: rotar y detectar reutilización
+# UT-HUI-REFRESH-BE-01 — SesionService.rotar, revocación y detección de reutilización
 
 | Campo | Valor |
 |-------|-------|
 | **Código** | `UT-HUI-REFRESH-BE-01` |
-| **Nombre** | RefreshTokenService: rotar y detectar reutilización |
+| **Nombre** | SesionService.rotar, revocación y detección de reutilización |
 | **Historia** | HU-INICIAL-Refresh-BE |
-| **Depende de** | Login: RefreshTokenService.emitir (HU-INICIAL-Login) |
+| **Depende de** | Login: SesionService.crear (HU-INICIAL-Login) |
 
 ## Antes de implementar
 
-Leer `backend/SEGURIDAD_AUTH_BACKEND.md`, `backend/CONVENCIONES_JAVA_BACKEND.md` y `.claude/rules/SEGURIDAD_OWASP.md`.
+Leer `backend/SEGURIDAD_AUTH_BACKEND.md`, `backend/BASE_DE_DATOS_PRIVADA_RLS.md`, `backend/BITACORA_BACKEND.md` y `.claude/rules/SEGURIDAD_OWASP.md`.
 
 ## Solicitud de negocio
 
-Un refresh token robado no debe servir indefinidamente.
+Un refresh token robado no debe servir indefinidamente y una sesión revocada debe dejar de valer de inmediato.
 
 ## Objetivo
 
-`RefreshTokenService` valida, rota y revoca la familia ante reutilización.
+`SesionService` rota el refresh token, expira sesiones y revoca ante reutilización; `SesionRevocadaRegistry` puede revocar.
 
 ## Alcance
 
-- Editar `features/auth/service/RefreshTokenService.java` agregando `rotar(String tokenEnClaro)` y `revocarTodas(UUID codigoUsuario)`.
-- `rotar`: busca `auth:refresh:{hash}`; si existe lo borra (uso único), emite uno nuevo con `emitir` y devuelve `codigoUsuario` + token nuevo.
-- Si el hash no existe pero hay un registro marcador de "usado" (`auth:refresh:used:{hash}`, TTL 7 días) → reutilización: `revocarTodas(codigo)` y `UnauthorizedException` `ERR_AUTH_04`. Si no existe ni marcador, `ERR_AUTH_04`.
-- Si Redis falla la excepción se propaga (falla cerrado).
+- Editar `SesionService` agregando `rotar(String tokenEnClaro, String ip, String userAgent)` y `revocar(Sesion sesion, MotivoRevocacion motivo)`.
+- `rotar`: fija `RlsContext.usarRefreshHash(sha256)`, busca la sesión por `refresh_hash`; si está `ACTIVA` y no vencida, guarda el hash actual en `refresh_hash_anterior`, pone el nuevo hash, actualiza `ultimo_uso_en`, `ip` y `expira_en = min(now + 7 días, creada + 30 días)` y devuelve sesión y token nuevo.
+- Si el hash coincide con `refresh_hash_anterior` (token ya rotado) es reutilización: `revocar(sesion, REUSO)`, evento `AUTH_REFRESH_REUSO` con `registrarEnTransaccionPropia` y `UnauthorizedException` `ERR_AUTH_04`.
+- Si la sesión superó su vida máxima o `expira_en`, se marca `EXPIRADA` y responde `ERR_AUTH_04`. Hash desconocido o sesión no `ACTIVA` también `ERR_AUTH_04`.
+- `revocar` marca `REVOCADA` con `revocada_en` y motivo, y llama a `SesionRevocadaRegistry.revocar(sid, ttl = vida del access token)`. Idempotente.
+- Editar `SesionRevocadaRegistry` agregando solo `revocar(UUID sid, Duration ttl)`; si Redis falla se propaga el error.
+- Agregar `RlsContext.usarRefreshHash(String hash)` (`app.refresh_hash`).
 - `ERR_AUTH_04` en `AuthErrorCodes` y su sección en `docs/errors/auth/ERRORES_AUTH.md` + índice.
 
 **Archivos esperados (crear/tocar):**
 
-- `projects/backend/src/main/java/com/example/backend/features/auth/service/RefreshTokenService.java`
+- `projects/backend/src/main/java/com/example/backend/features/auth/service/SesionService.java`
+- `projects/backend/src/main/java/com/example/backend/security/SesionRevocadaRegistry.java`
+- `projects/backend/src/main/java/com/example/backend/security/RlsContext.java`
+- `projects/backend/src/main/java/com/example/backend/features/auth/AuthAcciones.java`
 - `projects/backend/src/main/java/com/example/backend/features/auth/AuthErrorCodes.java`
 - `docs/errors/auth/ERRORES_AUTH.md`
 - `docs/errors/README.md`
 
 ## Fuera de alcance (no tocar)
 
-- Revocar un solo token por logout (UT de HU-INICIAL-Logout).
+- Cerrar sesión por el usuario (UT de HU-INICIAL-Logout).
+- Revocar todas las sesiones de un usuario (UT de HU-INICIAL-OlvidePassword).
 - Controller y cookies.
 - Leer roles del usuario (lo hace `AuthService.refresh`).
 
 ## Resultado esperado
 
-Un token válido se canjea una vez; reusarlo revoca todas las sesiones del usuario.
+Un token válido se canjea una vez; reusarlo revoca la sesión; una sesión revocada o expirada no vuelve a emitir tokens.
 
 ## Validación
 
-1. Test con Redis: rotar invalida el anterior; reusar el anterior → `ERR_AUTH_04` y el set del usuario queda vacío.
-2. Token inexistente → `ERR_AUTH_04`.
+1. Test de integración (Testcontainers, `app_runtime`, Redis): rotar cambia `refresh_hash` y guarda el anterior; reusar el anterior → `ERR_AUTH_04`, sesión `REVOCADA` con motivo `REUSO`, clave `auth:revoked:{sid}` presente y evento `AUTH_REFRESH_REUSO`.
+2. Sesión con más de 30 días → `EXPIRADA` y `ERR_AUTH_04`.
+3. Hash desconocido → `ERR_AUTH_04`.
 
 ## Seguridad
 
-A07: rotación obligatoria y respuesta ante robo.
+A07: rotación obligatoria, respuesta ante robo, revocación inmediata y falla cerrada.

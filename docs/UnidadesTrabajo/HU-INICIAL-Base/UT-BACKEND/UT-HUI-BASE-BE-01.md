@@ -1,9 +1,9 @@
-# UT-HUI-BASE-BE-01 — Migración de tablas de autenticación con RLS
+# UT-HUI-BASE-BE-01 — Migración de tablas de autenticación, sesiones y bitácora con RLS
 
 | Campo | Valor |
 |-------|-------|
 | **Código** | `UT-HUI-BASE-BE-01` |
-| **Nombre** | Migración de tablas de autenticación con RLS |
+| **Nombre** | Migración de tablas de autenticación, sesiones y bitácora con RLS |
 | **Historia** | HU-INICIAL-Base-BE |
 | **Depende de** | — |
 
@@ -17,17 +17,25 @@ Sin tablas de usuarios y roles no hay dónde guardar quién puede entrar.
 
 ## Objetivo
 
-Quedan creadas `usuarios`, `roles` y `usuarios_roles` con RLS activado y forzado.
+Queda creado el schema `authentication` y en él quedan creadas `usuarios`, `roles`, `usuarios_roles`, `sesiones` y `bitacora` con RLS activado y forzado.
 
 ## Alcance
 
 - Migración `V{timestamp}__create_auth_tables.sql` (formato de timestamp de la rule, no secuencial).
 - Columnas de `BaseModel` en las tres tablas: `id BIGINT IDENTITY` (PK), `codigo_usuario` / `codigo_rol` / `codigo_usuario_rol` (`UUID NOT NULL UNIQUE`), `created_at`, `updated_at`, `deleted_at`.
 - `usuarios`: `email` (índice único parcial `WHERE deleted_at IS NULL`, comparado en minúsculas), `password_hash`, `estado` (`ACTIVO`/`INACTIVO`, `VARCHAR`).
-- `roles`: `nombre` (único), `descripcion`, `is_active`; siembra `ADMIN` y `USUARIO`. Marcada `-- RLS-OPT-OUT: catálogo de roles, sin datos sensibles`.
+- `roles`: `nombre` (único), `descripcion`, `is_active`; siembra `SUPER_ADMIN` y `USUARIO`. Marcada `-- RLS-OPT-OUT: catálogo de roles, sin datos sensibles`.
 - `usuarios_roles`: FK `usuario_id` y `rol_id` con índice cada una, `is_active`.
 - RLS `ENABLE` + `FORCE` en `usuarios` y `usuarios_roles`. Política de `usuarios`: `codigo_usuario = current_setting('app.current_user', true)::uuid OR lower(email) = lower(current_setting('app.login_email', true))`. Política de `usuarios_roles`: por `app.current_user`. Ambas con `WITH CHECK`.
 - Fila en `docs/seguridad/RLS_EXCEPCIONES.md` por `roles`.
+- `sesiones` (columnas de `BaseModel` con `codigo_sesion`): `usuario_id` (FK con índice), `usuario_codigo` (`UUID`, índice, para RLS), `refresh_hash` (`CHAR(64)`, único), `refresh_hash_anterior` (nullable, índice), `estado` (`ACTIVA`/`REVOCADA`/`EXPIRADA`), `tipo_cliente` (`WEB`/`MOBILE`), `ip`, `user_agent` (255), `expira_en`, `ultimo_uso_en`, `revocada_en`, `motivo_revocacion`. Nunca guarda el refresh token en claro.
+- RLS de `sesiones` (`ENABLE` + `FORCE`): `USING` y `WITH CHECK` con `usuario_codigo = app.current_user` o `app.is_admin = 'true'`; `USING` además permite `refresh_hash = app.refresh_hash` o `refresh_hash_anterior = app.refresh_hash` (contexto que fija el flujo de refresh/logout con el token que presenta el cliente, una sola fila).
+- `bitacora` (columnas de `BaseModel` con `codigo_bitacora`): `usuario_codigo` (nullable), `accion`, `modulo`, `entidad`, `entidad_codigo` (nullable), `resultado` (`EXITO`/`FALLO`), `ip`, `user_agent`, `detalle` (`jsonb`); índices por `created_at`, `accion` y `usuario_codigo`.
+- RLS de `bitacora`: política `FOR INSERT WITH CHECK (true)` (excepción justificada: el evento puede ocurrir sin usuario, p. ej. un login fallido, y la tabla es de solo inserción) y política `FOR SELECT USING (current_setting('app.is_admin', true) = 'true')`. Sin políticas de `UPDATE` ni `DELETE`.
+- Función `authentication.purgar_bitacora(meses integer)` `SECURITY DEFINER` con `SET search_path = pg_catalog, authentication`, `REVOKE ALL ... FROM PUBLIC` y `GRANT EXECUTE` solo a `app_runtime` (en la UT-HUI-BASE-BE-02): elimina filas con `created_at` anterior a `now() - meses` y devuelve cuántas borró.
+- Fila en `docs/seguridad/RLS_EXCEPCIONES.md` por el `INSERT` abierto de `bitacora`.
+- Primera sentencia de la migración: `CREATE SCHEMA IF NOT EXISTS authentication;`. Todas las tablas, índices, políticas y funciones de esta UT se escriben calificados (`authentication.usuarios`, `authentication.sesiones`, ...), sin depender del `search_path`.
+- Ninguna tabla queda en `public`.
 
 **Archivos esperados (crear/tocar):**
 
@@ -39,7 +47,7 @@ Quedan creadas `usuarios`, `roles` y `usuarios_roles` con RLS activado y forzado
 - Models Java, repositorios y enums (UT-HUI-BASE-BE-03).
 - Rol `app_runtime` y sus `GRANT` (UT-HUI-BASE-BE-02).
 - Usuario administrador (UT-HUI-BASE-BE-04).
-- Cualquier tabla de refresh tokens: viven en Redis, no en Postgres.
+- Una tabla separada de refresh tokens: el refresh token vive en `sesiones` (UT de Base BE-01 y Login).
 
 ## Resultado esperado
 
@@ -48,8 +56,11 @@ Flyway aplica la migración en una base vacía y las tres tablas existen con RLS
 ## Validación
 
 1. `./mvnw test` con Flyway sobre Testcontainers: la migración corre sin error.
-2. `SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE relname IN ('usuarios','usuarios_roles')` devuelve `t, t` en ambas.
-3. `SELECT nombre FROM roles` devuelve `ADMIN` y `USUARIO`.
+2. `SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE relnamespace = 'authentication'::regnamespace AND relname IN ('usuarios','usuarios_roles')` devuelve `t, t` en ambas.
+3. `SELECT nombre FROM authentication.roles` devuelve `SUPER_ADMIN` y `USUARIO`.
+4. `INSERT` en `bitacora` con rol `app_runtime` funciona; `UPDATE` y `DELETE` fallan por permisos; `SELECT` sin `app.is_admin` no devuelve filas.
+5. `SELECT authentication.purgar_bitacora(12)` borra solo filas anteriores a 12 meses.
+6. `SELECT table_name FROM information_schema.tables WHERE table_schema = 'authentication'` lista `usuarios`, `roles`, `usuarios_roles`, `sesiones` y `bitacora`; con `table_schema = 'public'` solo aparece `flyway_schema_history`.
 
 ## Seguridad
 

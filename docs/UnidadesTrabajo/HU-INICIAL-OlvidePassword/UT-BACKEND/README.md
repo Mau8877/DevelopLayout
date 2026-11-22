@@ -11,7 +11,7 @@ Leer las rules de [`backend/`](../../../../.claude/rules/backend/) y [`SEGURIDAD
 ## Decisiones de diseño
 
 - El token viaja en el fragmento del enlace (`#token=`), que el navegador no envía al servidor ni en `Referer`; luego va por body al endpoint.
-- Se implementa después de Login y Refresh: reutiliza `LoginAttemptService.reiniciar` y `RefreshTokenService.revocarTodas`.
+- Se implementa después de Login, Refresh y Logout: reutiliza `LoginAttemptService.reiniciar` y `SesionService.revocar`, y agrega `revocarTodas`.
 
 ## Orden de ejecución
 
@@ -19,7 +19,7 @@ Leer las rules de [`backend/`](../../../../.claude/rules/backend/) y [`SEGURIDAD
 |--------|--------|------------|
 | [UT-HUI-OLVIDEPASSWORD-BE-01](./UT-HUI-OLVIDEPASSWORD-BE-01.md) | Mailpit en el compose de desarrollo | — |
 | [UT-HUI-OLVIDEPASSWORD-BE-02](./UT-HUI-OLVIDEPASSWORD-BE-02.md) | MailService y plantilla del correo de recuperación | UT-HUI-OLVIDEPASSWORD-BE-01 |
-| [UT-HUI-OLVIDEPASSWORD-BE-03](./UT-HUI-OLVIDEPASSWORD-BE-03.md) | PasswordResetTokenService | Redis (existente), HU-INICIAL-Refresh: RefreshTokenService.revocarTodas |
+| [UT-HUI-OLVIDEPASSWORD-BE-03](./UT-HUI-OLVIDEPASSWORD-BE-03.md) | PasswordResetTokenService | Redis (existente), HU-INICIAL-Refresh: SesionService.revocar |
 | [UT-HUI-OLVIDEPASSWORD-BE-04](./UT-HUI-OLVIDEPASSWORD-BE-04.md) | Solicitar recuperación: POST /auth/password/forgot | UT-HUI-OLVIDEPASSWORD-BE-02, UT-HUI-OLVIDEPASSWORD-BE-03 |
 | [UT-HUI-OLVIDEPASSWORD-BE-05](./UT-HUI-OLVIDEPASSWORD-BE-05.md) | Restablecer contraseña: POST /auth/password/reset | UT-HUI-OLVIDEPASSWORD-BE-03, UT-HUI-OLVIDEPASSWORD-BE-04 |
 | [UT-HUI-OLVIDEPASSWORD-BE-06](./UT-HUI-OLVIDEPASSWORD-BE-06.md) | Tests de recuperación de contraseña | UT-HUI-OLVIDEPASSWORD-BE-05 |
@@ -39,6 +39,7 @@ Leer las rules de [`backend/`](../../../../.claude/rules/backend/) y [`SEGURIDAD
 | CA07 | Enlace anterior anulado | 03, 06 |
 | CA09 | Tiempo equivalente | 04, 06 |
 | CA10 | Evento INFO | 05, 06 |
+| CA11 | Eventos de bitácora | 04, 05, 06 |
 
 ## Follow-ups (no se implementan en estas UT)
 

@@ -5,7 +5,7 @@
 | **Código** | `UT-HUI-REFRESH-BE-02` |
 | **Nombre** | AuthService.refresh y endpoint POST /refresh |
 | **Historia** | HU-INICIAL-Refresh-BE |
-| **Depende de** | UT-HUI-REFRESH-BE-01 |
+| **Depende de** | UT-HUI-REFRESH-BE-01, UT-HUI-REFRESH-BE-01 |
 
 ## Antes de implementar
 
@@ -25,6 +25,8 @@ Existe `POST /api/v1/auth/refresh` que entrega nuevos tokens.
 - Editar `AuthController` agregando `POST /refresh`: web lee la cookie `refreshToken` (nunca el body) y setea ambas cookies nuevas; con `X-Client-Type: mobile` lee el body y devuelve los tokens en el body.
 - Editar `SecurityConfig`: `permitAll` SOLO para `POST /api/v1/auth/refresh` (la autenticación es el refresh token en sí; el CSRF sigue activo en web). Justificación en comentario.
 - Rate limit propio para `/refresh`.
+- El access token nuevo lleva el mismo `sid` de la sesión; si la sesión ya no es `ACTIVA` no se emite.
+- `AuthService.refresh` recibe IP y user agent y los pasa a `SesionService.rotar`.
 
 **Archivos esperados (crear/tocar):**
 

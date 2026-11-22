@@ -23,8 +23,13 @@ Existen los Models `Usuario`, `Rol` y `UsuarioRol` extendiendo `BaseModel`, con 
 
 - `features/usuarios/model/Usuario.java`, `Rol.java`, `UsuarioRol.java`: `@Entity`, `extends BaseModel`, `@AttributeOverride` del nombre de columna de `codigo`, `@Getter` por clase y `@Setter` solo por campo mutable (nunca `@Data`; `passwordHash` excluido de cualquier `toString`).
 - `features/usuarios/enums/EstadoUsuario.java` (`ACTIVO`, `INACTIVO`), persistido `@Enumerated(EnumType.STRING)`.
-- `features/usuarios/RolNombres.java` con constantes `ADMIN` y `USUARIO` (los roles son datos, no un enum cerrado).
+- `features/usuarios/RolNombres.java` con constantes `SUPER_ADMIN` y `USUARIO` (los roles son datos, no un enum cerrado).
 - `UsuarioRepository` (`findByCodigo`, `findByEmailIgnoreCase`, `existsByEmailIgnoreCase`), `RolRepository` (`findByNombre`), `UsuarioRolRepository` (`findActivosByUsuario`: roles donde ambos `isActive` son `true`). Repositorios tipados con `Long`.
+- `features/auth/model/Sesion.java` (extiende `BaseModel`, `@AttributeOverride` de `codigo`, `@Getter` por clase, `@Setter` por campo mutable: `refreshHash`, `refreshHashAnterior`, `estado`, `expiraEn`, `ultimoUsoEn`, `revocadaEn`, `motivoRevocacion`; el hash nunca entra en `toString`).
+- `features/auth/enums/EstadoSesion.java`, `TipoCliente.java`, `MotivoRevocacion.java` (`LOGOUT`, `USUARIO`, `ADMIN`, `REUSO`, `RESET_PASSWORD`), todos `@Enumerated(EnumType.STRING)`.
+- `features/auth/repository/SesionRepository.java` (`findByRefreshHash`, `findByRefreshHashAnterior`, `findByCodigo`, `findActivasByUsuarioCodigo`).
+- `common/bitacora/model/Bitacora.java` (extiende `BaseModel`, `detalle` como `jsonb` vía `@JdbcTypeCode(SqlTypes.JSON)`), `common/bitacora/ResultadoBitacora.java` y `common/bitacora/repository/BitacoraRepository.java` (solo `save`; las consultas las agrega HU-INICIAL-Bitacora).
+- Todo Model lleva el schema explícito: `@Table(name = "usuarios", schema = "authentication")` (igual para `Rol`, `UsuarioRol`, `Sesion` y `Bitacora`). No se configura `hibernate.default_schema`.
 
 **Archivos esperados (crear/tocar):**
 
@@ -36,12 +41,21 @@ Existen los Models `Usuario`, `Rol` y `UsuarioRol` extendiendo `BaseModel`, con 
 - `projects/backend/src/main/java/com/example/backend/features/usuarios/repository/UsuarioRepository.java`
 - `projects/backend/src/main/java/com/example/backend/features/usuarios/repository/RolRepository.java`
 - `projects/backend/src/main/java/com/example/backend/features/usuarios/repository/UsuarioRolRepository.java`
+- `projects/backend/src/main/java/com/example/backend/features/auth/model/Sesion.java`
+- `projects/backend/src/main/java/com/example/backend/features/auth/enums/EstadoSesion.java`
+- `projects/backend/src/main/java/com/example/backend/features/auth/enums/TipoCliente.java`
+- `projects/backend/src/main/java/com/example/backend/features/auth/enums/MotivoRevocacion.java`
+- `projects/backend/src/main/java/com/example/backend/features/auth/repository/SesionRepository.java`
+- `projects/backend/src/main/java/com/example/backend/common/bitacora/model/Bitacora.java`
+- `projects/backend/src/main/java/com/example/backend/common/bitacora/ResultadoBitacora.java`
+- `projects/backend/src/main/java/com/example/backend/common/bitacora/repository/BitacoraRepository.java`
 
 ## Fuera de alcance (no tocar)
 
 - Controllers, services y DTOs de usuarios (no hay endpoints de usuarios en esta versión).
 - Cargar `UserDetails` o emitir tokens (UT de HU-INICIAL-Login).
 - La migración (UT-HUI-BASE-BE-01).
+- Servicios que usan `Sesion` o `Bitacora` (UT de las HU de auth y UT-HUI-BASE-BE-06).
 
 ## Resultado esperado
 
