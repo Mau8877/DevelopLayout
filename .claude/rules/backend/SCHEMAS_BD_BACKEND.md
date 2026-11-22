@@ -19,7 +19,7 @@ propios permisos.
 | Schema | Dominio | Tablas |
 | --- | --- | --- |
 | `authentication` | Identidad, acceso y trazabilidad. **Siempre existe**, en todo proyecto que nazca de esta plantilla. | `usuario`, `rol`, `usuario_rol`, `sesion`, `bitacora` |
-| `public` | Solo lo técnico: `flyway_schema_history` y extensiones. **Ninguna tabla de negocio.** | — |
+| `public` | Solo lo técnico: `flyway_schema_history` y extensiones. **Ninguna tabla de negocio.** | `system_metadata` (de ejemplo, V1) |
 
 Cada proyecto agrega los suyos (`orders`, `teams`, ...) y los lista en esta
 tabla en el mismo cambio que los crea.
@@ -156,6 +156,21 @@ Mismo sentido que la regla de dependencia de
   `README.md` de las UT. Aun con FK, desde Java un módulo accede a los datos
   de otro a través del `service` de su dueño, no de su `repository`.
 
+## Diagrama de la base de datos
+
+[`docs/BASE_DE_DATOS.mermaid`](../../../docs/BASE_DE_DATOS.mermaid) contiene el
+diagrama (Mermaid `erDiagram`) de todos los schemas. **Toda migración que
+cree, modifique o elimine una tabla, columna, FK o schema actualiza ese
+archivo en el mismo cambio**; una migración sin su diagrama actualizado no
+se mergea. Es un único `erDiagram` puro de Mermaid, **sin comentarios `%%` ni texto
+alrededor**: varios visores (la vista previa de VS Code, el chat de Cursor)
+fallan al parsear comentarios, sobre todo al inicio del archivo, aunque la
+sintaxis de Mermaid los permita. `erDiagram` va en la primera línea. La
+información extra (qué schema es cuál, estado de cada uno) vive en la tabla
+de "Schemas actuales" de esta rule, no en el diagrama. Lo que sí se puede
+poner en el diagrama es el texto entre comillas al final de una columna
+(`varchar estado "ACTIVO | INACTIVO"`).
+
 ## Tests
 
 - Un test de migración por schema verifica que sus tablas están en el
@@ -164,3 +179,17 @@ Mismo sentido que la regla de dependencia de
 - Los tests de RLS ([BASE_DE_DATOS_PRIVADA_RLS.md](BASE_DE_DATOS_PRIVADA_RLS.md#6-tests))
   usan nombres calificados y el rol `app_runtime`.
 - Un test confirma que `app_runtime` no puede crear objetos en ningún schema.
+
+## Estado de los schemas
+
+| Schema | Estado |
+| --- | --- |
+| `public` | Migrado (`V1__init_schema.sql`) |
+| `authentication` | **Diseñado, aún no migrado**: se crea con HU-INICIAL-Base (UT-HUI-BASE-BE-01). La UT que lo migra cambia esta fila a "Migrado". |
+
+Convenciones que `docs/BASE_DE_DATOS.mermaid` no puede expresar y por eso
+viven aquí: las columnas comunes de `BaseModel` (`id`, `codigo_<tabla>`,
+`created_at`, `updated_at`, `deleted_at`) se muestran abreviadas en una sola
+fila `BaseModel base` por tabla; las FK dentro de un schema son por `id` y
+entre schemas por `codigo`; RLS está activado y forzado en toda tabla salvo
+las marcadas `RLS-OPT-OUT` (hoy solo `rol`).

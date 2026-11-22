@@ -255,6 +255,13 @@ RLS (o sin `RLS-OPT-OUT` documentado), un secreto en el repo, un
 "Validación" un caso de acceso **denegado** (otro usuario / sin token),
 no solo el camino feliz. Ver [SEGURIDAD_OWASP.md](SEGURIDAD_OWASP.md).
 
+### Una UT que toca la base de datos actualiza el diagrama
+
+Si una UT crea o modifica una migración, su "Alcance" incluye actualizar
+[`docs/BASE_DE_DATOS.mermaid`](../../docs/BASE_DE_DATOS.mermaid) y ese archivo figura
+en sus "Archivos esperados" (ver
+[SCHEMAS_BD_BACKEND.md](backend/SCHEMAS_BD_BACKEND.md#diagrama-de-la-base-de-datos)).
+
 ### Toda UT termina en algo verificable
 
 La sección "Validación" no es opcional ni puede ser una sola línea vaga —
