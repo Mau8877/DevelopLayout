@@ -80,3 +80,6 @@ ios/.symlinks/
 # Salida de los scripts de actualización y de Maven
 update-deps.log
 salida.txt
+
+# Certificados de prueba locales (docker-compose.prod.yml)
+.certs/
