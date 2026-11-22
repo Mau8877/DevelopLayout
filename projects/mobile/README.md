@@ -1,17 +1,35 @@
-# mobile
+# Mobile
 
-A new Flutter project.
+App en Flutter/Dart con Riverpod (estado), `go_router` (navegación) y `dio`
+(cliente HTTP).
 
-## Getting Started
+## Comandos
 
-This project is a starting point for a Flutter application.
+```bash
+flutter pub get     # instalar dependencias
+flutter run          # correr en un emulador/dispositivo conectado
+flutter test         # tests
+flutter analyze      # análisis estático
+```
 
-A few resources to get you started if this is your first Flutter project:
+## Configuración
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+`pubspec.yaml` declara `.env` como asset y el archivo real no se commitea.
+Antes de correr o analizar, creá el tuyo:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+cp .env.example .env
+```
+
+Sin ese archivo, `flutter analyze` falla con `asset_does_not_exist`.
+
+## Estructura
+
+Feature-based: `lib/features/{feature}/` por funcionalidad de negocio y
+`lib/core/` para lo transversal (`network/` con el cliente `dio`, `theme/`,
+`routing/`, este último todavía vacío). `lib/layouts/{rol}/` tiene un shell por
+rol. El detalle está en
+[`ARQUITECTURA_MOBILE.md`](../../.claude/rules/ARQUITECTURA_MOBILE.md) y las
+reglas de `.claude/rules/mobile/`.
+
+`pubspec.lock` se commitea para que el build sea reproducible.
