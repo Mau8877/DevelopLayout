@@ -29,7 +29,9 @@ export default defineConfig({
 - `@testing-library/react` + `@testing-library/user-event` para tests de
   componentes (render + interacción simulada).
 - `@testing-library/jest-dom` para matchers (`toBeInTheDocument()`, etc.),
-  importado una sola vez en `src/setupTests.ts`.
+  importado una sola vez en `src/setupTests.ts` desde
+  `@testing-library/jest-dom/vitest` (la importación de la raíz solo trae
+  los tipos de Jest y `tsc` no reconoce los matchers en Vitest).
 - Comando: `pnpm test` (= `vitest run`, corre una vez y termina — no queda
   en modo watch, así sirve para el hook de pre-commit y para CI).
 

@@ -60,7 +60,13 @@ artefactos se renombraron con prefijo `testcontainers-` y la clase es
   Docker desde DENTRO del contenedor del backend — `docker-compose.yml`
   monta `/var/run/docker.sock:/var/run/docker.sock` en el servicio
   `backend` para esto.
-- **Patrón obligatorio para tests que usan Testcontainers**: no manejar el
+- **Tests con `@SpringBootTest`** (contexto completo): extienden
+  `support/PostgresIntegrationTest`, que levanta un Postgres descartable con
+  Testcontainers y pisa las propiedades de datasource/Flyway con
+  `@DynamicPropertySource`. Nunca dependen de un Postgres instalado en la
+  máquina ni de credenciales del entorno. Sin Docker, quedan SKIPPED
+  (`@Testcontainers(disabledWithoutDocker = true)`).
+- **Patrón obligatorio para tests que usan Testcontainers a mano**: no manejar el
   container con `@Testcontainers`/`@Container` (arranca automático y sin
   forma limpia de saltear el test si Docker no está disponible). En cambio,
   chequear disponibilidad en un `@BeforeAll` con
