@@ -23,7 +23,7 @@ function Run([string]$titulo, [string]$comando, [string]$carpeta = '.') {
 Run 'pnpm up'      'pnpm up -r'
 Run 'pnpm install' 'pnpm install'
 Run 'pnpm outdated (mayores pendientes)' 'pnpm outdated -r'
-Run 'pnpm audit'   'pnpm audit --audit-level high'
+Run 'pnpm audit (detalle)'   'pnpm audit'
 Run 'lint'         'pnpm --filter frontend lint'
 Run 'test'         'pnpm --filter frontend test'
 Run 'build'        'pnpm --filter frontend build'

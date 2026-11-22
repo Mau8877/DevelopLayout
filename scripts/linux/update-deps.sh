@@ -12,7 +12,7 @@ echo "== Frontend / workspace =="
 pnpm up -r
 pnpm install
 pnpm outdated -r || true
-pnpm audit --audit-level high || true
+pnpm audit || true
 pnpm --filter frontend lint && pnpm --filter frontend test && pnpm --filter frontend build
 
 echo "== Mobile =="
