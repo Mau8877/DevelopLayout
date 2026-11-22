@@ -1,2 +1,8 @@
 packages:
   - 'projects/*'
+
+# GHSA-g3hv-75wg-m249 (minimatch >=7 <11.0.1, DoS moderado). Llega solo vía
+# shadcn > ts-morph > @ts-morph/common (^10), una herramienta de desarrollo.
+# TODO: quitar este override cuando @ts-morph/common suba a minimatch >=11.
+overrides:
+  '@ts-morph/common>minimatch': '^11.0.9'
