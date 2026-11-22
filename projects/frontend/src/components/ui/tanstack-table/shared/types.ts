@@ -1,4 +1,17 @@
-import type { ColumnDef, RowData, SortingState, Table } from '@tanstack/react-table'
+import type {
+  CellData,
+  ColumnDef,
+  ReactTable,
+  RowData,
+  SortingState,
+  TableFeatures,
+} from '@tanstack/react-table'
+import type { DataTableFeatures } from './tableFeatures'
+
+// Aliases con las features de este paquete ya aplicadas: en TanStack Table v9
+// `ColumnDef`/`Table`/`Row`/`Cell` llevan `TFeatures` como primer genérico.
+export type DataTableColumnDef<TData extends RowData> = ColumnDef<DataTableFeatures, TData, unknown>
+export type DataTableInstance<TData extends RowData> = ReactTable<DataTableFeatures, TData>
 
 // Extiende `ColumnMeta` de TanStack Table con la metadata que este paquete
 // usa para derivar la vista de Cards a partir de las mismas columnas que
@@ -8,8 +21,12 @@ import type { ColumnDef, RowData, SortingState, Table } from '@tanstack/react-ta
 // en el árbol, y `components/ui/` es lo que todo el árbol termina
 // importando.
 declare module '@tanstack/react-table' {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TValue es parte de la firma que el declaration merging con la interfaz original de la librería debe respetar (mismo número de type params), aunque este proyecto no lo use en el cuerpo (TData sí se usa, en `cardImage`/`cardImageAlt`).
-  interface ColumnMeta<TData extends RowData, TValue> {
+  /* eslint-disable @typescript-eslint/no-unused-vars -- TFeatures y TValue son parte de la firma que el declaration merging con la interfaz original de la librería debe respetar (mismos type params, constraints y varianza), aunque este proyecto no los use en el cuerpo (TData sí se usa, en `cardImage`/`cardImageAlt`). */
+  interface ColumnMeta<
+    in out TFeatures extends TableFeatures,
+    in out TData extends RowData,
+    TValue extends CellData = CellData,
+  > {
     /** Marca esta columna como el título principal de la card derivada. */
     cardTitle?: boolean
     /** Label mostrado en la card antes del valor (default: `header` de la columna, si es string). */
@@ -65,6 +82,7 @@ declare module '@tanstack/react-table' {
      */
     width?: string
   }
+  /* eslint-enable @typescript-eslint/no-unused-vars */
 }
 
 // Espejo de `PageMeta` del backend (ver .claude/rules/backend/RESPONSES_BACKEND.md).
@@ -79,9 +97,9 @@ export interface DataTablePageMeta {
   totalPages: number
 }
 
-export interface UseDataTableOptions<TData> {
+export interface UseDataTableOptions<TData extends RowData> {
   data: TData[]
-  columns: ColumnDef<TData, unknown>[]
+  columns: DataTableColumnDef<TData>[]
   /** Metadata de paginación del backend. `undefined` mientras no llegó la primera respuesta. */
   meta: DataTablePageMeta | undefined
   /** Página actual, 1-based (misma convención que el query param `page` del backend). */
@@ -109,8 +127,8 @@ export interface UseDataTableOptions<TData> {
   getRowId?: (row: TData, index: number) => string
 }
 
-export interface UseDataTableReturn<TData> {
-  table: Table<TData>
+export interface UseDataTableReturn<TData extends RowData> {
+  table: DataTableInstance<TData>
   pageCount: number
   canPreviousPage: boolean
   canNextPage: boolean

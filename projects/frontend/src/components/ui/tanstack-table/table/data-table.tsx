@@ -1,5 +1,5 @@
 import { flexRender } from '@tanstack/react-table'
-import type { Row, Table as TanstackTable } from '@tanstack/react-table'
+import type { RowData } from '@tanstack/react-table'
 import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import {
@@ -13,20 +13,25 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import type { DataStateProps } from '../shared'
+import type { DataTableInstance } from '../shared/types'
+import type { DataTableFeatures } from '../shared/tableFeatures'
+import type { Row } from '@tanstack/react-table'
 
-export interface DataTableProps<TData> extends DataStateProps {
-  table: TanstackTable<TData>
+type DataTableRow<TData extends RowData> = Row<DataTableFeatures, TData>
+
+export interface DataTableProps<TData extends RowData> extends DataStateProps {
+  table: DataTableInstance<TData>
   /** Filas placeholder mientras `isLoading` (default 5). */
   skeletonRowCount?: number
   emptyMessage?: string
-  /** Antepone una columna "#" con el número de fila (1-based, respeta la página actual vía `table.getState().pagination`). */
+  /** Antepone una columna "#" con el número de fila (1-based, respeta la página actual vía `table.state.pagination`). */
   showRowNumber?: boolean
   /**
    * Agrega una columna final con lo que devuelva esta función por fila
    * (típicamente botones de editar/eliminar/ver). El paquete no sabe qué
    * acciones existen -- solo reserva y alinea la columna.
    */
-  renderActions?: (row: Row<TData>) => ReactNode
+  renderActions?: (row: DataTableRow<TData>) => ReactNode
   /** Header de la columna de acciones (default "Acciones"). Sin efecto si no se pasa `renderActions`. */
   actionsLabel?: string
   /** className del contenedor con borde -- el scroll horizontal lo maneja el `<Table>` de shadcn internamente, nunca el body. */
@@ -54,7 +59,7 @@ function columnWidthClassName(meta: { grow?: boolean; width?: string } | undefin
   return meta?.grow ? 'w-56' : ''
 }
 
-export function DataTable<TData>({
+export function DataTable<TData extends RowData>({
   table,
   isLoading,
   isError,
@@ -68,7 +73,7 @@ export function DataTable<TData>({
 }: DataTableProps<TData>) {
   const columnCount = table.getAllLeafColumns().length + (showRowNumber ? 1 : 0) + (renderActions ? 1 : 0)
   const rows = table.getRowModel().rows
-  const { pageIndex, pageSize } = table.getState().pagination
+  const { pageIndex, pageSize } = table.state.pagination
 
   return (
     <div className={cn('w-full overflow-hidden rounded-md border', className)}>

@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { renderHook } from '@testing-library/react'
-import { useReactTable, getCoreRowModel } from '@tanstack/react-table'
-import type { ColumnDef } from '@tanstack/react-table'
+import { useTable } from '@tanstack/react-table'
+import { dataTableFeatures } from '../shared/tableFeatures'
+import type { DataTableColumnDef } from '../shared/types'
 import { DataTable } from './data-table'
 
 interface Row {
@@ -11,30 +12,30 @@ interface Row {
   email: string
 }
 
-const columns: ColumnDef<Row, unknown>[] = [
+const columns: DataTableColumnDef<Row>[] = [
   { accessorKey: 'nombre', header: 'Nombre' },
   { accessorKey: 'email', header: 'Correo' },
 ]
 
 function useTestTable(data: Row[]) {
   return renderHook(function useWrapper() {
-    return useReactTable({
+    return useTable({
+      features: dataTableFeatures,
       data,
       columns,
-      getCoreRowModel: getCoreRowModel(),
     })
   }).result.current
 }
 
 function useTestTableWithPagination(data: Row[], pageIndex: number, pageSize: number) {
   return renderHook(function useWrapper() {
-    return useReactTable({
+    return useTable({
+      features: dataTableFeatures,
       data,
       columns,
       state: { pagination: { pageIndex, pageSize } },
       manualPagination: true,
       onPaginationChange: () => {},
-      getCoreRowModel: getCoreRowModel(),
     })
   }).result.current
 }
@@ -138,15 +139,15 @@ describe('DataTable', () => {
   })
 
   it('con meta.grow en una columna, esa columna recibe un ancho explícito (w-56) y el resto no', () => {
-    const growColumns: ColumnDef<Row, unknown>[] = [
+    const growColumns: DataTableColumnDef<Row>[] = [
       { accessorKey: 'nombre', header: 'Nombre', meta: { grow: true } },
       { accessorKey: 'email', header: 'Correo' },
     ]
     const table = renderHook(function useWrapper() {
-      return useReactTable({
+      return useTable({
+      features: dataTableFeatures,
         data: [{ id: '1', nombre: 'Ana', email: 'ana@test.com' }],
         columns: growColumns,
-        getCoreRowModel: getCoreRowModel(),
       })
     }).result.current
 
@@ -158,15 +159,15 @@ describe('DataTable', () => {
   })
 
   it('con meta.width en una columna, usa esa clase en vez de la de meta.grow', () => {
-    const widthColumns: ColumnDef<Row, unknown>[] = [
+    const widthColumns: DataTableColumnDef<Row>[] = [
       { accessorKey: 'nombre', header: 'Nombre', meta: { grow: true, width: 'w-24' } },
       { accessorKey: 'email', header: 'Correo' },
     ]
     const table = renderHook(function useWrapper() {
-      return useReactTable({
+      return useTable({
+      features: dataTableFeatures,
         data: [{ id: '1', nombre: 'Ana', email: 'ana@test.com' }],
         columns: widthColumns,
-        getCoreRowModel: getCoreRowModel(),
       })
     }).result.current
 

@@ -1,13 +1,17 @@
 import { flexRender } from '@tanstack/react-table'
-import type { Cell, Row, Table as TanstackTable } from '@tanstack/react-table'
+import type { Cell, Row, RowData } from '@tanstack/react-table'
 import type { ReactNode } from 'react'
 import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import type { DataStateProps } from '../shared'
+import type { DataTableInstance } from '../shared/types'
+import type { DataTableFeatures } from '../shared/tableFeatures'
 
-export interface DataCardsProps<TData> extends DataStateProps {
-  table: TanstackTable<TData>
+type CardRow<TData extends RowData> = Row<DataTableFeatures, TData>
+
+export interface DataCardsProps<TData extends RowData> extends DataStateProps {
+  table: DataTableInstance<TData>
   /**
    * Override total del contenido de una card. Si se define, se ignora toda
    * la derivación automática por metadata de columna para esa fila --
@@ -16,18 +20,18 @@ export interface DataCardsProps<TData> extends DataStateProps {
    * `showRowNumber`/`renderActions` no aplican en ese caso -- la card ya
    * queda 100% a cargo de `renderCard`.
    */
-  renderCard?: (row: Row<TData>) => ReactNode
+  renderCard?: (row: CardRow<TData>) => ReactNode
   /** Número de fila (1-based, respeta la página actual) como badge en la esquina de la card. Ignorado si se usa `renderCard`. */
   showRowNumber?: boolean
   /** Acciones al pie de la card (editar/eliminar/ver). Ignorado si se usa `renderCard`. */
-  renderActions?: (row: Row<TData>) => ReactNode
+  renderActions?: (row: CardRow<TData>) => ReactNode
   /** className del grid (default: 1/2/3 columnas por breakpoint). */
   className?: string
   skeletonCount?: number
   emptyMessage?: string
 }
 
-function resolveLabel<TData>(cell: Cell<TData, unknown>): string {
+function resolveLabel<TData extends RowData>(cell: Cell<DataTableFeatures, TData, unknown>): string {
   const meta = cell.column.columnDef.meta
   if (meta?.cardLabel) return meta.cardLabel
 
@@ -41,13 +45,13 @@ function resolveLabel<TData>(cell: Cell<TData, unknown>): string {
   return cell.column.id
 }
 
-interface AutoCardProps<TData> {
-  row: Row<TData>
+interface AutoCardProps<TData extends RowData> {
+  row: CardRow<TData>
   rowNumber?: number
-  renderActions?: (row: Row<TData>) => ReactNode
+  renderActions?: (row: CardRow<TData>) => ReactNode
 }
 
-function AutoCard<TData>({ row, rowNumber, renderActions }: AutoCardProps<TData>) {
+function AutoCard<TData extends RowData>({ row, rowNumber, renderActions }: AutoCardProps<TData>) {
   const visibleCells = row.getVisibleCells().filter((cell) => !cell.column.columnDef.meta?.hideInCard)
 
   const titleCell =
@@ -116,7 +120,7 @@ function AutoCard<TData>({ row, rowNumber, renderActions }: AutoCardProps<TData>
   )
 }
 
-export function DataCards<TData>({
+export function DataCards<TData extends RowData>({
   table,
   isLoading,
   isError,
@@ -129,7 +133,7 @@ export function DataCards<TData>({
   emptyMessage = 'Sin resultados',
 }: DataCardsProps<TData>) {
   const rows = table.getRowModel().rows
-  const { pageIndex, pageSize } = table.getState().pagination
+  const { pageIndex, pageSize } = table.state.pagination
   const gridClassName = cn('grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3', className)
 
   if (isLoading) {

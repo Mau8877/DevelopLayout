@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { renderHook } from '@testing-library/react'
-import { useReactTable, getCoreRowModel } from '@tanstack/react-table'
-import type { ColumnDef } from '@tanstack/react-table'
+import { useTable } from '@tanstack/react-table'
+import { dataTableFeatures } from '../shared/tableFeatures'
+import type { DataTableColumnDef } from '../shared/types'
 import { DataCards } from './data-cards'
 import '../shared/types'
 
@@ -15,19 +16,19 @@ interface Row {
 
 const rows: Row[] = [{ id: '1', nombre: 'Ana', email: 'ana@test.com', rol: 'ADMIN' }]
 
-function useTestTable(columns: ColumnDef<Row, unknown>[], data: Row[] = rows) {
+function useTestTable(columns: DataTableColumnDef<Row>[], data: Row[] = rows) {
   return renderHook(function useWrapper() {
-    return useReactTable({
+    return useTable({
+      features: dataTableFeatures,
       data,
       columns,
-      getCoreRowModel: getCoreRowModel(),
     })
   }).result.current
 }
 
 describe('DataCards', () => {
   it('usa la columna marcada con meta.cardTitle como CardTitle, sin duplicarla en el body', () => {
-    const columns: ColumnDef<Row, unknown>[] = [
+    const columns: DataTableColumnDef<Row>[] = [
       { accessorKey: 'nombre', header: 'Nombre', meta: { cardTitle: true } },
       { accessorKey: 'email', header: 'Correo' },
     ]
@@ -41,7 +42,7 @@ describe('DataCards', () => {
   })
 
   it('respeta hideInCard: esa columna no aparece en la card', () => {
-    const columns: ColumnDef<Row, unknown>[] = [
+    const columns: DataTableColumnDef<Row>[] = [
       { accessorKey: 'nombre', header: 'Nombre', meta: { cardTitle: true } },
       { accessorKey: 'email', header: 'Correo' },
       { accessorKey: 'rol', header: 'Rol', meta: { hideInCard: true } },
@@ -54,7 +55,7 @@ describe('DataCards', () => {
   })
 
   it('respeta cardLabel como override del label mostrado', () => {
-    const columns: ColumnDef<Row, unknown>[] = [
+    const columns: DataTableColumnDef<Row>[] = [
       { accessorKey: 'nombre', header: 'Nombre', meta: { cardTitle: true } },
       { accessorKey: 'email', header: 'Correo', meta: { cardLabel: 'Correo electrónico' } },
     ]
@@ -66,7 +67,7 @@ describe('DataCards', () => {
   })
 
   it('sin ninguna columna cardTitle, usa la primera columna visible como fallback', () => {
-    const columns: ColumnDef<Row, unknown>[] = [
+    const columns: DataTableColumnDef<Row>[] = [
       { accessorKey: 'nombre', header: 'Nombre' },
       { accessorKey: 'email', header: 'Correo' },
     ]
@@ -78,7 +79,7 @@ describe('DataCards', () => {
   })
 
   it('con renderCard, ignora la derivación automática', () => {
-    const columns: ColumnDef<Row, unknown>[] = [
+    const columns: DataTableColumnDef<Row>[] = [
       { accessorKey: 'nombre', header: 'Nombre', meta: { cardTitle: true } },
     ]
     const table = useTestTable(columns)
@@ -96,7 +97,7 @@ describe('DataCards', () => {
   })
 
   it('en loading, renderiza skeletons en vez de cards', () => {
-    const columns: ColumnDef<Row, unknown>[] = [
+    const columns: DataTableColumnDef<Row>[] = [
       { accessorKey: 'nombre', header: 'Nombre', meta: { cardTitle: true } },
     ]
     const table = useTestTable(columns)
@@ -108,7 +109,7 @@ describe('DataCards', () => {
   })
 
   it('en error, muestra el mensaje y no las cards', () => {
-    const columns: ColumnDef<Row, unknown>[] = [
+    const columns: DataTableColumnDef<Row>[] = [
       { accessorKey: 'nombre', header: 'Nombre', meta: { cardTitle: true } },
     ]
     const table = useTestTable(columns)
@@ -120,7 +121,7 @@ describe('DataCards', () => {
   })
 
   it('sin filas, muestra el mensaje de vacío', () => {
-    const columns: ColumnDef<Row, unknown>[] = [
+    const columns: DataTableColumnDef<Row>[] = [
       { accessorKey: 'nombre', header: 'Nombre', meta: { cardTitle: true } },
     ]
     const table = useTestTable(columns, [])
@@ -131,7 +132,7 @@ describe('DataCards', () => {
   })
 
   it('con showRowNumber, muestra el número 1-based como badge en la card', () => {
-    const columns: ColumnDef<Row, unknown>[] = [
+    const columns: DataTableColumnDef<Row>[] = [
       { accessorKey: 'nombre', header: 'Nombre', meta: { cardTitle: true } },
     ]
     const table = useTestTable(columns)
@@ -142,7 +143,7 @@ describe('DataCards', () => {
   })
 
   it('con renderActions, agrega el contenido devuelto en el pie de la card', () => {
-    const columns: ColumnDef<Row, unknown>[] = [
+    const columns: DataTableColumnDef<Row>[] = [
       { accessorKey: 'nombre', header: 'Nombre', meta: { cardTitle: true } },
     ]
     const table = useTestTable(columns)
@@ -160,7 +161,7 @@ describe('DataCards', () => {
   })
 
   it('con renderCard, ignora showRowNumber y renderActions', () => {
-    const columns: ColumnDef<Row, unknown>[] = [
+    const columns: DataTableColumnDef<Row>[] = [
       { accessorKey: 'nombre', header: 'Nombre', meta: { cardTitle: true } },
     ]
     const table = useTestTable(columns)
@@ -181,7 +182,7 @@ describe('DataCards', () => {
   })
 
   it('con meta.cardImage, renderiza la imagen grande como primer hijo de la card y no duplica el avatar en el título', () => {
-    const columns: ColumnDef<Row, unknown>[] = [
+    const columns: DataTableColumnDef<Row>[] = [
       {
         accessorKey: 'nombre',
         header: 'Nombre',
@@ -207,7 +208,7 @@ describe('DataCards', () => {
   })
 
   it('respeta cardImageAlt como override del alt de la imagen grande', () => {
-    const columns: ColumnDef<Row, unknown>[] = [
+    const columns: DataTableColumnDef<Row>[] = [
       {
         accessorKey: 'nombre',
         header: 'Nombre',

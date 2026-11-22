@@ -1,5 +1,6 @@
-import { useReactTable, getCoreRowModel } from '@tanstack/react-table'
-import type { PaginationState, SortingState, Updater } from '@tanstack/react-table'
+import { useTable } from '@tanstack/react-table'
+import type { PaginationState, RowData, SortingState, Updater } from '@tanstack/react-table'
+import { dataTableFeatures } from './tableFeatures'
 import type { UseDataTableOptions, UseDataTableReturn } from './types'
 
 function resolveUpdater<T>(updater: Updater<T>, current: T): T {
@@ -7,11 +8,11 @@ function resolveUpdater<T>(updater: Updater<T>, current: T): T {
 }
 
 /**
- * El "cerebro" del paquete: wrapper tipado sobre `useReactTable` con los
- * defaults de una tabla 100% server-side -- `manualPagination`,
- * `manualSorting` y `manualFiltering` siempre en `true`, y solo
- * `getCoreRowModel()`. Nunca se registra `getPaginationRowModel`,
- * `getSortedRowModel` ni `getFilteredRowModel`: agregarlos rompería la
+ * El "cerebro" del paquete: wrapper tipado sobre `useTable` (TanStack Table
+ * v9) con los defaults de una tabla 100% server-side -- `manualPagination`
+ * y `manualSorting` siempre en `true`, solo las features de paginación y
+ * orden (ver `tableFeatures.ts`) y el modelo de filas core. Nunca se
+ * registran row models de paginación/orden/filtro: agregarlos rompería la
  * premisa de que el backend es la única fuente de verdad de paginación/
  * orden/filtro (ver .claude/rules/backend/ENDPOINTS_BACKEND.md). Con
  * `enableSorting`, además fuerza `enableMultiSort: false` -- el backend
@@ -21,7 +22,7 @@ function resolveUpdater<T>(updater: Updater<T>, current: T): T {
  * backend) a `pageIndex` (0-based, interno de TanStack Table) puertas
  * adentro -- la feature que consume este hook nunca ve `pageIndex`.
  */
-export function useDataTable<TData>(
+export function useDataTable<TData extends RowData>(
   options: UseDataTableOptions<TData>,
 ): UseDataTableReturn<TData> {
   const {
@@ -40,8 +41,8 @@ export function useDataTable<TData>(
 
   const pageCount = meta ? meta.totalPages : -1
 
-  // eslint-disable-next-line react-hooks/incompatible-library -- las funciones que devuelve `useReactTable` (getRowModel, getHeaderGroups, etc.) no son memoizables por diseño de TanStack Table; no hay forma de evitarlo desde este wrapper.
-  const table = useReactTable({
+  const table = useTable({
+    features: dataTableFeatures,
     data,
     columns,
     state: {
@@ -51,7 +52,6 @@ export function useDataTable<TData>(
     pageCount,
     manualPagination: true,
     manualSorting: true,
-    manualFiltering: true,
     enableSorting,
     enableMultiSort: false,
     onPaginationChange: (updater) => {
@@ -66,7 +66,6 @@ export function useDataTable<TData>(
     onSortingChange: enableSorting
       ? (updater) => onSortingChange?.(resolveUpdater<SortingState>(updater, sorting))
       : undefined,
-    getCoreRowModel: getCoreRowModel(),
     getRowId,
   })
 

@@ -1,15 +1,14 @@
 import { describe, it, expect, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
-import type { ColumnDef } from '@tanstack/react-table'
 import { useDataTable } from './useDataTable'
-import type { DataTablePageMeta } from './types'
+import type { DataTableColumnDef, DataTablePageMeta } from './types'
 
 interface Row {
   id: string
   nombre: string
 }
 
-const columns: ColumnDef<Row, unknown>[] = [
+const columns: DataTableColumnDef<Row>[] = [
   { accessorKey: 'nombre', header: 'Nombre' },
 ]
 
