@@ -165,7 +165,10 @@ jobs:
       # (dependencias vulnerables, también transitivas), y revisa los
       # Dockerfile y el compose de producción (misconfiguraciones).
       - name: Dependencias vulnerables (Trivy)
-        uses: aquasecurity/trivy-action@0.28.0
+        # v0.36.0: las etiquetas anteriores a 0.35.0 fueron borradas tras el
+        # compromiso de marzo de 2026 (GHSA-69fq-xp46-6x23); 0.35.0 y v0.36.0
+        # son releases inmutables.
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .

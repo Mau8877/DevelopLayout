@@ -79,8 +79,9 @@ de aceptarlo.
 - Reglas activas: `type-enum` (los 10 tipos de la tabla de
   `CONVENCIONES_GIT.md`), `scope-enum` (`BACK`/`FRONT`/`MOBILE`/`INFRA`/`DOCS`/`REPO`),
   `type-empty`/`scope-empty`/`subject-empty` (a diferencia de Conventional
-  Commits estándar, acá el scope es **obligatorio**, nunca opcional), y
-  `header-max-length` (100).
+  Commits estándar, acá el scope es **obligatorio**, nunca opcional). No hay
+  límite de largo del encabezado (`header-max-length` no está definida a
+  propósito: no se extiende ningún preset que la traiga por defecto).
 - Se puede probar sin hacer un commit real: `echo "feat[BACK]: algo" | pnpm exec commitlint`.
 
 ## Comentarios
