@@ -88,6 +88,10 @@ conflicto, ganan las rules del proyecto.
 
 ## Decisiones de diseño
 
+{En la capa BACKEND, si la HU crea tablas: línea obligatoria
+`Schema: {nombre} — {existente | nuevo} — {justificación}` (ver
+[SCHEMAS_BD_BACKEND.md](backend/SCHEMAS_BD_BACKEND.md)).}
+
 {Cualquier decisión técnica que no estaba resuelta en la HU original y
 que hubo que tomar para poder desglosarla en UT concretas — con su
 razonamiento. Si la HU ya definía todo sin ambigüedad, esta sección se

@@ -35,6 +35,10 @@ usan el código `UT-HUI-{NOMBRE}-{CAPA}-{NN}` (ej. `UT-HUI-LOGIN-BE-01`),
 con la carpeta `docs/UnidadesTrabajo/HU-INICIAL-{Nombre}/`. El resto del
 formato de esta rule aplica igual.
 
+Orden de implementación: `Base` → `Login` → `Refresh` → `Logout` →
+`OlvidePassword` → `SesionesAdmin` (`Sesiones` pospuesta) → `Bitacora`. Cada una puede
+suponer ya implementadas las anteriores.
+
 ## Granularidad: una HU, un flujo
 
 **Si una funcionalidad agrupa más de un flujo de usuario independiente,

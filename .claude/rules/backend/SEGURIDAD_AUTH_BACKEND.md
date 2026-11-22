@@ -37,9 +37,17 @@ la autenticación "hecha" — no es un requisito opcional.
   `codigo` del usuario (`sub`) y la lista de roles activos como claims,
   nada más. Viaja en la cookie `accessToken`; el backend también lo acepta
   en `Authorization: Bearer` para clientes que no son navegador (mobile).
-- **Refresh token**: opaco (UUID aleatorio, no JWT), 7 días, persistido en
-  **Redis** con TTL y rotado en cada uso. Viaja en la cookie
-  `refreshToken`. Solo se usa contra `/api/v1/auth/refresh` y `/logout`.
+- **Refresh token**: opaco (UUID aleatorio, no JWT), 7 días, rotado en cada
+  uso. Se guarda **solo su hash** en la tabla `sesiones` (Postgres es la fuente
+  de verdad: una fila por inicio de sesión, con tipo de cliente, IP, user
+  agent, estado y fechas). Viaja en la cookie `refreshToken` y solo se usa
+  contra `/api/v1/auth/refresh` y `/logout`. La sesión dura 7 días desde su
+  último uso, con un máximo absoluto de 30 días desde su creación.
+- **Identificador de sesión (`sid`)**: el access token lleva el `codigo` de su
+  sesión. Al revocar una sesión, su `sid` entra en una lista de revocadas en
+  Redis (TTL = vida del access token) que el filtro JWT consulta en cada
+  request: una sesión cerrada deja de valer **de inmediato**. Si Redis falla,
+  se deniega (falla cerrado).
 - **Cookies (web)**:
 
   | Cookie | `accessToken` | `refreshToken` |
@@ -70,21 +78,19 @@ la autenticación "hecha" — no es un requisito opcional.
 - **Endpoints** (`/api/v1/auth/...`):
   - `POST /api/v1/auth/login` → valida credenciales, responde
     `{ accessToken, usuario }` en el body y setea la cookie `refreshToken`.
-  - `POST /api/v1/auth/refresh` → lee el refresh token de la cookie, valida
-    que no esté invalidado/expirado contra Redis, responde
-    `{ accessToken }` (y opcionalmente rota la cookie).
-  - `POST /api/v1/auth/logout` → lee el refresh token de la cookie, lo
-    invalida en Redis, y borra la cookie en la respuesta.
-- **Invalidación en logout**: el refresh token se guarda del lado del
-  servidor en **Redis** con TTL igual a su vencimiento (Redis ya está en
-  `docker-compose.yml`, y `spring-boot-starter-data-redis` **ya está
-  agregada** en `pom.xml`, sin más wiring que la conexión automática vía
-  `spring.data.redis.host`; falta el código real del storage de tokens, eso
-  sigue pendiente). En logout se borra esa entrada; en refresh se valida
-  contra ese storage, no solo contra el formato del token.
-- El access token **no** se invalida antes de tiempo (es stateless por
-  diseño) — por eso su vida útil es corta. No se implementa una blacklist de
-  access tokens salvo que aparezca un requisito concreto que lo justifique.
+  - `POST /api/v1/auth/refresh` → lee el refresh token de la cookie, busca
+    su hash en `sesiones`, valida que la sesión esté `ACTIVA` y no vencida,
+    rota el hash (guardando el anterior para detectar reutilización) y
+    responde con un access token nuevo y la cookie nueva.
+  - `POST /api/v1/auth/logout` → revoca la sesión (`REVOCADA`), la agrega a la
+    lista de revocadas de Redis y borra las cookies.
+- **Reutilización**: si llega un refresh token que ya fue rotado (coincide con
+  el hash anterior de una sesión), se asume robo: la sesión se revoca con motivo
+  `REUSO` y se registra en la bitácora ([BITACORA_BACKEND.md](BITACORA_BACKEND.md)).
+- Redis se sigue usando para el bloqueo por intentos de login, los tokens de
+  recuperación de contraseña, el rate limit y la lista de sesiones revocadas;
+  **no** guarda refresh tokens (cada refresh ya escribe en la base, así que una
+  caché no aportaría nada).
 
 ## Reemplazo del `InMemoryUserDetailsManager`
 
@@ -137,7 +143,7 @@ que va a hacer falta esa flexibilidad.
   desactivado globalmente (`Rol.isActive = false`) deja de otorgar acceso
   a todos los usuarios que lo tengan asignado, sin tener que tocar cada
   fila de `UsuarioRol`.
-- Los nombres de rol conocidos por el sistema (ej. `"ADMIN"`, `"USUARIO"`)
+- Los nombres de rol conocidos por el sistema (ej. `"SUPER_ADMIN"`, `"USUARIO"`)
   se validan/usan como constantes de texto (`RolNombres` o similar, en
   `features/usuarios/`), **no** como un enum Java cerrado — los roles son
   datos (filas de la tabla `ROL`), administrables sin desplegar código
@@ -145,7 +151,7 @@ que va a hacer falta esa flexibilidad.
 - El JWT lleva la lista de nombres de roles activos como claim (array de
   strings, ver [Flujo JWT](#flujo-jwt--refresh-token)) — `UserDetailsServiceImpl`
   arma las `authorities` como `ROLE_{nombre}` por cada rol activo.
-- Se protege por rol con `@PreAuthorize("hasRole('ADMIN')")` (o
+- Se protege por rol con `@PreAuthorize("hasRole('SUPER_ADMIN')")` (o
   `hasAnyRole(...)` si aplica a más de uno) a nivel de método de `service`
   (no en el controller — mantiene la regla de controllers delgados de
   [ENDPOINTS_BACKEND.md](ENDPOINTS_BACKEND.md)).

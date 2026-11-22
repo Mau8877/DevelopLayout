@@ -26,7 +26,7 @@ se mezclan:
 
   ```java
   @Entity
-  @Table(name = "users")
+  @Table(name = "usuarios", schema = "authentication")
   @AttributeOverride(name = "codigo", column = @Column(name = "codigo_usuario"))
   public class Usuario extends BaseModel {
       // ...
@@ -43,6 +43,11 @@ se mezclan:
   `findByCodigo(UUID codigo)`, en el repositorio de cada Model — no se usa
   `findById(UUID)` para eso (no compilaría, y conceptualmente sería
   buscar por la clave equivocada).
+
+> **Schemas.** Toda tabla vive en el schema de su dominio (nunca en
+> `public`) y se escribe calificada en migraciones y consultas nativas; el
+> `@Table` lleva `schema = "..."` explícito. Ver
+> [SCHEMAS_BD_BACKEND.md](SCHEMAS_BD_BACKEND.md).
 
 ## Nombres de migraciones Flyway
 

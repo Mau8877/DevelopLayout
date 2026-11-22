@@ -91,6 +91,7 @@ detalle completo:
 | Convención de rutas, verbos HTTP, paginación | (no es código, es contrato) | [ENDPOINTS_BACKEND.md](backend/ENDPOINTS_BACKEND.md) |
 | Logging estructurado | (transversal a `service/` de cada módulo) | [LOGGING_BACKEND.md](backend/LOGGING_BACKEND.md) |
 | Migraciones, nombres de tabla/columna | `src/main/resources/db/migration/` | [PERSISTENCIA_BD_BACKEND.md](backend/PERSISTENCIA_BD_BACKEND.md) |
+| Schemas de PostgreSQL por dominio (siempre existe `authentication`) | (base de datos, no es código) | [SCHEMAS_BD_BACKEND.md](backend/SCHEMAS_BD_BACKEND.md) |
 
 ## Regla de dependencia
 
