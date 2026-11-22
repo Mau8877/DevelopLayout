@@ -467,6 +467,19 @@ faltan): `TLS_CERT_DIR` (carpeta con `fullchain.pem` y `privkey.pem`),
 `CORS_ALLOWED_ORIGINS` (origen HTTPS del frontend) y `MINIO_IMAGE` (tag o
 digest fijo). `APP_VERSION` es opcional (tag de las imágenes construidas).
 
+**Permisos de la clave privada TLS.** El proxy corre como uid `101` (sin
+root), así que `privkey.pem` tiene que poder leerla ese usuario; si no,
+nginx aborta con `cannot load certificate key ... Permission denied` y el
+contenedor se reinicia en bucle. En un servidor real:
+
+```bash
+sudo chown root:101 privkey.pem && sudo chmod 640 privkey.pem
+```
+
+(con una clave de Let's Encrypt, que `/etc/letsencrypt/live` y `archive`
+también dejen atravesar el directorio a ese grupo). No uses `chmod 644`
+con una clave real, solo con el certificado de prueba local.
+
 Grafana y Prometheus no tienen puertos: se consultan por túnel SSH o con
 `docker compose exec`, nunca por internet.
 
