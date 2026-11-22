@@ -72,7 +72,7 @@ sin nada adicional inventado solo para CI:
 | Job | Pasos |
 | --- | --- |
 | `backend` | `mvnw checkstyle:check` → `mvnw test` → `mvnw clean package` |
-| `frontend` | `pnpm install --frozen-lockfile` (desde la raíz, ver [docs/README.md](../../docs/README.md)) → `pnpm lint` → `pnpm test` → `pnpm build` |
+| `frontend` | `pnpm install --frozen-lockfile` (desde la raíz, ver [docs/README.md](../../docs/README.md)) → `pnpm lint` → `pnpm test` → `pnpm build` → `pnpm audit --audit-level moderate` |
 | `mobile` | `flutter pub get` → `flutter analyze` → `flutter test` |
 
 - El job de `backend` levanta `postgres:18-alpine` y `redis:8-alpine` como

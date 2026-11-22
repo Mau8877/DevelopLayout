@@ -8,10 +8,10 @@ desarrollo que los conecta a todos.
 
 | Proyecto | Tecnología |
 | --- | --- |
-| **Backend** (`projects/backend`) | Java 21 + Spring Boot 4.2 (Maven), PostgreSQL + Flyway, Redis (caché), MinIO (archivos) |
+| **Backend** (`projects/backend`) | Java 21 + Spring Boot 4.2 (Maven), PostgreSQL + Flyway, Redis (caché), MinIO (archivos), JasperReports 7 (reportes) |
 | **Frontend** (`projects/frontend`) | React 19 + TypeScript + Vite, TanStack (Query/Router/Form/Table), Tailwind CSS 4 + shadcn |
 | **Mobile** (`projects/mobile`) | Flutter/Dart, Riverpod (estado), `go_router` (navegación), `dio` (HTTP) |
-| **Infraestructura** (`infrastructure/`) | Docker Compose: nginx (proxy), postgres, redis, minio, prometheus, grafana |
+| **Infraestructura** (`infrastructure/`) | Docker Compose (desarrollo y producción): nginx (proxy), postgres, redis, minio, prometheus, grafana |
 
 `pnpm-workspace.yaml` maneja `projects/*` como un workspace de pnpm
 (frontend y mobile comparten herramientas de raíz; el backend es un
@@ -26,16 +26,20 @@ DevelopLayout/
 │   ├── frontend/       # Panel web (React)
 │   └── mobile/         # App móvil (Flutter)
 ├── infrastructure/      # Config de nginx, postgres, redis, minio, prometheus, grafana
+├── scripts/             # update-deps (Windows y Linux): actualiza y valida las dependencias
+├── .github/             # CI (ci.yml) y Dependabot
 ├── docs/
 │   ├── README.md        # Checklist de puesta en marcha de un proyecto nuevo a partir de esta plantilla
 │   ├── INFRAESTRUCTURA.md  # Guía completa de la infraestructura Docker (servicios, volúmenes, variables de entorno)
 │   ├── errors/           # Catálogo de códigos de error de la API (ver más abajo)
+│   ├── seguridad/        # Excepciones documentadas a las reglas de seguridad (RLS)
 │   ├── HistoriasDeUsuario/
 │   └── UnidadesTrabajo/
 ├── .claude/
 │   ├── CLAUDE.md         # Instrucciones de proyecto para Claude Code
 │   └── rules/            # Reglas de arquitectura y convenciones (ver más abajo)
-└── docker-compose.yml    # Levanta el stack completo para desarrollo
+├── docker-compose.yml        # Levanta el stack completo para desarrollo
+└── docker-compose.prod.yml   # Base de producción (TLS, sin docker.sock, solo el proxy publica puertos)
 ```
 
 ## Puesta en marcha rápida
@@ -48,6 +52,7 @@ Requiere Docker Desktop. Desde la raíz del repo:
 cp .env.example .env
 cp projects/backend/.env.example projects/backend/.env
 cp projects/frontend/.env.example projects/frontend/.env
+# Reemplazá cada CAMBIAME por una contraseña propia en los .env (no tienen default).
 docker compose up
 ```
 
@@ -59,11 +64,13 @@ en frontend y backend):
 | Proxy (nginx) | `80` | http://localhost |
 | Frontend (Vite) | `5173` | http://localhost:5173 |
 | Backend (API) | `8080` | http://localhost:8080 |
-| PostgreSQL | `5432` | — |
+| PostgreSQL | `5432` (configurable con `POSTGRES_HOST_PORT`) | — |
 | Redis | `6379` | — |
 | MinIO (API / consola) | `9000` / `9001` | http://localhost:9001 |
 | Prometheus | `9090` | http://localhost:9090 |
 | Grafana | `3000` | http://localhost:3000 |
+
+Todos los puertos se publican solo en `127.0.0.1`.
 
 Verificación rápida de que el backend levantó bien:
 
@@ -72,7 +79,7 @@ curl http://localhost:8080/health        # {"status":"UP", ...}
 curl http://localhost:8080/prometheus | head   # métricas en texto plano
 ```
 
-Swagger UI de la API: http://localhost:8080/swagger-ui/index.html
+Swagger UI de la API (solo en desarrollo): http://localhost:8080/swagger-ui/index.html
 
 ### Opción B — Cada proyecto por separado (sin Docker)
 
@@ -159,6 +166,12 @@ Puntos de entrada útiles:
   formato de mensajes de commit (`tipo[SCOPE]: descripción`) y ramas.
 - [`.claude/rules/ESTANDARES_CODIGO.md`](.claude/rules/ESTANDARES_CODIGO.md) —
   nombrado y comentarios, comunes a Java/TypeScript/Dart.
+- [`.claude/rules/SEGURIDAD_OWASP.md`](.claude/rules/SEGURIDAD_OWASP.md) —
+  OWASP Top 10, API Security Top 10 y MASVS: toda implementación nueva
+  tiene que cumplirlos. La base de datos es siempre privada y con RLS
+  ([`BASE_DE_DATOS_PRIVADA_RLS.md`](.claude/rules/backend/BASE_DE_DATOS_PRIVADA_RLS.md)).
+- [`.claude/rules/CI_CD.md`](.claude/rules/CI_CD.md) — qué hace el CI,
+  los controles de seguridad y por qué todavía no hay CD.
 - [`docs/errors/README.md`](docs/errors/README.md) — catálogo vivo de
   todos los códigos de error que la API puede devolver, con su HTTP, su
   significado y dónde se lanza cada uno.
@@ -167,7 +180,9 @@ Puntos de entrada útiles:
   slugs, bundle IDs, etc.).
 - [`docs/INFRAESTRUCTURA.md`](docs/INFRAESTRUCTURA.md) — guía completa de
   los servicios, redes, volúmenes y variables de entorno de
-  `docker-compose.yml`.
+  `docker-compose.yml`, y cómo levantar `docker-compose.prod.yml`.
+- [`scripts/README.md`](scripts/README.md) — el script que actualiza y
+  valida las dependencias de los tres proyectos.
 
 ## Convenciones de Git (resumen)
 

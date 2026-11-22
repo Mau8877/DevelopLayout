@@ -13,7 +13,9 @@ proyectos independientes más la infraestructura de desarrollo:
   `go_router` para navegación, `dio` como cliente HTTP.
 - **`scripts/`** — `update-deps` para actualizar y validar dependencias (`linux/` y `windows/`).
 - **`infrastructure/`** — configuración de Docker Compose: nginx (proxy),
-  postgres, redis, minio, prometheus, grafana.
+  postgres, redis, minio, prometheus, grafana. `docker-compose.yml` es solo
+  desarrollo; `docker-compose.prod.yml` es la base de producción (TLS, sin
+  `docker.sock`, solo el proxy publica puertos).
 
 ## Comandos básicos
 
@@ -46,16 +48,19 @@ flutter analyze       # análisis estático
 
 Desde la raíz del repo, con los `.env` ya creados a partir de sus
 `.env.example` correspondientes (raíz, `projects/backend/`,
-`projects/frontend/`):
+`projects/frontend/`) y cada `CAMBIAME` reemplazado por una contraseña
+propia (ninguna tiene valor por defecto):
 
 ```bash
 docker compose up
 ```
 
 Levanta proxy (puerto 80), frontend (5173), backend (8080), postgres (5432),
-redis (6379), minio (9000/9001), prometheus (9090) y grafana (3000). Ver
-[docs/README.md](../docs/README.md) para el detalle completo de variables de
-entorno y el checklist de puesta en marcha.
+redis (6379), minio (9000/9001), prometheus (9090) y grafana (3000), todos
+publicados solo en `127.0.0.1`. Ver [docs/INFRAESTRUCTURA.md](../docs/INFRAESTRUCTURA.md)
+para el detalle de servicios y variables de entorno, y
+[docs/README.md](../docs/README.md) para el checklist de puesta en marcha de
+un proyecto nuevo.
 
 ## Seguridad — regla transversal obligatoria
 
