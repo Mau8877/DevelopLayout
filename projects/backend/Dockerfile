@@ -2,7 +2,7 @@
 # ETAPA 1: CONSTRUCCIÓN (Builder)
 # ==========================================
 # Utilizamos una imagen pesada que contiene Maven y el JDK completo
-FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
+FROM maven:3.9-eclipse-temurin-21-alpine AS builder
 
 WORKDIR /build
 
@@ -28,6 +28,11 @@ FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
+# 4b. Fuentes para JasperReports: la imagen alpine/JRE no trae ninguna y sin
+# fuentes el render de PDF falla (java.awt en modo headless). `fontconfig` +
+# DejaVu cubren lo básico; si una plantilla usa otra fuente, se agrega acá.
+RUN apk add --no-cache fontconfig ttf-dejavu
+
 # 5. Práctica de Seguridad: Evitar ejecutar la app como ROOT
 # Creamos un grupo y un usuario sin privilegios del sistema
 RUN addgroup -S springgroup && adduser -S springuser -G springgroup
@@ -41,4 +46,6 @@ COPY --from=builder --chown=springuser:springgroup /build/target/*.jar app.jar
 EXPOSE 8080
 
 # 8. Punto de entrada de la aplicación
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# -Djava.awt.headless=true: JasperReports usa java.awt para renderizar y no hay pantalla.
+# -XX:MaxRAMPercentage: respeta el límite de memoria del contenedor.
+ENTRYPOINT ["java", "-Djava.awt.headless=true", "-XX:MaxRAMPercentage=75", "-jar", "app.jar"]

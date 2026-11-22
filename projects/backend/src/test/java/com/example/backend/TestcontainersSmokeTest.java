@@ -10,7 +10,7 @@ import java.sql.Statement;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.DockerClientFactory;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /**
  * Prueba mínima de que Testcontainers puede levantar un Postgres real desde
@@ -46,7 +46,7 @@ class TestcontainersSmokeTest {
 
     @Test
     void elContenedorDePostgresLevantaYAceptaConexiones() throws Exception {
-        try (PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18-alpine")) {
+        try (PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:18-alpine")) {
             postgres.start();
             assertThat(postgres.isRunning()).isTrue();
 
