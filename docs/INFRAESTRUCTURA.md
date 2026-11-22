@@ -43,17 +43,19 @@ pasar por el proxy.
 | `6379` | `redis` | Conectar un cliente Redis directo |
 | `9000` / `9001` | `minio` | API S3 (`9000`) y consola web de administración (`9001`) |
 | `9090` | `prometheus` | UI de Prometheus (ver targets, correr queries PromQL) |
-| `3000` | `grafana` | Dashboards (sin ninguno provisionado todavía, ver sección 7) |
+| `3000` | `grafana` | Dashboards (sin ninguno provisionado todavía, ver sección 8) |
+
+Todos esos puertos se publican **solo en `127.0.0.1`**: el stack de desarrollo no queda expuesto a tu red local. El de Postgres es configurable con `POSTGRES_HOST_PORT` (por defecto `5432`; usá otro, ej. `5433`, si ya tenés un Postgres propio en esa máquina). Dentro de la red de Docker, el backend siempre usa `5432`.
 
 ## 2. Los 9 servicios de `docker-compose.yml`
 
 ### 2.1 `proxy` — reverse proxy (nginx)
 
-- **Imagen**: `nginx:alpine`.
+- **Imagen**: `nginx:stable-alpine`.
 - **Rol**: único punto de entrada del stack en el puerto `80`, simulando
   cómo se vería en producción (un solo dominio, no puertos sueltos por
   servicio).
-- **Config**: monta `infrastructure/nginx/nginx.conf` de solo lectura.
+- **Config**: monta `infrastructure/nginx/nginx.conf` de solo lectura, con `server_tokens off`, cabeceras de seguridad, `limit_req` en `/api/` y `X-Forwarded-For` sobrescrito (no acumulado). Este es el proxy de **desarrollo** (HTTP, con WebSockets para Vite); el de producción es `nginx.prod.conf` (ver sección 7c).
 - **Reglas de enrutamiento** (ver [sección 3](#3-nginx-enrutamiento-y-el-fix-de-dns-dinámico)):
   `/api/*` → `backend:8080`, cualquier otra ruta → `frontend:5173`.
 - **`restart: unless-stopped`**: si el contenedor muere (ver el bug de DNS
@@ -96,7 +98,7 @@ pasar por el proxy.
     cada vez que se recrea el contenedor. Esto también significa que
     `./mvnw` corrido desde tu host y `mvn` corrido dentro del contenedor
     **comparten el mismo caché de dependencias**.
-  - `/var/run/docker.sock:/var/run/docker.sock` — necesario para que
+  - `/var/run/docker.sock:/var/run/docker.sock` — **solo desarrollo**: dar acceso al socket equivale a control total del host desde ese contenedor, y `docker-compose.prod.yml` no lo monta. Necesario para que
     **Testcontainers** (tests de integración, ver `TESTING_BACKEND.md`)
     pueda levantar contenedores (ej. un Postgres real) desde DENTRO de este
     contenedor. Sin esto, cualquier test que use Testcontainers falla con
@@ -117,7 +119,8 @@ pasar por el proxy.
 
 - **Imagen**: `postgres:18-alpine`.
 - **Credenciales/DB**: vienen de `${POSTGRES_DB}`, `${POSTGRES_USER}`,
-  `${POSTGRES_PASSWORD}` (del `.env` de la raíz — ver [sección 6](#6-variables-de-entorno)).
+  `${POSTGRES_PASSWORD}` (del `.env` de la raíz — ver [sección 6](#6-variables-de-entorno)). La contraseña no tiene default: `docker compose` falla si falta.
+  La app todavía se conecta con este superusuario, que **ignora RLS**; el rol `app_runtime` se crea junto con la autenticación.
 - **Volúmenes**:
   - `postgres_data:/var/lib/postgresql` — los datos reales, persistentes
     entre reinicios del contenedor.
@@ -146,6 +149,7 @@ pasar por el proxy.
   puramente cache volátil).
 - **Volumen**: `redis_data:/data` — para que la persistencia AOF de arriba
   tenga dónde escribir.
+- **Contraseña obligatoria**: arranca con `--requirepass ${REDIS_PASSWORD}` (el valor viene del `.env`, nunca de `redis.conf`, que se commitea), y su healthcheck se autentica con ella. El backend la recibe como `SPRING_DATA_REDIS_PASSWORD`.
 - **Estado de uso real**: el backend ya tiene `spring-boot-starter-data-redis`
   agregado y `spring.data.redis.host` apuntando acá, pero **todavía no hay
   ningún código de la aplicación que lo use de verdad** (el caso de uso
@@ -170,14 +174,14 @@ pasar por el proxy.
   2. `mc mb myminio/app-storage --ignore-existing` — crea el
      bucket (el nombre **debe coincidir** con `app.minio.bucket-name` en
      `application.properties` del backend).
-  3. `mc anonymous set download myminio/app-storage` — hace el
-     bucket de **lectura pública** (para servir imágenes/archivos sin
-     necesitar autenticación en el `GET`, típico para avatares/adjuntos
-     públicos). La escritura sigue requiriendo credenciales.
+  3. `mc anonymous set private myminio/app-storage` — fuerza el bucket a
+     **privado** (sin acceso anónimo), aunque uno viejo hubiera quedado
+     público. Los archivos se sirven siempre a través del backend
+     (autorización por recurso) o con URLs prefirmadas de corta duración.
 
 ### 2.7 `prometheus` — recolección de métricas
 
-- **Imagen**: `prom/prometheus:latest`.
+- **Imagen**: `prom/prometheus:v3.14.0` (tag fijo).
 - **Config**: `infrastructure/prometheus/prometheus.yml`:
   ```yaml
   global:
@@ -195,7 +199,7 @@ pasar por el proxy.
 
 ### 2.8 `grafana` — visualización de métricas
 
-- **Imagen**: `grafana/grafana:latest`.
+- **Imagen**: `grafana/grafana:13.3.0` (tag fijo).
 - **Provisioning automático**: monta
   `infrastructure/grafana/provisioning/datasources/`, que define un único
   datasource (Prometheus, marcado como default):
@@ -211,9 +215,10 @@ pasar por el proxy.
 - **No hay ningún dashboard provisionado** — solo la conexión a Prometheus
   está lista. Si entrás a `http://localhost:3000` vas a poder armar
   queries/paneles a mano, pero no hay nada pre-armado todavía.
-- **Login**: usuario/contraseña por defecto de la imagen de Grafana
-  (`admin`/`admin`, pide cambiarla al primer login) — no está
-  parametrizado por `.env`.
+- **Login**: usuario y contraseña vienen de `GRAFANA_ADMIN_USER` y
+  `GRAFANA_ADMIN_PASSWORD` del `.env` (la contraseña es obligatoria, no
+  hay `admin`/`admin`). El registro de usuarios y la telemetría de
+  análisis están desactivados.
 
 ## 3. nginx: enrutamiento y el fix de DNS dinámico
 
@@ -295,7 +300,7 @@ set -e
 
 mc alias set myminio http://minio:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
 mc mb myminio/app-storage --ignore-existing
-mc anonymous set download myminio/app-storage
+mc anonymous set private myminio/app-storage
 
 exit 0
 ```
@@ -322,15 +327,21 @@ repo y sirven de plantilla).
 
 ### 6.1 Raíz (`.env`, a partir de `.env.example`)
 
-Usadas por `docker-compose.yml` para levantar `postgres` y `minio`:
+Usadas por `docker-compose.yml` (y por `docker-compose.prod.yml`) para levantar los servicios de infraestructura. Las contraseñas **no tienen valor por defecto**: el `.env.example` trae `CAMBIAME` y `docker compose` falla si falta alguna (generá cada una con `openssl rand -base64 24`).
 
 | Variable | Ejemplo | Para qué |
 | --- | --- | --- |
 | `POSTGRES_DB` | `app_db` | Nombre de la base de datos que Postgres crea al inicializar el volumen |
 | `POSTGRES_USER` | `app_admin` | Usuario de Postgres |
-| `POSTGRES_PASSWORD` | `app_local_pass_123` | Password de Postgres |
+| `POSTGRES_PASSWORD` | `CAMBIAME` | Password de Postgres (obligatoria) |
+| `POSTGRES_HOST_PORT` | `5433` | Puerto del **host** donde se publica Postgres (opcional, default `5432`) |
+| `REDIS_PASSWORD` | `CAMBIAME` | Password de Redis (obligatoria) |
+| `GRAFANA_ADMIN_USER` | `admin` | Usuario admin de Grafana |
+| `GRAFANA_ADMIN_PASSWORD` | `CAMBIAME` | Password admin de Grafana (obligatoria) |
 | `MINIO_ROOT_USER` | `minio_admin` | Usuario admin de MinIO (mínimo 3 caracteres, si no MinIO no arranca) |
-| `MINIO_ROOT_PASSWORD` | `minio_local_pass_123` | Password admin de MinIO (**mínimo 8 caracteres**, si no MinIO tira `FATAL` y no arranca — pasó de verdad en esta sesión) |
+| `MINIO_ROOT_PASSWORD` | `CAMBIAME` | Password admin de MinIO (obligatoria, **mínimo 8 caracteres**, si no MinIO tira `FATAL` y no arranca) |
+
+Solo para producción (ver sección 7c): `TLS_CERT_DIR`, `CORS_ALLOWED_ORIGINS`, `MINIO_IMAGE` y `APP_VERSION`.
 
 ### 6.2 Backend (`projects/backend/.env`, a partir de `.env.example`)
 
@@ -340,12 +351,15 @@ Usadas directamente por Spring Boot (`application.properties` las lee vía
 | Variable | Para qué | Default si no está |
 | --- | --- | --- |
 | `SPRING_DATASOURCE_URL` | URL JDBC de Postgres | `jdbc:postgresql://localhost:5432/app_db` |
-| `SPRING_DATASOURCE_USERNAME` | Usuario de la DB | `postgres` |
-| `SPRING_DATASOURCE_PASSWORD` | Password de la DB | `postgres` |
+| `SPRING_DATASOURCE_USERNAME` | Usuario de la DB | sin default (solo el perfil `dev` usa `postgres`) |
+| `SPRING_DATASOURCE_PASSWORD` | Password de la DB | sin default (solo el perfil `dev` usa `postgres`) |
+| `SPRING_FLYWAY_USER` / `SPRING_FLYWAY_PASSWORD` | Credenciales de Flyway (el rol dueño del esquema) | las del datasource |
 | `SPRING_DATA_REDIS_HOST` | Host de Redis | `localhost` |
+| `SPRING_DATA_REDIS_PASSWORD` | Password de Redis (la misma que `REDIS_PASSWORD`) | sin default |
 | `MINIO_URL` | URL de la API S3 de MinIO | `http://localhost:9000` |
-| `MINIO_ROOT_USER` | Usuario de MinIO (reusa el mismo que el root de arriba) | `minio_admin` |
-| `MINIO_ROOT_PASSWORD` | Password de MinIO | `minio_local_pass_123` |
+| `MINIO_ROOT_USER` | Usuario de MinIO (reusa el mismo que el root de arriba) | sin default (el perfil `dev` usa `minio_admin`) |
+| `MINIO_ROOT_PASSWORD` | Password de MinIO | sin default (el perfil `dev` trae uno local) |
+| `SWAGGER_ENABLED` | Enciende Swagger UI y `/v3/api-docs` fuera del perfil `dev` | `false` |
 | `CORS_ALLOWED_ORIGINS` | Orígenes permitidos para CORS (separados por coma) | `http://localhost:5173,http://localhost` |
 | `RATE_LIMIT_CAPACITY` | Cupo del rate limit por IP (ver `SEGURIDAD_AUTH_BACKEND.md#rate-limit`) | `100` |
 | `RATE_LIMIT_REFILL_PER_MINUTE` | Cuántos tokens se regeneran por minuto | `100` |
@@ -380,15 +394,16 @@ genéricas + bind mount del código, sin build). Para producción existen dos
 Build multi-stage self-contenido (contexto = `projects/backend`, no la
 raíz — el backend no es un workspace, es un único módulo Maven):
 
-1. **Etapa `builder`** (`maven:3.9.6-eclipse-temurin-21-alpine`): copia
+1. **Etapa `builder`** (`maven:3.9-eclipse-temurin-21-alpine`): copia
    `pom.xml` primero (cache de capas de Docker), descarga dependencias
    offline, copia `src/`, compila y empaqueta el `.jar` (`-DskipTests`
    para agilizar el build — los tests ya corrieron en CI/pre-commit antes
    de llegar acá).
 2. **Etapa runtime** (`eclipse-temurin:21-jre-alpine`, sin Maven ni
-   compiladores — imagen final más liviana): crea un usuario sin
-   privilegios (`springuser`) y corre el `.jar` como ese usuario, no como
-   root.
+   compiladores — imagen final más liviana): instala `fontconfig` y
+   `ttf-dejavu` (JasperReports renderiza con `java.awt` y la imagen alpine
+   no trae fuentes), crea un usuario sin privilegios (`springuser`) y corre
+   el `.jar` como ese usuario, no como root, en modo headless.
 
 ```bash
 docker build -f projects/backend/Dockerfile -t app-backend projects/backend
