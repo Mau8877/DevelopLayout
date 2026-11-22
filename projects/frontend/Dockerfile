@@ -15,7 +15,7 @@
 # ==========================================
 # ETAPA 1: CONSTRUCCIÓN (Builder)
 # ==========================================
-FROM node:22-alpine AS builder
+FROM node:26-alpine AS builder
 RUN corepack enable pnpm
 
 WORKDIR /app
