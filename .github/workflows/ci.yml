@@ -108,7 +108,7 @@ jobs:
           # Misma major que el desarrollo local: el `overrides` de
           # pnpm-workspace.yaml (fix de minimatch) lo lee pnpm >= 10.
           version: 11
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
