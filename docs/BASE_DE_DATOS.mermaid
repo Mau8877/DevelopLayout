@@ -1,0 +1,57 @@
+erDiagram
+    usuario ||--o{ usuario_rol : "tiene"
+    rol ||--o{ usuario_rol : "se asigna en"
+    usuario ||--o{ sesion : "inicia"
+    usuario |o..o{ bitacora : "genera (por usuario_codigo, sin FK)"
+
+    usuario {
+        BaseModel base "id, codigo_usuario, created_at, updated_at, deleted_at"
+        varchar email "unico parcial, minusculas"
+        varchar password_hash "BCrypt"
+        varchar estado "ACTIVO | INACTIVO"
+    }
+    rol {
+        BaseModel base "id, codigo_rol, created_at, updated_at, deleted_at"
+        varchar nombre UK "SUPER_ADMIN, USUARIO"
+        varchar descripcion
+        boolean is_active
+    }
+    usuario_rol {
+        BaseModel base "id, codigo_usuario_rol, created_at, updated_at, deleted_at"
+        bigint usuario_id FK
+        bigint rol_id FK
+        boolean is_active
+    }
+    sesion {
+        BaseModel base "id, codigo_sesion, created_at, updated_at, deleted_at"
+        bigint usuario_id FK
+        uuid usuario_codigo "para RLS"
+        char refresh_hash UK "sha256, nunca el token"
+        char refresh_hash_anterior "deteccion de reuso"
+        varchar estado "ACTIVA | REVOCADA | EXPIRADA"
+        varchar tipo_cliente "WEB | MOBILE"
+        varchar ip
+        varchar user_agent
+        timestamptz expira_en
+        timestamptz ultimo_uso_en
+        timestamptz revocada_en
+        varchar motivo_revocacion
+    }
+    bitacora {
+        BaseModel base "id, codigo_bitacora, created_at, updated_at, deleted_at"
+        uuid usuario_codigo "nullable"
+        varchar accion
+        varchar modulo
+        varchar entidad
+        uuid entidad_codigo "nullable"
+        varchar resultado "EXITO | FALLO"
+        varchar ip
+        varchar user_agent
+        jsonb detalle "sin datos sensibles"
+    }
+
+    system_metadata {
+        varchar key PK
+        text value
+        timestamptz updated_at
+    }

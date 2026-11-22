@@ -36,11 +36,14 @@ Queda creado el schema `authentication` y en él quedan creadas `usuario`, `rol`
 - Fila en `docs/seguridad/RLS_EXCEPCIONES.md` por el `INSERT` abierto de `bitacora`.
 - Primera sentencia de la migración: `CREATE SCHEMA IF NOT EXISTS authentication;`. Todas las tablas, índices, políticas y funciones de esta UT se escriben calificados (`authentication.usuario`, `authentication.sesion`, ...), sin depender del `search_path`.
 - Ninguna tabla queda en `public`.
+- Actualizar `docs/BASE_DE_DATOS.mermaid` para que refleje la migración (tablas, columnas, FK), sin comentarios `%%`, y cambiar el estado de `authentication` a "Migrado" en la sección "Estado de los schemas" de `.claude/rules/backend/SCHEMAS_BD_BACKEND.md`.
 
 **Archivos esperados (crear/tocar):**
 
 - `projects/backend/src/main/resources/db/migration/V{timestamp}__create_auth_tables.sql`
 - `docs/seguridad/RLS_EXCEPCIONES.md`
+- `docs/BASE_DE_DATOS.mermaid`
+- `.claude/rules/backend/SCHEMAS_BD_BACKEND.md`
 
 ## Fuera de alcance (no tocar)
 
@@ -61,6 +64,7 @@ Flyway aplica la migración en una base vacía y las tres tablas existen con RLS
 4. `INSERT` en `bitacora` con rol `app_runtime` funciona; `UPDATE` y `DELETE` fallan por permisos; `SELECT` sin `app.is_admin` no devuelve filas.
 5. `SELECT authentication.purgar_bitacora(12)` borra solo filas anteriores a 12 meses.
 6. `SELECT table_name FROM information_schema.tables WHERE table_schema = 'authentication'` lista `usuario`, `rol`, `usuario_rol`, `sesion` y `bitacora`; con `table_schema = 'public'` solo aparece `flyway_schema_history`.
+7. El diagrama de `docs/BASE_DE_DATOS.mermaid` coincide con `\d authentication.*` en `psql` (mismas tablas, columnas y FK) y se renderiza en la vista previa de Mermaid sin errores.
 
 ## Seguridad
 
