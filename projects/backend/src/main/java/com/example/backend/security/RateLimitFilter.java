@@ -23,8 +23,8 @@ import jakarta.servlet.http.HttpServletResponse;
  * * para una sola instancia de backend (el caso de este proyecto hoy). Si
  * * en algún momento se corre más de una réplica del backend, cada una
  * * tendría su propio límite independiente en vez de uno compartido; para
- * * eso hay que migrar a bucket4j_jdk11-redis (Redis ya está en el stack,
- * * pero spring-boot-starter-data-redis todavía no está en el pom.xml).
+ * * eso hay que migrar a bucket4j_jdk11-redis (Redis ya está en el stack
+ * * y spring-boot-starter-data-redis ya está en el pom.xml).
  * ! No aplica a /health, /prometheus ni /swagger-ui/** -- ver shouldNotFilter.
  */
 @Component
@@ -70,11 +70,14 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return Bucket.builder().addLimit(limit).build();
     }
 
-    // * request.getRemoteAddr() alcanza hoy porque nginx es el único proxy
-    // * delante del backend dentro de la red de Docker. Si en el futuro hay
-    // * más de un proxy en la cadena, esto necesita leer X-Forwarded-For
-    // * con cuidado (el primer valor de la lista, no el último, para no
-    // * confiar en un header que el propio cliente puede falsificar).
+    // * request.getRemoteAddr() devuelve la IP REAL del cliente porque
+    // * `server.forward-headers-strategy=native` (application.properties)
+    // * hace que Tomcat la reemplace por la de X-Forwarded-For, pero SOLO si
+    // * quien se conecta es un proxy interno de confianza. nginx sobrescribe
+    // * ese header con $remote_addr (no lo acumula), así que un cliente no
+    // * puede falsificarlo.
+    // ! Si se agrega otro proxy/CDN delante, revisar la lista de proxies de
+    // ! confianza (server.tomcat.remoteip.internal-proxies).
     private String resolveClientIp(HttpServletRequest request) {
         return request.getRemoteAddr();
     }
