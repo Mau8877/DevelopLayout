@@ -8,8 +8,9 @@ proyecto).
 
 - **CI (Integración Continua): sí, implementado.**
   [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) — corre
-  lint + tests + build de cada proyecto en cada Pull Request contra
-  `main` y en cada push directo a `main`.
+  lint + tests + build de cada proyecto, más los controles de seguridad
+  de abajo, en cada Pull Request contra `main` y en cada push directo a
+  `main`.
 - **CD (Entrega/Despliegue Continuo): todavía no.** No existe ningún job
   de deploy, ni de build/push de imágenes Docker a un registro. Ver
   [Por qué CD no está implementado todavía](#por-qué-cd-no-está-implementado-todavía)
@@ -18,18 +19,28 @@ proyecto).
 
 ## Controles de seguridad en CI (A03 Supply Chain)
 
-Además de lint/test/build, el pipeline debe incluir (ver
-[SEGURIDAD_OWASP.md](SEGURIDAD_OWASP.md)):
+**Implementado** en `ci.yml` (ver [SEGURIDAD_OWASP.md](SEGURIDAD_OWASP.md)):
 
-- Auditoría de dependencias: `pnpm audit --audit-level high` (frontend),
-  OWASP Dependency-Check o equivalente (backend), y revisión de
-  `flutter pub outdated` (mobile).
-- Detección de secretos en el diff (ej. gitleaks).
-- Dependabot/Renovate para actualizaciones, agrupadas por proyecto.
+- **`pnpm audit --audit-level moderate`** al final del job `frontend`:
+  falla con cualquier vulnerabilidad conocida, moderada o peor.
+- **Job `security`** (corre siempre, no depende de qué carpeta cambió):
+  `gitleaks` (secretos en todo el historial del PR) y `Trivy` en modo
+  filesystem (dependencias vulnerables de `pom.xml`, `pnpm-lock.yaml` y
+  `pubspec.lock`, más misconfiguraciones de los `Dockerfile`), con
+  `HIGH,CRITICAL` y `ignore-unfixed`.
+- **Job `docker`**: construye las imágenes de producción y valida
+  `docker-compose.prod.yml` con `docker compose config`. No publica nada.
+- **`permissions: contents: read`** a nivel de workflow: ningún job
+  escribe en el repo.
+- **Dependabot** (`.github/dependabot.yml`): una PR semanal por ecosistema
+  (Maven, npm, pub, Docker, GitHub Actions). Ignora el major de
+  `typescript` hasta que `typescript-eslint` lo soporte.
 
-> Estado: **pendiente de implementar en `ci.yml`** — se agrega en una
-> tarea aparte (no se inventa un job sin poder probarlo). Hasta entonces
-> `scripts/{linux,windows}/update-deps.*` hace la auditoría local.
+> Estos jobs **no se pudieron ejecutar localmente** al escribirlos: la
+> primera corrida real en GitHub puede pedir ajustes (versiones de las
+> acciones, falsos positivos de Trivy). Un falso positivo se documenta y se
+> agrega a un `.trivyignore`, no se baja la severidad del escaneo.
+> `scripts/{linux,windows}/update-deps.*` hace la misma auditoría en local.
 
 ## Un job por proyecto, no uno solo para todo
 

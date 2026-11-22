@@ -193,7 +193,10 @@ Cada Pull Request contra `main` (y cada push directo a `main`) dispara
 independiente por proyecto (`backend`, `frontend`, `mobile`) que solo
 corre si cambió algo dentro de esa carpeta, y que hace lint + tests +
 build — los mismos comandos documentados arriba en "Puesta en marcha",
-no algo distinto inventado para CI.
+no algo distinto inventado para CI. Además corren siempre un job de
+seguridad (`gitleaks` + `Trivy`) y, si cambia backend o frontend, la
+construcción de las imágenes de producción. Dependabot abre PRs semanales
+de actualización.
 
 Todavía no hay CD (despliegue automático) — depende de una decisión de
 infraestructura pendiente (dónde se aloja el backend/frontend en

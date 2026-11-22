@@ -420,10 +420,15 @@ limitado a `projects/frontend/` no puede ver.
    frontend...` (falla si el lockfile no está sincronizado,
    en vez de regenerarlo silenciosamente), copia el código y buildea con
    `pnpm --filter frontend build`.
-2. **Etapa runtime** (`nginx:alpine`): sirve los archivos estáticos
-   compilados (`dist/`) — este nginx es **distinto** al `proxy` de
-   `docker-compose.yml`, es exclusivo de esta imagen de producción, sin
-   ninguna config custom (usa el `nginx.conf` default de la imagen).
+2. **Etapa runtime** (`nginxinc/nginx-unprivileged:stable-alpine`): sirve
+   los archivos estáticos compilados (`dist/`) en el puerto `8080`, como
+   usuario sin privilegios, con `projects/frontend/nginx.conf` (fallback a
+   `index.html` para el router SPA, assets con hash cacheados un año,
+   `index.html` sin cache). Este nginx es **distinto** al `proxy`: solo
+   sirve estáticos, no enruta la API.
+   `VITE_API_BASE_URL` se fija al construir (`--build-arg`, default
+   `/api/v1`, relativa porque frontend y API comparten origen detrás del
+   proxy).
 
 **Hay un `.dockerignore` en la raíz del repo** (no en
 `projects/frontend/`, porque el contexto de build es la raíz — Docker solo
@@ -435,8 +440,35 @@ que no existen ahí — rompía el build con `Cannot find module`. Excluye
 `.env` reales (dejando pasar los `.env.example`) en cualquier subcarpeta
 del repo.
 
-Probado real: build exitoso, contenedor corriendo, `200` +
-`<title>frontend</title>` al pedir `/`.
+Probado real (versión anterior, con `nginx:alpine`): build exitoso,
+contenedor corriendo, `200` + `<title>frontend</title>` al pedir `/`. La
+versión actual (nginx-unprivileged) todavía no se probó corriendo.
+
+## 7c. `docker-compose.prod.yml`
+
+Compose de producción, **en lugar de** `docker-compose.yml` (nunca los dos
+a la vez):
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+```
+
+| Aspecto | Desarrollo | Producción |
+| --- | --- | --- |
+| Código | bind mount + hot reload | imágenes construidas, sin bind mounts |
+| `docker.sock` | montado (Testcontainers) | **no se monta** |
+| Puertos publicados | todos, en `127.0.0.1` | solo el proxy: `80` (redirige) y `443` (TLS) |
+| Postgres, Redis, MinIO, Prometheus, Grafana | accesibles desde el host | solo red interna |
+| Proxy | `nginx.conf`, HTTP | `nginx.prod.conf`, TLS 1.2/1.3, HSTS, CSP estricto |
+| Contenedores | root en varios | sin root, `cap_drop: ALL`, `no-new-privileges`, `read_only` donde aplica |
+
+Variables obligatorias además de las de desarrollo (el compose falla si
+faltan): `TLS_CERT_DIR` (carpeta con `fullchain.pem` y `privkey.pem`),
+`CORS_ALLOWED_ORIGINS` (origen HTTPS del frontend) y `MINIO_IMAGE` (tag o
+digest fijo). `APP_VERSION` es opcional (tag de las imágenes construidas).
+
+Grafana y Prometheus no tienen puertos: se consultan por túnel SSH o con
+`docker compose exec`, nunca por internet.
 
 ## 7b. Seguridad de la infraestructura (resumen)
 
@@ -464,13 +496,13 @@ Probado real: build exitoso, contenedor corriendo, `200` +
   `SEGURIDAD_AUTH_BACKEND.md#rate-limit`).
 - **Redis está levantado y conectado, pero sin ningún uso real** todavía
   (el caso de uso planeado —refresh tokens— no está implementado).
-- **CI sin controles de seguridad todavía** — `ci.yml` corre lint/test/build,
-  pero faltan auditoría de dependencias y detección de secretos (ver
-  `CI_CD.md`).
-- **Sin compose de producción** — `docker-compose.yml` es solo desarrollo
-  (monta `docker.sock`, bind mounts, `mvn spring-boot:run`). Falta un
-  `docker-compose.prod.yml` sin `ports:` para BD/Redis/MinIO, sin socket y
-  con TLS en nginx; depende de decidir el destino de despliegue.
+- **Sin CD** — existe `docker-compose.prod.yml` (sección 7c), pero ningún
+  job publica imágenes ni despliega: el destino (VPS, ECS, Cloud Run...)
+  sigue sin decidirse (ver `CI_CD.md`).
+- **`docker-compose.prod.yml` y las imágenes de producción no se probaron
+  corriendo** — se validan solo por sintaxis y por el job `docker` de CI.
+  La primera vez en un servidor real hay que revisar el arranque de cada
+  servicio (en especial `read_only` del backend y los certificados TLS).
 - **Sin rol `app_runtime` en Postgres** — la app aún se conecta con el
   superusuario del contenedor, que **ignora RLS**. Se crea junto con la
   autenticación (ver `BASE_DE_DATOS_PRIVADA_RLS.md`).
