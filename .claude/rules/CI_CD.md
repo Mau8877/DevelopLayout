@@ -16,6 +16,21 @@ proyecto).
   más abajo — no es un olvido, es una decisión pendiente de otra decisión
   que este repo no tomó todavía.
 
+## Controles de seguridad en CI (A03 Supply Chain)
+
+Además de lint/test/build, el pipeline debe incluir (ver
+[SEGURIDAD_OWASP.md](SEGURIDAD_OWASP.md)):
+
+- Auditoría de dependencias: `pnpm audit --audit-level high` (frontend),
+  OWASP Dependency-Check o equivalente (backend), y revisión de
+  `flutter pub outdated` (mobile).
+- Detección de secretos en el diff (ej. gitleaks).
+- Dependabot/Renovate para actualizaciones, agrupadas por proyecto.
+
+> Estado: **pendiente de implementar en `ci.yml`** — se agrega en una
+> tarea aparte (no se inventa un job sin poder probarlo). Hasta entonces
+> `scripts/{linux,windows}/update-deps.*` hace la auditoría local.
+
 ## Un job por proyecto, no uno solo para todo
 
 El pipeline usa un job `changes` (con la acción `dorny/paths-filter`) que

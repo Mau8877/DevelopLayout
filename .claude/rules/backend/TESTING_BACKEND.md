@@ -45,11 +45,12 @@ comportamiento en test sea fiel al de verdad (constraints, tipos de dato,
 etc.).
 
 **Ya agregado** en `pom.xml`: `org.springframework.boot:spring-boot-testcontainers`,
-`org.testcontainers:junit-jupiter` y `org.testcontainers:postgresql` (los
-dos últimos con versión fijada en la property `testcontainers.version`,
-porque `spring-boot-starter-parent` en esta versión no trae el BOM de
-Testcontainers y Maven tira `'dependencies.dependency.version' ... is
-missing` sin eso).
+`org.testcontainers:testcontainers-junit-jupiter` y
+`org.testcontainers:testcontainers-postgresql` (Testcontainers **2.x**: los
+artefactos se renombraron con prefijo `testcontainers-` y la clase es
+`org.testcontainers.postgresql.PostgreSQLContainer`, ya sin genéricos). Sin
+`<version>`: la administra el BOM de Spring Boot (4.2 importa
+`testcontainers-bom`).
 
 - Se reservan para flujos donde el mock de repositorio no es suficiente
   (queries complejas, constraints de BD, comportamiento de Flyway). Para
@@ -86,6 +87,11 @@ missing` sin eso).
 
 ## Convenciones
 
+- Seguridad (obligatorio, ver [SEGURIDAD_OWASP.md](../SEGURIDAD_OWASP.md)):
+  todo endpoint nuevo lleva tests de autorización — acceso permitido,
+  **sin token (401)**, **rol insuficiente (403)** y **recurso de otro usuario
+  (404/403)**. Las tablas con RLS se prueban con el rol `app_runtime` (ver
+  [BASE_DE_DATOS_PRIVADA_RLS.md](BASE_DE_DATOS_PRIVADA_RLS.md)).
 - Clases de test: `XxxServiceTest`, `XxxControllerTest` (sufijo `Test`, no
   `Tests` ni `Spec`).
 - Nombre de métodos: describen condición + resultado esperado, ej.

@@ -4,6 +4,15 @@ globs: projects/backend/**/*
 
 # Seguridad y Autenticación — Backend
 
+> **Base de seguridad previa (ya aplicada):** el perfil `dev` separa lo
+> cómodo de lo seguro, Redis exige password y los puertos de infra están en
+> `127.0.0.1`. La autenticación real **aún no está implementada** y se
+> hace junto con RLS (rol `app_runtime`, contexto `app.current_user`, ver
+> [BASE_DE_DATOS_PRIVADA_RLS.md](BASE_DE_DATOS_PRIVADA_RLS.md)) y las reglas
+> de [SEGURIDAD_OWASP.md](../SEGURIDAD_OWASP.md) (A07).
+> `server.forward-headers-strategy=native` ya está activo para que el rate
+> limit use la IP real del cliente.
+
 ## Estado actual (punto de partida)
 
 `SecurityConfig.java` hoy usa el `InMemoryUserDetailsManager` autogenerado

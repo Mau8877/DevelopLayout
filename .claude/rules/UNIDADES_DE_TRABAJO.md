@@ -88,6 +88,13 @@ que hubo que tomar para poder desglosarla en UT concretas — con su
 razonamiento. Si la HU ya definía todo sin ambigüedad, esta sección se
 omite.}
 
+## Seguridad
+
+{Resumen, derivado de la sección Seguridad de la HU: quién puede acceder,
+qué tablas llevan RLS (o su `RLS-OPT-OUT` justificado), límites de
+consumo, qué se loguea. Obligatoria. Ver
+[SEGURIDAD_OWASP.md](SEGURIDAD_OWASP.md).}
+
 ## Contrato de datos / recurso HTTP
 
 {Tabla de campos, tabla de endpoints con método/path/status/`data`, según
@@ -151,6 +158,14 @@ no repite el "qué" del Objetivo.}
 archivos/clases/funciones, firmas de métodos cuando ayuda, snippets de
 referencia cuando el "cómo" no es obvio. Termina siempre con una lista
 "Archivos esperados (crear/tocar)".}
+
+## Seguridad
+
+{Obligatoria. Qué control de seguridad implementa o respeta esta UT
+(autorización, RLS, validación de input, límites, logging seguro) y a
+qué categoría OWASP corresponde. Si la UT no toca nada sensible, se
+escribe explícitamente "Sin impacto de seguridad: {por qué}" — no se
+omite la sección.}
 
 ## Fuera de alcance (no tocar)
 
@@ -222,6 +237,14 @@ archivo/módulo que **ya existe en el proyecto** antes de que esta HU
 empezara. Nunca "esto lo necesita HU-B" como dependencia de salida — esa
 relación, si existe, se documenta en la HU misma (ver
 [HISTORIAS_DE_USUARIO.md](HISTORIAS_DE_USUARIO.md)), no en una UT.
+
+### Toda UT cumple la regla de seguridad
+
+Ninguna UT puede introducir un endpoint sin autorización, una tabla sin
+RLS (o sin `RLS-OPT-OUT` documentado), un secreto en el repo, un
+`permitAll` nuevo ni SQL concatenado. Toda UT de endpoint incluye en su
+"Validación" un caso de acceso **denegado** (otro usuario / sin token),
+no solo el camino feliz. Ver [SEGURIDAD_OWASP.md](SEGURIDAD_OWASP.md).
 
 ### Toda UT termina en algo verificable
 

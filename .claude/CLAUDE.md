@@ -4,13 +4,14 @@ Plantilla base de arquitectura full-stack. Monorepo con pnpm workspaces
 (`pnpm-workspace.yaml`: `projects/*`) que contiene tres
 proyectos independientes más la infraestructura de desarrollo:
 
-- **`projects/backend`** — API REST en Java 21 + Spring Boot 4.1 (Maven),
+- **`projects/backend`** — API REST en Java 21 + Spring Boot 4.2 (Maven),
   PostgreSQL + Flyway para persistencia, Redis para caché, MinIO para
   almacenamiento de archivos.
 - **`projects/frontend`** — Panel web en React 19 + TypeScript + Vite,
   TanStack (Query/Router/Form/Table), Tailwind CSS 4 + shadcn.
 - **`projects/mobile`** — App en Flutter/Dart, Riverpod para estado,
   `go_router` para navegación, `dio` como cliente HTTP.
+- **`scripts/`** — `update-deps` para actualizar y validar dependencias (`linux/` y `windows/`).
 - **`infrastructure/`** — configuración de Docker Compose: nginx (proxy),
   postgres, redis, minio, prometheus, grafana.
 
@@ -55,6 +56,17 @@ Levanta proxy (puerto 80), frontend (5173), backend (8080), postgres (5432),
 redis (6379), minio (9000/9001), prometheus (9090) y grafana (3000). Ver
 [docs/README.md](../docs/README.md) para el detalle completo de variables de
 entorno y el checklist de puesta en marcha.
+
+## Seguridad — regla transversal obligatoria
+
+Todo el proyecto cumple **OWASP Top 10:2025**, **API Security Top 10:2023**
+y **MASVS 2.1.0**. Antes de implementar cualquier cosa, leer
+[SEGURIDAD_OWASP.md](rules/SEGURIDAD_OWASP.md). La base de datos es siempre
+privada y con RLS por defecto
+([BASE_DE_DATOS_PRIVADA_RLS.md](rules/backend/BASE_DE_DATOS_PRIVADA_RLS.md));
+los reportes usan JasperReports 7
+([REPORTES_JASPERREPORTS.md](rules/backend/REPORTES_JASPERREPORTS.md)).
+Toda HU y UT lleva su sección de Seguridad.
 
 ## Reglas del proyecto (`.claude/rules/`)
 

@@ -91,6 +91,12 @@ del archivo** — no se deja vacía "por si acaso".}
 
 ---
 
+## Seguridad
+
+- **Datos sensibles:** {qué datos personales/sensibles toca esta HU, o "ninguno"}
+- **Quién puede hacerlo:** {roles/propiedad del dato — ver SEGURIDAD_OWASP.md A01}
+- **Abuso previsible:** {cómo podría abusarse el flujo (fuerza bruta, enumeración, acceso a datos ajenos, spam) y qué límite/control lo cubre}
+
 ## Criterios de aceptación
 
 - **CA01:** Dado que {condición/contexto}, el sistema debe {resultado
@@ -117,6 +123,12 @@ del archivo** — no se deja vacía "por si acaso".}
   simple puede omitirla, pero si el flujo tiene más de 3-4 pasos o hay
   reglas de negocio no obvias, se completa — no se dejan las reglas de
   negocio implícitas solo en la prosa de la Descripción.
+- **`Seguridad`** es **obligatoria siempre** (aunque sea "ningún dato
+  sensible, flujo público de solo lectura"): obliga a pensar el modelo de
+  amenazas mínimo antes de implementar (OWASP A06, ver
+  [SEGURIDAD_OWASP.md](SEGURIDAD_OWASP.md)). Si la HU tiene un riesgo de
+  seguridad real, debe haber **al menos un CA** que lo verifique (ej. "Dado
+  que soy otro usuario, el sistema debe responder 404 al pedir ese recurso").
 - **`Criterios de aceptación`** es **obligatorio siempre**, numerado
   `CA01`, `CA02`, ... (no se reinicia la numeración ni se reusa un número
   si un CA se elimina durante la revisión, mismo criterio que los códigos
