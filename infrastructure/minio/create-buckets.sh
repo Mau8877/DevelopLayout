@@ -14,8 +14,12 @@ mc alias set myminio http://minio:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
 # app.minio.bucket-name en projects/backend/src/main/resources/application.properties.
 mc mb myminio/app-storage --ignore-existing
 
-# Hacer el bucket público para lectura (ej. servir imágenes/archivos
-# subidos sin necesitar credenciales para el GET).
-mc anonymous set download myminio/app-storage
+# El bucket es PRIVADO (política por defecto de MinIO: sin acceso anónimo).
+# Los archivos se sirven siempre a través del backend (autorización por
+# recurso) o con URLs prefirmadas de corta duración, nunca con acceso
+# público. Ver .claude/rules/SEGURIDAD_OWASP.md (A01) y la regla de
+# almacenamiento. `set private` fuerza el estado aunque un bucket viejo
+# hubiera quedado público.
+mc anonymous set private myminio/app-storage
 
 exit 0

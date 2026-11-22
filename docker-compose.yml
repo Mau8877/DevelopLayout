@@ -5,7 +5,7 @@ services:
   # REVERSE PROXY (El punto de entrada)
   # ---------------------------------------
   proxy:
-    image: nginx:alpine
+    image: nginx:stable-alpine
     container_name: app-proxy
     # Defensa extra además de la resolución dinámica de nginx.conf: si de
     # todos modos llegara a morir (ej. el propio Docker Desktop matándolo a
@@ -13,7 +13,8 @@ services:
     # que alguien lo note a mano.
     restart: unless-stopped
     ports:
-      - '80:80'
+      # Solo loopback: el stack de desarrollo no se expone a la red local.
+      - '127.0.0.1:80:80'
     volumes:
       - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
@@ -44,7 +45,7 @@ services:
       - frontend_node_modules_pkg:/app/projects/frontend/node_modules
     command: sh -c "corepack enable pnpm && pnpm install && pnpm run dev --host 0.0.0.0"
     ports:
-      - '5173:5173'
+      - '127.0.0.1:5173:5173'
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
@@ -52,7 +53,7 @@ services:
       - app-network
 
   # ---------------------------------------
-  # BACKEND (Spring Boot 4.1 / Java 21) - MODO DESARROLLO
+  # BACKEND (Spring Boot 4.2 / Java 21) - MODO DESARROLLO
   # ---------------------------------------
   backend:
     image: maven:3.9-eclipse-temurin-21-alpine
@@ -61,6 +62,9 @@ services:
     volumes:
       - .:/app
       - ~/.m2:/root/.m2
+      # ! SOLO DESARROLLO. Acceso al socket de Docker = control total del host
+      # ! desde este contenedor. Existe únicamente para Testcontainers; el
+      # ! compose de producción (docker-compose.prod.yml) NO lo monta.
       # Necesario para que Testcontainers (tests de integración, ver
       # TESTING_BACKEND.md) pueda levantar contenedores (ej. Postgres real)
       # desde DENTRO de este contenedor -- sin esto, `mvn test` falla con
@@ -69,7 +73,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     command: mvn spring-boot:run -Dspring-boot.run.profiles=dev
     ports:
-      - '8080:8080'
+      - '127.0.0.1:8080:8080'
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       # Testcontainers necesita esto para hablar con el Docker Desktop de
@@ -82,6 +86,9 @@ services:
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - SPRING_DATA_REDIS_HOST=app-redis
+      - SPRING_DATA_REDIS_PASSWORD=${REDIS_PASSWORD:?Definí REDIS_PASSWORD en .env}
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
       - MINIO_URL=http://app-minio:9000
     depends_on:
       postgres:
@@ -100,7 +107,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Definí POSTGRES_PASSWORD en .env}
     volumes:
       - postgres_data:/var/lib/postgresql
       - ./infrastructure/postgres/init:/docker-entrypoint-initdb.d
@@ -108,7 +115,7 @@ services:
       # * Puerto del HOST configurable (POSTGRES_HOST_PORT en .env): si la máquina ya tiene
       # * un Postgres propio en 5432, el contenedor no puede publicar el mismo puerto.
       # * Dentro de la red de Docker el backend siempre usa 5432.
-      - '${POSTGRES_HOST_PORT:-5432}:5432'
+      - '127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432'
     networks:
       - app-network
     healthcheck:
@@ -123,18 +130,21 @@ services:
   redis:
     image: redis:8-alpine
     container_name: app-redis
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Definí REDIS_PASSWORD en .env}
     volumes:
       - redis_data:/data
       # Mapeamos tu archivo de configuración personalizado
       - ./infrastructure/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
     ports:
-      - '6379:6379'
+      - '127.0.0.1:6379:6379'
     networks:
       - app-network
     # Le decimos a Redis que arranque usando tu archivo
-    command: redis-server /usr/local/etc/redis/redis.conf
+    # El password viene del .env (nunca hardcodeado en redis.conf, que se commitea).
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD:?Definí REDIS_PASSWORD en .env}
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
+      test: ['CMD-SHELL', 'redis-cli -a "$$REDIS_PASSWORD" --no-auth-warning ping | grep -q PONG']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -151,13 +161,13 @@ services:
     container_name: app-minio
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Definí MINIO_ROOT_PASSWORD en .env}
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
     ports:
-      - '9000:9000'
-      - '9001:9001'
+      - '127.0.0.1:9000:9000'
+      - '127.0.0.1:9001:9001'
     networks:
       - app-network
     healthcheck:
@@ -192,24 +202,30 @@ services:
   # METRICS & OBSERVABILITY
   # ---------------------------------------
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.14.0
     container_name: app-prometheus
     volumes:
       - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
-      - '9090:9090'
+      - '127.0.0.1:9090:9090'
     networks:
       - app-network
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:13.3.0
     container_name: app-grafana
     depends_on:
       - prometheus
+    environment:
+      # Sin esto Grafana arranca con admin/admin.
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Definí GRAFANA_ADMIN_PASSWORD en .env}
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_ANALYTICS_REPORTING_ENABLED: 'false'
     volumes:
       - ./infrastructure/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
     ports:
-      - '3000:3000'
+      - '127.0.0.1:3000:3000'
     networks:
       - app-network
 
