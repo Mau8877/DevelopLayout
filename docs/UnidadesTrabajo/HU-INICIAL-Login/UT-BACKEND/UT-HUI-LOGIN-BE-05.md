@@ -17,11 +17,11 @@ Cada inicio de sesión necesita quedar registrado y con un credencial de larga v
 
 ## Objetivo
 
-Existe un servicio que crea la fila de `sesiones` y genera un refresh token opaco de 7 días.
+Existe un servicio que crea la fila de `sesion` y genera un refresh token opaco de 7 días.
 
 ## Alcance
 
-- `features/auth/service/SesionService.java` con solo `crear(Usuario usuario, TipoCliente tipo, String ip, String userAgent)`: genera 32 bytes de `SecureRandom` (Base64 URL), guarda en `sesiones` solo el `sha256` del token, `estado = ACTIVA`, `expira_en = now + 7 días`, `ultimo_uso_en = now`, IP, user agent truncado y tipo de cliente. Devuelve la sesión y el token en claro solo al llamador.
+- `features/auth/service/SesionService.java` con solo `crear(Usuario usuario, TipoCliente tipo, String ip, String userAgent)`: genera 32 bytes de `SecureRandom` (Base64 URL), guarda en `sesion` solo el `sha256` del token, `estado = ACTIVA`, `expira_en = now + 7 días`, `ultimo_uso_en = now`, IP, user agent truncado y tipo de cliente. Devuelve la sesión y el token en claro solo al llamador.
 - Parámetros `app.auth.refresh-ttl` (7 días) y `app.auth.session-max-lifetime` (30 días).
 - Corre dentro de la transacción del login con el contexto RLS ya fijado (`app.current_user`).
 - Nunca guarda ni loguea el token en claro.
@@ -46,7 +46,7 @@ Existe un servicio que crea la fila de `sesiones` y genera un refresh token opac
 
 1. Test de integración (Testcontainers, rol `app_runtime`): tras `crear`, existe la fila con `estado = ACTIVA` y `refresh_hash = sha256(token)`; el token en claro no está en la base.
 2. Dos llamadas devuelven tokens distintos.
-3. `SELECT refresh_hash FROM sesiones` no contiene el token en claro.
+3. `SELECT refresh_hash FROM authentication.sesion` no contiene el token en claro.
 
 ## Seguridad
 

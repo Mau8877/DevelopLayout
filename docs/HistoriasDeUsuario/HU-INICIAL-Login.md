@@ -9,7 +9,7 @@
 **Para:** acceder a las funciones del sistema según mis roles
 
 **Descripción:**
-El usuario envía correo y contraseña. Si son correctos, el sistema responde con los datos del usuario con sus roles, y emite un access token (JWT, 15 minutos) y un refresh token opaco (7 días). En web ambos tokens viajan solo en cookies `HttpOnly` (nada en `localStorage` ni en memoria de JavaScript); en mobile (header `X-Client-Type: mobile`) viajan en el body y la app los guarda en almacenamiento seguro. Si las credenciales son incorrectas, el sistema responde con un mensaje genérico que no revela si el correo existe. Tras 5 intentos fallidos consecutivos la cuenta se bloquea 15 minutos. Una cuenta inactiva no puede iniciar sesión.
+El usuario envía correo y contraseña. Si son correctos, el sistema responde con los datos del usuario con sus roles, crea una sesión (fila en `sesion` con tipo de cliente, IP y user agent) y emite un access token (JWT, 15 minutos, con el identificador de la sesión) y un refresh token opaco (7 días). En web ambos tokens viajan solo en cookies `HttpOnly` (nada en `localStorage` ni en memoria de JavaScript); en mobile (header `X-Client-Type: mobile`) viajan en el body y la app los guarda en almacenamiento seguro. Si las credenciales son incorrectas, el sistema responde con un mensaje genérico que no revela si el correo existe. Tras 5 intentos fallidos consecutivos la cuenta se bloquea 15 minutos. Una cuenta inactiva no puede iniciar sesión.
 
 Depende de [HU-INICIAL-Base](HU-INICIAL-Base.md).
 
@@ -52,6 +52,8 @@ Depende de [HU-INICIAL-Base](HU-INICIAL-Base.md).
 - **CA08:** Dado que el usuario tiene sesión vigente y recarga la página web, el sistema debe mantenerlo autenticado consultando `GET /me`; sin sesión vigente debe responder 401 y el cliente debe ir al login.
 - **CA09:** Dado un `POST` web sin header `X-XSRF-TOKEN` válido, el sistema debe responder 403 sin ejecutar la acción.
 - **CA10:** Dado que el correo no existe y que existe con contraseña incorrecta, el tiempo de respuesta debe ser equivalente (ambos pasan por una comparación BCrypt).
+- **CA11:** Dado un login exitoso, el sistema debe crear una fila en `sesion` con estado `ACTIVA`, sin guardar el refresh token en claro, y registrar `AUTH_LOGIN_OK` en la bitácora.
+- **CA12:** Dado un login fallido, un bloqueo o una cuenta inactiva, el sistema debe registrarlo en la bitácora (`AUTH_LOGIN_FALLO`, `AUTH_CUENTA_BLOQUEADA`) sin contraseña y con el correo solo como hash corto.
 
 ## Seguridad
 

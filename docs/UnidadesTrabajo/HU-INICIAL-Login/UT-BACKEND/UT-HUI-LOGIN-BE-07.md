@@ -54,7 +54,7 @@ Credenciales correctas devuelven tokens; incorrectas, bloqueo e inactivo produce
 1. Tests de servicio: éxito, contraseña mala (401), correo inexistente (401 mismo mensaje), 5 fallos → 423, inactivo → 403.
 2. Test de tiempo: la diferencia entre correo inexistente y contraseña mala está dentro de un margen razonable (ambos ejecutan BCrypt).
 3. Logs capturados: sin contraseña ni token.
-4. Tras un login exitoso hay una fila en `sesiones` (`ACTIVA`) y un evento `AUTH_LOGIN_OK`; tras uno fallido, un evento `AUTH_LOGIN_FALLO` sin contraseña, aunque la operación haya hecho rollback.
+4. Tras un login exitoso hay una fila en `sesion` (`ACTIVA`) y un evento `AUTH_LOGIN_OK`; tras uno fallido, un evento `AUTH_LOGIN_FALLO` sin contraseña, aunque la operación haya hecho rollback.
 
 ## Seguridad
 

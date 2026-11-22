@@ -10,7 +10,7 @@ Leer las rules de [`backend/`](../../../../.claude/rules/backend/) y [`SEGURIDAD
 
 ## Decisiones de diseño
 
-- `refresh_hash_anterior` en la misma fila de `sesiones` permite distinguir un token reutilizado de uno inexistente, sin guardar nada en Redis.
+- `refresh_hash_anterior` en la misma fila de `sesion` permite distinguir un token reutilizado de uno inexistente, sin guardar nada en Redis.
 - Redis solo guarda la lista de sesiones revocadas (TTL = vida del access token).
 
 ## Orden de ejecución

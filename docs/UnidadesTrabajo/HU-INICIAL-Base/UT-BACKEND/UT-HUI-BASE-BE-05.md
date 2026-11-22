@@ -23,8 +23,8 @@ Hay un test que prueba el aislamiento por usuario y el fallo cerrado conectándo
 
 - `features/usuarios/RlsAutenticacionIT.java` (Testcontainers Postgres, `@BeforeAll` con `DockerClientFactory...isDockerAvailable()` + `assumeTrue`).
 - Aplica las migraciones con el dueño y abre una conexión como `app_runtime`.
-- Casos: sin contexto no se ve ninguna fila de `usuarios`/`usuarios_roles`; con `app.current_user` = A solo se ve A; con `app.login_email` = correo de A solo se ve esa fila; intentar `UPDATE` de la fila de B no afecta filas; `app_runtime` no puede `INSERT` en `roles`.
-- Casos de `sesiones`: sin contexto no se ve nada; con `app.current_user` solo las propias; con `app.refresh_hash` solo la fila de ese hash (actual o anterior); con `app.is_admin` se ven todas. Casos de `bitacora`: `INSERT` permitido, `SELECT` solo con `app.is_admin`, `UPDATE`/`DELETE` rechazados.
+- Casos: sin contexto no se ve ninguna fila de `usuario`/`usuario_rol`; con `app.current_user` = A solo se ve A; con `app.login_email` = correo de A solo se ve esa fila; intentar `UPDATE` de la fila de B no afecta filas; `app_runtime` no puede `INSERT` en `rol`.
+- Casos de `sesion`: sin contexto no se ve nada; con `app.current_user` solo las propias; con `app.refresh_hash` solo la fila de ese hash (actual o anterior); con `app.is_admin` se ven todas. Casos de `bitacora`: `INSERT` permitido, `SELECT` solo con `app.is_admin`, `UPDATE`/`DELETE` rechazados.
 - Todas las consultas del test usan nombres calificados con `authentication.`; un caso confirma que `app_runtime` no puede crear objetos en `authentication` ni en `public`.
 
 **Archivos esperados (crear/tocar):**

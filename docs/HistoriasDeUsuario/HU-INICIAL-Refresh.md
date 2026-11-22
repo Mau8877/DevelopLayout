@@ -9,7 +9,7 @@
 **Para:** no tener que volver a iniciar sesión cada 15 minutos
 
 **Descripción:**
-Cuando el access token vence o el cliente recibe un 401, el cliente pide uno nuevo con el refresh token (cookie `HttpOnly` en web, almacenamiento seguro en mobile). El sistema valida el refresh token contra Redis, lo rota (invalida el usado y emite uno nuevo) y devuelve un nuevo access token (nuevas cookies en web). Si el refresh token es inválido, expiró o ya fue usado, el cliente cierra la sesión local y lleva al usuario al login.
+Cuando el access token vence o el cliente recibe un 401, el cliente pide uno nuevo con el refresh token (cookie `HttpOnly` en web, almacenamiento seguro en mobile). El sistema valida el refresh token contra la tabla `sesion`, lo rota (reemplaza su hash en la misma sesión) y devuelve un nuevo access token (nuevas cookies en web). Si el refresh token es inválido, expiró o ya fue usado, el cliente cierra la sesión local y lleva al usuario al login.
 
 Depende de [HU-INICIAL-Login](HU-INICIAL-Login.md).
 
@@ -36,15 +36,16 @@ Depende de [HU-INICIAL-Login](HU-INICIAL-Login.md).
 
 - **CA01:** Dado un refresh token válido, el sistema debe responder 200 con un nuevo access token y un nuevo refresh token, e invalidar el anterior.
 - **CA02:** Dado un refresh token inexistente, expirado o ya usado, el sistema debe responder 401 y el cliente debe volver al login.
-- **CA03:** Dado un refresh token reutilizado, el sistema debe invalidar la sesión asociada.
+- **CA03:** Dado un refresh token reutilizado, el sistema debe revocar la sesión asociada (motivo `REUSO`), rechazar también su access token de inmediato y registrar `AUTH_REFRESH_REUSO` en la bitácora.
 - **CA04:** Dado que varias peticiones fallan a la vez por token vencido, el cliente debe hacer una sola llamada de refresh.
 - **CA05:** Dado que el usuario fue desactivado o perdió sus roles, el sistema debe rechazar el refresh con 401 o 403.
-- **CA06:** Dado que Redis no está disponible, el sistema debe fallar cerrado: no emitir tokens y responder 500 genérico.
+- **CA06:** Dado que la base de datos o Redis no están disponibles, el sistema debe fallar cerrado: no emitir tokens y responder 500 genérico.
 - **CA07:** Dado un `POST /refresh` web sin header `X-XSRF-TOKEN` válido, el sistema debe responder 403.
+- **CA08:** Dado que la sesión cumplió su vida máxima (30 días desde su creación) o su vencimiento, el sistema debe marcarla `EXPIRADA`, responder 401 y no emitir tokens.
 
 ## Seguridad
 
-- Refresh token opaco, almacenado en Redis con TTL, nunca en logs (OWASP A07, A09).
+- Refresh token opaco, guardado solo como hash en `sesion`, nunca en logs (OWASP A07, A09).
 
 ## Desarrollador
 

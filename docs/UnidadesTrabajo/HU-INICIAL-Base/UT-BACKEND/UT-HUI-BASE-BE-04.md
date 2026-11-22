@@ -23,7 +23,7 @@ Al arrancar sin administrador, se crea uno con las credenciales de entorno; con 
 
 - `features/usuarios/service/AdminInicialInitializer.java` (`ApplicationRunner`, idempotente) que usa un `JdbcTemplate`/`DataSource` con la conexión dueña (`spring.flyway.*`), porque no hay usuario autenticado y RLS está forzado.
 - Lee `app.initial-admin.email` y `app.initial-admin.password` (`INITIAL_ADMIN_EMAIL`, `INITIAL_ADMIN_PASSWORD`, sin defaults). Valida correo con formato válido y contraseña de 8 a 72 bytes; si no hay admin y algo falla, lanza excepción y la app no arranca.
-- Hashea con `BCryptPasswordEncoder`, inserta usuario `ACTIVO` + fila `usuarios_roles` con `SUPER_ADMIN`, y registra un `INFO` sin la contraseña.
+- Hashea con `BCryptPasswordEncoder`, inserta usuario `ACTIVO` + fila `usuario_rol` con `SUPER_ADMIN`, y registra un `INFO` sin la contraseña.
 - Variables nuevas en `.env.example` (raíz y backend) con placeholder `CAMBIAME`, y pasarlas en ambos compose.
 - Documentar en `docs/seguridad/RLS_EXCEPCIONES.md` que esta escritura usa la conexión dueña.
 
@@ -49,7 +49,7 @@ Primer arranque crea el admin; segundo arranque no cambia nada; sin variables fa
 
 ## Validación
 
-1. Arranque con base vacía y variables: `SELECT email FROM usuarios` muestra el admin y `password_hash` empieza con `$2`.
+1. Arranque con base vacía y variables: `SELECT email FROM authentication.usuario` muestra el admin y `password_hash` empieza con `$2`.
 2. Reiniciar: el recuento de usuarios no cambia.
 3. Arrancar sin `INITIAL_ADMIN_PASSWORD` con base vacía: la app falla con el mensaje esperado.
 4. Revisar logs: no aparece la contraseña.

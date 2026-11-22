@@ -29,7 +29,7 @@ Existen los Models `Usuario`, `Rol` y `UsuarioRol` extendiendo `BaseModel`, con 
 - `features/auth/enums/EstadoSesion.java`, `TipoCliente.java`, `MotivoRevocacion.java` (`LOGOUT`, `USUARIO`, `ADMIN`, `REUSO`, `RESET_PASSWORD`), todos `@Enumerated(EnumType.STRING)`.
 - `features/auth/repository/SesionRepository.java` (`findByRefreshHash`, `findByRefreshHashAnterior`, `findByCodigo`, `findActivasByUsuarioCodigo`).
 - `common/bitacora/model/Bitacora.java` (extiende `BaseModel`, `detalle` como `jsonb` vía `@JdbcTypeCode(SqlTypes.JSON)`), `common/bitacora/ResultadoBitacora.java` y `common/bitacora/repository/BitacoraRepository.java` (solo `save`; las consultas las agrega HU-INICIAL-Bitacora).
-- Todo Model lleva el schema explícito: `@Table(name = "usuarios", schema = "authentication")` (igual para `Rol`, `UsuarioRol`, `Sesion` y `Bitacora`). No se configura `hibernate.default_schema`.
+- Todo Model lleva el schema explícito: `@Table(name = "usuario", schema = "authentication")`; los demás Models usan `name` = `rol`, `usuario_rol`, `sesion` y `bitacora` (para `Rol`, `UsuarioRol`, `Sesion` y `Bitacora`) con el mismo schema. No se configura `hibernate.default_schema`.
 
 **Archivos esperados (crear/tocar):**
 

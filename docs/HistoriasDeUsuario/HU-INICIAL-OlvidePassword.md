@@ -47,6 +47,7 @@ Depende de [HU-INICIAL-Base](HU-INICIAL-Base.md), de [HU-INICIAL-Login](HU-INICI
 - **CA08:** Dado que se abre el enlace, el frontend debe quitar el token de la URL (`history.replaceState`) y la página debe servirse con `Referrer-Policy: no-referrer`.
 - **CA09:** Dado un correo existente y uno inexistente, el tiempo de respuesta de la solicitud debe ser equivalente.
 - **CA10:** Dado un cambio de contraseña exitoso, el sistema debe registrar un evento `INFO` sin contraseña ni token.
+- **CA11:** Dado una solicitud o un cambio de contraseña, el sistema debe registrar `AUTH_RECUPERACION_SOLICITADA` y `AUTH_PASSWORD_RESTABLECIDA` en la bitácora, sin token ni contraseña.
 
 ## Seguridad
 

@@ -12,7 +12,8 @@ Leer las rules de [`backend/`](../../../../.claude/rules/backend/) y [`SEGURIDAD
 
 - Schema: `authentication` — nuevo — dominio de identidad, acceso y trazabilidad; siempre existe en toda plantilla (ver [SCHEMAS_BD_BACKEND.md](../../../../.claude/rules/backend/SCHEMAS_BD_BACKEND.md)). `bitacora` vive aquí por ahora aunque registre eventos de todos los módulos.
 - El administrador inicial se crea con la conexión dueña del esquema: en el arranque no hay usuario autenticado y RLS está forzado. Es la única escritura fuera de `app_runtime` y queda documentada como excepción.
-- El correo se resuelve en las políticas de RLS con `app.login_email`, que fija el flujo de login/recuperación y expone una sola fila; así `usuarios` no necesita `RLS-OPT-OUT` aunque el login ocurra antes de conocer al usuario.
+- El correo se resuelve en las políticas de RLS con `app.login_email`, que fija el flujo de login/recuperación y expone una sola fila; así `usuario` no necesita `RLS-OPT-OUT` aunque el login ocurra antes de conocer al usuario.
+- Tablas en singular y en español (`usuario`, `rol`, `usuario_rol`, `sesion`, `bitacora`); schemas en inglés. Las FK entre schemas se hacen por `codigo` (UUID), nunca por `id`; dentro de `authentication` las FK usan `id` (`usuario_id`, `rol_id`). Ver [PERSISTENCIA_BD_BACKEND.md](../../../../.claude/rules/backend/PERSISTENCIA_BD_BACKEND.md).
 
 ## Orden de ejecución
 

@@ -47,7 +47,7 @@ Tras logout la sesión queda `REVOCADA`, su access token se rechaza al instante 
 
 1. `curl` logout → 200 con `Set-Cookie` de `Max-Age=0`; luego `/me` con el access token anterior → 401 inmediato y `/refresh` con el token anterior → 401; logout repetido → 200.
 2. Sin `X-XSRF-TOKEN` → 403.
-3. Fila de `sesiones` en `REVOCADA` con motivo `LOGOUT` y evento `AUTH_LOGOUT`.
+3. Fila de `sesion` en `REVOCADA` con motivo `LOGOUT` y evento `AUTH_LOGOUT`.
 
 ## Seguridad
 

@@ -44,7 +44,7 @@ Leer las rules de [`backend/`](../../../../.claude/rules/backend/) y [`SEGURIDAD
 | CA08 | `/me` al recargar | 03, 08, 09 |
 | CA09 | CSRF 403 | 01, 09 |
 | CA10 | Tiempo equivalente | 07, 09 |
-| CA11 | Sesión creada en `sesiones` y evento OK | 05, 07, 09 |
+| CA11 | Sesión creada en `sesion` y evento OK | 05, 07, 09 |
 | CA12 | Eventos de fallo y bloqueo | 07, 09 |
 
 ## Follow-ups (no se implementan en estas UT)

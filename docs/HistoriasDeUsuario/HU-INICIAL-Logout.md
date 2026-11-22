@@ -9,7 +9,7 @@
 **Para:** que nadie más pueda usar mi cuenta desde este dispositivo
 
 **Descripción:**
-El usuario elige cerrar sesión. El sistema invalida el refresh token en Redis y, en web, borra las cookies de acceso y refresh. El cliente limpia su estado y la caché de datos, y muestra el login. Si el refresh token ya no existe o el servidor no responde, el cliente igual cierra la sesión localmente.
+El usuario elige cerrar sesión. El sistema revoca la sesión (estado `REVOCADA`, motivo `LOGOUT`), agrega su identificador a la lista de sesiones revocadas de Redis (así su access token deja de valer de inmediato) y, en web, borra las cookies de acceso y refresh. El cliente limpia su estado y la caché de datos, y muestra el login. Si el refresh token ya no existe o el servidor no responde, el cliente igual cierra la sesión localmente.
 
 Depende de [HU-INICIAL-Login](HU-INICIAL-Login.md).
 
@@ -23,10 +23,11 @@ Depende de [HU-INICIAL-Login](HU-INICIAL-Login.md).
 - **CA04:** Dado que el servidor no responde, el cliente debe cerrar la sesión local de todas formas.
 - **CA05:** Dado que ya se cerró sesión, intentar usar el refresh token anterior debe responder 401.
 - **CA06:** Dado un `POST /logout` web sin header `X-XSRF-TOKEN` válido, el sistema debe responder 403.
+- **CA07:** Dado que la sesión fue cerrada, el sistema debe rechazar de inmediato (401) cualquier request con el access token de esa sesión y registrar `AUTH_LOGOUT` en la bitácora.
 
 ## Seguridad
 
-- El access token sigue siendo válido hasta su vencimiento (máximo 15 min), por diseño stateless (ver [SEGURIDAD_AUTH_BACKEND](../../.claude/rules/backend/SEGURIDAD_AUTH_BACKEND.md)).
+- El access token de una sesión revocada se rechaza al instante gracias a la lista de revocadas en Redis (si Redis falla, se deniega).
 
 ## Desarrollador
 
