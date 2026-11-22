@@ -1,0 +1,32 @@
+# Actualizaciones automáticas de dependencias (OWASP A03/A06). Una PR por
+# ecosistema y semana; los commits siguen el formato del proyecto.
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /projects/backend
+    schedule: { interval: weekly }
+    commit-message: { prefix: "chore[BACK]" }
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: weekly }
+    commit-message: { prefix: "chore[FRONT]" }
+    # TypeScript 7 queda fuera hasta que typescript-eslint lo soporte.
+    ignore:
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: pub
+    directory: /projects/mobile
+    schedule: { interval: weekly }
+    commit-message: { prefix: "chore[MOBILE]" }
+  - package-ecosystem: docker
+    directory: /projects/backend
+    schedule: { interval: weekly }
+    commit-message: { prefix: "chore[INFRA]" }
+  - package-ecosystem: docker
+    directory: /projects/frontend
+    schedule: { interval: weekly }
+    commit-message: { prefix: "chore[INFRA]" }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+    commit-message: { prefix: "ci[REPO]" }
