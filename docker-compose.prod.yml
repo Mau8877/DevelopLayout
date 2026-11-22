@@ -1,0 +1,216 @@
+# Compose de PRODUCCIÓN. Se usa en lugar de docker-compose.yml (nunca juntos):
+#
+#   docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+#
+# Diferencias con el de desarrollo (ver docs/INFRAESTRUCTURA.md):
+#   - Imágenes construidas (backend y frontend), sin bind mounts de código.
+#   - Sin /var/run/docker.sock (solo hacía falta para Testcontainers).
+#   - Solo el proxy publica puertos (80 -> redirige, 443 -> TLS). Postgres,
+#     Redis, MinIO, Prometheus y Grafana quedan en la red interna.
+#   - Contenedores sin root, sin capabilities y con no-new-privileges.
+#
+# ! Este archivo es la base de despliegue, no un CD: el destino (VPS, ECS,
+# ! Cloud Run...) sigue sin decidirse, ver .claude/rules/CI_CD.md.
+name: app-prod
+
+x-hardening: &hardening
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+
+services:
+  proxy:
+    <<: *hardening
+    image: nginxinc/nginx-unprivileged:stable-alpine
+    container_name: app-proxy
+    ports:
+      - '80:8080'
+      - '443:8443'
+    volumes:
+      - ./infrastructure/nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      # fullchain.pem + privkey.pem del dominio (Let's Encrypt, cert de origen
+      # de Cloudflare, etc.). Sin ellos el proxy no arranca: TLS es obligatorio.
+      - ${TLS_CERT_DIR:?Definí TLS_CERT_DIR en .env (carpeta con fullchain.pem y privkey.pem)}:/etc/nginx/certs:ro
+    read_only: true
+    tmpfs:
+      - /tmp
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - app-network
+
+  frontend:
+    <<: *hardening
+    build:
+      context: .
+      dockerfile: projects/frontend/Dockerfile
+    image: app-frontend:${APP_VERSION:-latest}
+    container_name: app-frontend
+    read_only: true
+    tmpfs:
+      - /tmp
+    networks:
+      - app-network
+
+  backend:
+    <<: *hardening
+    build:
+      context: projects/backend
+    image: app-backend:${APP_VERSION:-latest}
+    container_name: app-backend
+    read_only: true
+    tmpfs:
+      - /tmp
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://app-postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Definí POSTGRES_PASSWORD en .env}
+      SPRING_DATA_REDIS_HOST: app-redis
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:?Definí REDIS_PASSWORD en .env}
+      MINIO_URL: http://app-minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Definí MINIO_ROOT_PASSWORD en .env}
+      # Origen(es) HTTPS del frontend, separados por coma. Sin default: un
+      # CORS abierto por olvido es un hallazgo de OWASP A05.
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?Definí CORS_ALLOWED_ORIGINS en .env (ej. https://app.midominio.com)}
+      # Swagger apagado (default del application.properties base).
+      SWAGGER_ENABLED: 'false'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q --spider http://localhost:8080/health || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  postgres:
+    image: postgres:18-alpine
+    container_name: app-postgres
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Definí POSTGRES_PASSWORD en .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./infrastructure/postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - app-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    <<: *hardening
+    image: redis:8-alpine
+    container_name: app-redis
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Definí REDIS_PASSWORD en .env}
+    volumes:
+      - redis_data:/data
+      - ./infrastructure/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD:?Definí REDIS_PASSWORD en .env}
+    networks:
+      - app-network
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli -a "$$REDIS_PASSWORD" --no-auth-warning ping | grep -q PONG']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Imagen de MinIO sin default: fijá un tag o digest concreto en .env
+  # (MINIO_IMAGE). `latest` no es reproducible ni auditable en producción.
+  minio:
+    image: ${MINIO_IMAGE:?Definí MINIO_IMAGE en .env con un tag o digest fijo (no latest)}
+    user: '0'
+    container_name: app-minio
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Definí MINIO_ROOT_PASSWORD en .env}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -c
+        - "exec 3<>/dev/tcp/localhost/9000 && printf 'GET /minio/health/live HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && read -r l <&3 && [[ $$l == *' 200'* ]]"
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  minio-init:
+    image: bitnamilegacy/minio-client:latest
+    container_name: app-minio-init
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    depends_on:
+      minio:
+        condition: service_healthy
+    volumes:
+      - ./infrastructure/minio/create-buckets.sh:/create-buckets.sh:ro
+    entrypoint: >
+      /bin/sh -c "sh /create-buckets.sh"
+    networks:
+      - app-network
+
+  # Observabilidad: SIN ports. Para verlos desde tu máquina, túnel SSH o
+  # `docker compose exec`; nunca expuestos a internet.
+  prometheus:
+    <<: *hardening
+    image: prom/prometheus:v3.14.0
+    container_name: app-prometheus
+    volumes:
+      - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - app-network
+
+  grafana:
+    <<: *hardening
+    image: grafana/grafana:13.3.0
+    container_name: app-grafana
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Definí GRAFANA_ADMIN_PASSWORD en .env}
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_ANALYTICS_REPORTING_ENABLED: 'false'
+    volumes:
+      - ./infrastructure/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    name: app-prod-network
+    driver: bridge
+
+volumes:
+  postgres_data:
+    name: app-prod-postgres_data
+  redis_data:
+    name: app-prod-redis_data
+  minio_data:
+    name: app-prod-minio_data
