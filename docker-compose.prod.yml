@@ -118,6 +118,13 @@ services:
     <<: *hardening
     image: redis:8-alpine
     container_name: app-redis
+    # El entrypoint de Redis arranca como root, corrige el dueño de /data y
+    # baja a su usuario `redis`: eso necesita estas tres capabilities. Con
+    # `cap_drop: ALL` a secas el contenedor muere en bucle al arrancar.
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:?Definí REDIS_PASSWORD en .env}
     volumes:
