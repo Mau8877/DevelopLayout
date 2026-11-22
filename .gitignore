@@ -77,3 +77,6 @@ ios/.symlinks/
 # ===========================
 *.swp
 *.tmp
+# Salida de los scripts de actualización y de Maven
+update-deps.log
+salida.txt
