@@ -32,14 +32,23 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private final ConcurrentHashMap<String, Bucket> buckets = new ConcurrentHashMap<>();
 
+    // * Límite más estricto, por IP, solo para el login (además del global).
+    private final ConcurrentHashMap<String, Bucket> loginBuckets = new ConcurrentHashMap<>();
+
     private final int capacity;
     private final int refillPerMinute;
+    private final int loginCapacity;
+    private final int loginRefillPerMinute;
 
     public RateLimitFilter(
             @Value("${app.ratelimit.capacity}") int capacity,
-            @Value("${app.ratelimit.refill-per-minute}") int refillPerMinute) {
+            @Value("${app.ratelimit.refill-per-minute}") int refillPerMinute,
+            @Value("${app.ratelimit.login-capacity:10}") int loginCapacity,
+            @Value("${app.ratelimit.login-refill-per-minute:10}") int loginRefillPerMinute) {
         this.capacity = capacity;
         this.refillPerMinute = refillPerMinute;
+        this.loginCapacity = loginCapacity;
+        this.loginRefillPerMinute = loginRefillPerMinute;
     }
 
     @Override
@@ -52,9 +61,16 @@ public class RateLimitFilter extends OncePerRequestFilter {
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws IOException, ServletException {
-        Bucket bucket = buckets.computeIfAbsent(resolveClientIp(request), ip -> newBucket());
+        String ip = resolveClientIp(request);
+        Bucket bucket = buckets.computeIfAbsent(ip, k -> newBucket(capacity, refillPerMinute));
+        boolean permitido = bucket.tryConsume(1);
 
-        if (bucket.tryConsume(1)) {
+        if (permitido && esLogin(request)) {
+            permitido = loginBuckets.computeIfAbsent(ip, k -> newBucket(loginCapacity, loginRefillPerMinute))
+                    .tryConsume(1);
+        }
+
+        if (permitido) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -62,7 +78,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
         writeTooManyRequests(response);
     }
 
-    private Bucket newBucket() {
+    private static boolean esLogin(HttpServletRequest request) {
+        return "POST".equalsIgnoreCase(request.getMethod())
+                && "/api/v1/auth/login".equals(request.getRequestURI());
+    }
+
+    private static Bucket newBucket(int capacity, int refillPerMinute) {
         Bandwidth limit = Bandwidth.builder()
                 .capacity(capacity)
                 .refillGreedy(refillPerMinute, Duration.ofMinutes(1))

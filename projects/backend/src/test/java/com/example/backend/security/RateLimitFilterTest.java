@@ -12,7 +12,7 @@ class RateLimitFilterTest {
 
     @Test
     void doFilterInternal_dentroDelLimite_dejaPasarTodasLasRequests() throws Exception {
-        RateLimitFilter filter = new RateLimitFilter(3, 60);
+        RateLimitFilter filter = new RateLimitFilter(3, 60, 1000, 1000);
         AtomicInteger vecesQueLlegoAlChain = new AtomicInteger();
 
         for (int i = 0; i < 3; i++) {
@@ -30,7 +30,7 @@ class RateLimitFilterTest {
 
     @Test
     void doFilterInternal_superandoElLimite_devuelve429ConElSobreDeError() throws Exception {
-        RateLimitFilter filter = new RateLimitFilter(2, 60);
+        RateLimitFilter filter = new RateLimitFilter(2, 60, 1000, 1000);
         AtomicInteger vecesQueLlegoAlChain = new AtomicInteger();
 
         // Agota el cupo (2 requests permitidas)
@@ -57,7 +57,7 @@ class RateLimitFilterTest {
 
     @Test
     void doFilterInternal_distintasIps_tienenCuposIndependientes() throws Exception {
-        RateLimitFilter filter = new RateLimitFilter(1, 60);
+        RateLimitFilter filter = new RateLimitFilter(1, 60, 1000, 1000);
         AtomicInteger vecesQueLlegoAlChain = new AtomicInteger();
 
         filter.doFilterInternal(
@@ -77,8 +77,32 @@ class RateLimitFilterTest {
     }
 
     @Test
+    void doFilterInternal_loginConLimitePropio_rechazaAntesQueElGlobal() throws Exception {
+        RateLimitFilter filter = new RateLimitFilter(100, 100, 2, 60);
+        AtomicInteger llegaron = new AtomicInteger();
+        MockHttpServletResponse ultima = new MockHttpServletResponse();
+
+        for (int i = 0; i < 3; i++) {
+            MockHttpServletRequest login = requestTo("/api/v1/auth/login");
+            login.setMethod("POST");
+            login.setRemoteAddr("203.0.113.40");
+            ultima = new MockHttpServletResponse();
+            filter.doFilterInternal(login, ultima, (req, res) -> llegaron.incrementAndGet());
+        }
+
+        assertThat(llegaron.get()).isEqualTo(2);
+        assertThat(ultima.getStatus()).isEqualTo(429);
+
+        // Otro endpoint de la misma IP sigue dentro del límite global.
+        MockHttpServletRequest otro = apiRequest("203.0.113.40");
+        MockHttpServletResponse respuesta = new MockHttpServletResponse();
+        filter.doFilterInternal(otro, respuesta, (req, res) -> llegaron.incrementAndGet());
+        assertThat(respuesta.getStatus()).isEqualTo(200);
+    }
+
+    @Test
     void shouldNotFilter_rutasFueraDeApiV1_quedanExcluidas() {
-        RateLimitFilter filter = new RateLimitFilter(100, 100);
+        RateLimitFilter filter = new RateLimitFilter(100, 100, 1000, 1000);
 
         assertThat(filter.shouldNotFilter(requestTo("/health"))).isTrue();
         assertThat(filter.shouldNotFilter(requestTo("/prometheus"))).isTrue();
