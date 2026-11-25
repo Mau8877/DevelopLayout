@@ -516,6 +516,12 @@ Grafana y Prometheus no tienen puertos: se consultan por túnel SSH o con
 - Config base del backend segura; lo cómodo (Swagger, `show-sql`, health
   detallado) solo en el perfil `dev`.
 
+## 7d. Respaldos de la base
+
+`pnpm db:backup` / `pnpm db:verify` (ver `scripts/README.md`). Es manual: no hay
+programación automática ni copia fuera del servidor — en producción hay que
+agendarlo (cron/tarea del proveedor) y enviar el archivo, cifrado, a otro lugar.
+
 ## 8. Qué NO está implementado todavía (para que quede explícito, no ambiguo)
 
 - **Sin dashboards de Grafana** — solo el datasource de Prometheus está

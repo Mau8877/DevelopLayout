@@ -45,6 +45,7 @@ En los ejemplos de abajo se usa `acme` / `com.acme` como referencia.
 
 El scaffold ya trae configurado, sin nada más que hacer:
 - **Health check** en `GET /health` (Actuator, base-path movido a la raíz — no es `/actuator/health`).
+- **Contrato de la API**: `docs/api/openapi.json` (snapshot versionado; ver `scripts/README.md`, `pnpm openapi:sync`).
 - **Swagger UI** en `/swagger-ui/index.html` y OpenAPI JSON en `/v3/api-docs` (acceso directo por el puerto 8080, no a través del proxy). **Solo en desarrollo**: el perfil `dev` los enciende, y en cualquier otro perfil están apagados salvo que pongas `SWAGGER_ENABLED=true`.
 - **Configuración segura por defecto**: sin credenciales por defecto fuera del perfil `dev`, sin `show-sql`, `/health` sin detalles, sin trazas de error hacia el cliente, y rate limit por IP sobre `/api/v1/**`. Lo cómodo para desarrollar vive solo en `application-dev.properties`.
 - **Métricas Prometheus** en `GET /prometheus`, ya scrapeadas por el servicio `prometheus` de `docker-compose.yml` y con el datasource de Grafana provisionado.
@@ -94,12 +95,14 @@ grep -ril "com\.example\|app-network\|app-prod\|app_db\|app-backend\|app-fronten
 Si el comando no devuelve nada, ya no queda nada del template. Después corré:
 
 ```bash
-cp .env.example .env
-cp projects/backend/.env.example projects/backend/.env
-cp projects/frontend/.env.example projects/frontend/.env
-# Reemplazá cada CAMBIAME por una contraseña propia en los .env antes de seguir.
+pnpm install
+pnpm setup:env   # crea los .env con secretos aleatorios (ver scripts/README.md)
+# Cambiá INITIAL_ADMIN_EMAIL en .env por un correo real.
 docker compose up
 ```
+
+(`pnpm setup:env` reemplaza el paso manual de copiar los `.env.example` y cambiar cada
+`CAMBIAME`; nunca pisa valores que ya tengas.)
 
 para confirmar que el stack completo (proxy, frontend, backend, postgres, redis, minio, prometheus, grafana) levanta correctamente con los nuevos nombres, y confirmá el backend con:
 
