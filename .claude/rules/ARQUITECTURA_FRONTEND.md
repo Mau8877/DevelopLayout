@@ -22,7 +22,8 @@ src/
 │   └── api/             # Endpoints usados por 2+ features (ver TANSTACK_QUERY_FRONTEND.md)
 ├── store/                # Zustand (estado de UI) + cliente API/TanStack Query (ver ESTADO_GLOBAL_FRONTEND.md)
 ├── components/
-│   └── ui/               # Output del CLI de shadcn, sistema de diseño compartido (ver TAILWIND_STYLES_FRONTEND.md)
+│   ├── ui/               # Output del CLI de shadcn + componentes genéricos armados con él (ver COMPONENTIZACION_FRONTEND.md)
+│   └── layout/           # Piezas del shell de la app (AppShell, sidebar, header)
 ├── lib/
 │   └── utils.ts          # `cn()` que shadcn espera en @/lib/utils -- no se toca ni se mueve
 ├── utils/                # Utilidades genéricas propias del proyecto (ver TANSTACK_QUERY_FRONTEND.md)
@@ -49,7 +50,7 @@ nueva sigue exactamente esta misma forma**:
 ```
 src/features/usuarios/
 ├── api/            # Queries/mutations de TanStack Query (useUsuarios.ts, keys.ts...)
-├── components/     # Componentes de UI específicos de ESTA feature, no reusables fuera de ella
+├── components/     # Solo componentes que conocen el dominio de ESTA feature (ver COMPONENTIZACION_FRONTEND.md)
 ├── schemas/        # Schemas de Zod (validación de formularios + tipado de requests)
 ├── screens/        # Pantallas completas que se montan desde routes/ (ListaUsuarios, DetalleUsuario...)
 ├── tests/          # Tests de esta feature (ver nota de Testing abajo)
@@ -78,7 +79,7 @@ puede reorganizar su estructura interna sin romper a quien la consume.
 Dos criterios distintos según dónde vive el código, ambos documentados en
 [TESTING_FRONTEND.md](frontend/TESTING_FRONTEND.md):
 
-- Código transversal (`src/utils/`, `src/lib/`, `src/components/ui/`): el
+- Código transversal (`src/utils/`, `src/lib/`, `src/components/`): el
   test vive **al lado** del archivo (`debounce.ts` + `debounce.test.ts` en
   la misma carpeta).
 - Código de una feature (`src/features/{feature}/`): el test vive en la

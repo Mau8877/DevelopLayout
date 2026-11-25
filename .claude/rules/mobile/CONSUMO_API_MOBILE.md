@@ -50,3 +50,14 @@ endpoint se consume desde más de una feature, su lógica va en
 `lib/core/network/` (no en `features/{feature}/services/` de ninguna de las
 dos, y no duplicado en ambas). Se mueve ahí recién cuando aparece el segundo
 consumidor real, no de forma anticipada.
+
+## Modelos (DTOs) y tokens
+
+- **DTOs:** `lib/features/{feature}/models/{nombre}.dart`, una clase por archivo,
+  inmutable (`final`), con `factory X.fromJson(Map<String, dynamic>)`. Los
+  `services` los devuelven; la UI nunca recibe un `Map` crudo.
+- **Tokens:** `lib/core/storage/secure_token_storage.dart` (`SecureTokenStorage`)
+  guarda access y refresh en el almacenamiento seguro del sistema
+  (`flutter_secure_storage`). Nunca `shared_preferences`, nunca en logs.
+- **Cabeceras:** `ApiClient` manda siempre `X-Client-Type: mobile` y, si hay
+  token, `Authorization: Bearer`. Sin cookies.

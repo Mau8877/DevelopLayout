@@ -6,24 +6,14 @@ globs: projects/mobile/**/*
 
 ## Compartidos vs. de una sola feature
 
-Mismo criterio que `common/` en el backend
-([CONVENCIONES_JAVA_BACKEND.md](../backend/CONVENCIONES_JAVA_BACKEND.md)) y
-`shared/` en el frontend web
-([TANSTACK_QUERY_FRONTEND.md](../frontend/TANSTACK_QUERY_FRONTEND.md)):
+El criterio completo (árbol de decisión, qué se componentiza siempre, cómo se
+escribe un widget genérico) está en
+[COMPONENTIZACION_MOBILE.md](COMPONENTIZACION_MOBILE.md). En resumen:
 
-- Un widget que usa **una sola feature** vive dentro de esa feature. El
-  scaffold actual (`lib/features/auth/{providers,screens,services}`) no
-  tiene todavía una subcarpeta `widgets/` — se agrega cuando una feature
-  concreta la necesita: `lib/features/{feature}/widgets/`.
-- Un widget que usan **dos o más features** va en
-  `lib/shared/widgets/` (carpeta nueva, no existe todavía en el scaffold —
-  se crea recién cuando aparece el primer widget realmente compartido, no
-  de forma anticipada "por si hace falta").
-
-No se mueve un widget a `shared/widgets/` apenas "parece que podría
-reusarse" — se mueve cuando una segunda feature efectivamente lo necesita,
-igual que el criterio de `shared/api/` del lado del consumo de API (ver
-[CONSUMO_API_MOBILE.md](CONSUMO_API_MOBILE.md)).
+- Un widget que **conoce el dominio** de una feature vive en
+  `lib/features/{feature}/widgets/` (subcarpeta que se agrega cuando hace falta).
+- Un widget **genérico** nace directo en `lib/shared/widgets/` (carpeta que se
+  crea con el primer widget genérico), sin esperar a un segundo consumidor.
 
 ## Tema (`ThemeData`)
 

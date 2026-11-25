@@ -42,6 +42,15 @@ proyecto).
 > agrega a un `.trivyignore`, no se baja la severidad del escaneo.
 > `scripts/{linux,windows}/update-deps.*` hace la misma auditoría en local.
 
+## Pendiente: fijar las acciones de terceros por SHA
+
+Las acciones de `ci.yml` están fijadas por tag (`@v4`), que es mutable: el
+incidente de `trivy-action` de marzo de 2026 mostró el riesgo. Lo correcto es
+`uses: owner/accion@<sha-de-40-caracteres> # vX.Y.Z`. Dependabot
+(`github-actions`) sigue actualizando esos SHA. Se hace con el hash verificado
+de cada release (`git ls-remote https://github.com/owner/accion refs/tags/vX`;
+si el tag es anotado, usar el commit al que apunta `vX^{}`), no copiado de memoria.
+
 ## Un job por proyecto, no uno solo para todo
 
 El pipeline usa un job `changes` (con la acción `dorny/paths-filter`) que

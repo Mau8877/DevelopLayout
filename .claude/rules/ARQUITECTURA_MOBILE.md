@@ -20,12 +20,14 @@ como ejemplo de referencia vacío):
 lib/
 ├── core/
 │   ├── network/     # ApiClient (Dio + interceptor de sobre), ya implementado (ver CONSUMO_API_MOBILE.md)
-│   ├── routing/     # GoRouter único, con el redirect global -- todavía vacío (ver NAVEGACION_MOBILE.md)
+│   ├── routing/     # GoRouter único con el redirect global según la sesión (ver NAVEGACION_MOBILE.md)
+│   ├── storage/     # SecureTokenStorage: tokens en el almacenamiento seguro del sistema (ver CONSUMO_API_MOBILE.md)
+│   ├── logging/     # AppLogger: único punto de log, solo en debug (ver ERRORES_LOGGING_MOBILE.md)
 │   └── theme/       # AppColors/AppTheme, ya implementado con paleta neutra de placeholder
 ├── layouts/
 │   └── {rol}/       # Shell por rol (AdminShell, UsuarioShell, ya scaffoldeados como ejemplo)
 ├── shared/
-│   └── widgets/     # Widgets usados por 2+ features (ver WIDGETS_UI_MOBILE.md) -- no existe todavía
+│   └── widgets/     # Widgets genéricos, sin dominio (ver COMPONENTIZACION_MOBILE.md) -- se crea con el primero
 ├── features/
 │   ├── health/      # Feature de diagnóstico end-to-end (service+provider+screen) contra el backend real
 │   └── {feature}/   # Un feature de negocio (ver estructura abajo)
@@ -61,10 +63,11 @@ esta misma forma:
 
 ```
 lib/features/usuarios/
+├── models/       # DTOs Dart (fromJson) del JSON de request/response de la API
 ├── providers/    # Riverpod: AsyncNotifier/FutureProvider (datos) + *UiProvider (estado de UI)
 ├── screens/      # Pantallas completas que apunta el GoRouter de core/routing/
 ├── services/     # Llamadas a la API de ESTE feature, vía el ApiClient de core/network/
-└── widgets/      # Widgets específicos de esta feature -- se agrega recién cuando hace falta uno
+└── widgets/      # Solo widgets que conocen el dominio de esta feature -- se agrega cuando hace falta uno
 ```
 
 Referencia de cada subcarpeta, en el resto de las rules:
@@ -72,15 +75,10 @@ Referencia de cada subcarpeta, en el resto de las rules:
 convención de nombres), [CONSUMO_API_MOBILE.md](mobile/CONSUMO_API_MOBILE.md)
 (`services/`), [NAVEGACION_MOBILE.md](mobile/NAVEGACION_MOBILE.md) (cómo
 `screens/` se conecta con el router central), [WIDGETS_UI_MOBILE.md](mobile/WIDGETS_UI_MOBILE.md)
-(`widgets/`, y cuándo algo pasa a `shared/widgets/`).
+(`widgets/`; el criterio de qué va en `shared/widgets/` está en COMPONENTIZACION_MOBILE.md).
 
-> **Modelos de datos (DTOs Dart) — todavía sin convención definida.** Ni el
-> scaffold actual ni ninguna rule dice hoy dónde viven las clases que
-> representan el JSON de request/response de la API (¿un `models/` nuevo
-> por feature? ¿adentro de `services/`?). No se asume ninguna de las dos —
-> se define explícitamente en la rule correspondiente ([CONSUMO_API_MOBILE.md](mobile/CONSUMO_API_MOBILE.md))
-> antes de escribir el primer `service` real que necesite parsear una
-> respuesta.
+> **Modelos de datos (DTOs Dart):** viven en `lib/features/{feature}/models/`, uno por
+> archivo, con un `fromJson` (ver [CONSUMO_API_MOBILE.md](mobile/CONSUMO_API_MOBILE.md)).
 
 ## Regla de dependencia
 

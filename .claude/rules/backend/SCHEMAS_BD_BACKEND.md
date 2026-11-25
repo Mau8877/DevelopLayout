@@ -185,7 +185,7 @@ poner en el diagrama es el texto entre comillas al final de una columna
 | Schema | Estado |
 | --- | --- |
 | `public` | Migrado (`V1__init_schema.sql`) |
-| `authentication` | **Diseñado, aún no migrado**: se crea con HU-INICIAL-Base (UT-HUI-BASE-BE-01). La UT que lo migra cambia esta fila a "Migrado". |
+| `authentication` | Migrado (`V20261125063000__create_auth_tables.sql`, `V20261125063100__create_app_runtime_role.sql`) |
 
 Convenciones que `docs/BASE_DE_DATOS.mermaid` no puede expresar y por eso
 viven aquí: las columnas comunes de `BaseModel` (`id`, `codigo_<tabla>`,
