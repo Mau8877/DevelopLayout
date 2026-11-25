@@ -39,6 +39,14 @@ docs/errors/
 - [`ERR_SYS_01`](system/ERRORES_SISTEMA.md#err_sys_01) — Validación de Bean Validation fallida (400)
 - [`ERR_SYS_02`](system/ERRORES_SISTEMA.md#err_sys_02) — Límite de requests por IP superado (429)
 
+### Autenticación (`AUTH`)
+
+- [`ERR_AUTH_01`](auth/ERRORES_AUTH.md#err_auth_01) — Credenciales inválidas (401)
+- [`ERR_AUTH_02`](auth/ERRORES_AUTH.md#err_auth_02) — Cuenta bloqueada temporalmente por intentos fallidos (423)
+- [`ERR_AUTH_03`](auth/ERRORES_AUTH.md#err_auth_03) — Usuario no activo (403)
+- [`ERR_AUTH_07`](auth/ERRORES_AUTH.md#err_auth_07) — No autenticado (401)
+- [`ERR_AUTH_08`](auth/ERRORES_AUTH.md#err_auth_08) — Acceso denegado o CSRF inválido (403)
+
 <!--
   A medida que se agregan módulos de negocio (usuarios, pedidos...),
   cada uno suma acá su propia sección "### Nombre (PREFIJO)" con la lista

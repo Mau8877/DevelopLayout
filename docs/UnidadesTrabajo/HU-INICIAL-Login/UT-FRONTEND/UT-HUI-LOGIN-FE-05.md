@@ -9,7 +9,7 @@
 
 ## Antes de implementar
 
-Leer `frontend/RUTAS_NAVEGACION_FRONTEND.md` y `.claude/rules/SEGURIDAD_OWASP.md`.
+Leer `frontend/COMPONENTIZACION_FRONTEND.md`, `frontend/ERRORES_LOGGING_FRONTEND.md`, `frontend/RUTAS_NAVEGACION_FRONTEND.md` y `.claude/rules/SEGURIDAD_OWASP.md`.
 
 ## Solicitud de negocio
 
@@ -26,10 +26,15 @@ Las rutas privadas no deben mostrarse sin sesión; la autorización real es del 
 - El grupo de rutas (`_admin`, `_usuario`) decide el layout según los roles.
 - `panel.tsx` se mantiene como hijo para no romper el generador.
 
+- `components/ui/error-state.tsx`: estado de error genérico con botón "Reintentar" (props `titulo`, `descripcion`, `onReintentar`).
+- `main.tsx`: `defaultErrorComponent` y `defaultNotFoundComponent` del router (usan `ErrorState`) y handlers de `window.onerror`/`unhandledrejection` que pasan por el `logger`.
+
 **Archivos esperados (crear/tocar):**
 
 - `projects/frontend/src/routes/_authenticated.tsx`
 - `projects/frontend/src/routes/_authenticated/panel.tsx`
+- `projects/frontend/src/components/ui/error-state.tsx`
+- `projects/frontend/src/main.tsx`
 
 ## Fuera de alcance (no tocar)
 

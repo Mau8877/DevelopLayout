@@ -9,7 +9,7 @@
 
 ## Antes de implementar
 
-Leer `mobile/FORMULARIOS_MOBILE.md`, `mobile/WIDGETS_UI_MOBILE.md` y `.claude/rules/SEGURIDAD_OWASP.md`.
+Leer `mobile/COMPONENTIZACION_MOBILE.md`, `mobile/ERRORES_LOGGING_MOBILE.md`, `mobile/FORMULARIOS_MOBILE.md`, `mobile/WIDGETS_UI_MOBILE.md` y `.claude/rules/SEGURIDAD_OWASP.md`.
 
 ## Solicitud de negocio
 
@@ -25,9 +25,14 @@ Existe `LoginScreen` con validación y manejo de errores.
 - Error genérico igual para ambos fallos; aviso de bloqueo en 423.
 - Sin datos sensibles en logs.
 
+- Widgets genéricos nuevos en `lib/shared/widgets/` (carpeta nueva): `app_text_field.dart` (campo con label y error del tema) y `app_button.dart` (botón con estado de carga). Sin conocimiento de auth. `LoginScreen` solo los compone.
+- Errores de la mutación mostrados con `SnackBar` usando `mensajeDeError`.
+
 **Archivos esperados (crear/tocar):**
 
 - `projects/mobile/lib/features/auth/screens/login_screen.dart`
+- `projects/mobile/lib/shared/widgets/app_text_field.dart`
+- `projects/mobile/lib/shared/widgets/app_button.dart`
 
 ## Fuera de alcance (no tocar)
 

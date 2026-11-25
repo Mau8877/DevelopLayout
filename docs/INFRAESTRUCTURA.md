@@ -338,6 +338,10 @@ Usadas por `docker-compose.yml` (y por `docker-compose.prod.yml`) para levantar 
 | `REDIS_PASSWORD` | `CAMBIAME` | Password de Redis (obligatoria) |
 | `GRAFANA_ADMIN_USER` | `admin` | Usuario admin de Grafana |
 | `GRAFANA_ADMIN_PASSWORD` | `CAMBIAME` | Password admin de Grafana (obligatoria) |
+| `APP_RUNTIME_PASSWORD` | `CAMBIAME` | Password del rol `app_runtime` con el que corre la app (obligatoria, solo letras y números). La crea la migración del rol; cambiarla después es `ALTER ROLE app_runtime PASSWORD '...'`, no editar la migración |
+| `JWT_SECRET` | `CAMBIAME_MINIMO_32_CARACTERES_ALEATORIOS` | Clave HS256 para firmar los access token (mínimo 32 caracteres, sin default; la app no arranca si falta, es corta o conserva el valor de ejemplo). Generar con `openssl rand -base64 48` |
+| `INITIAL_ADMIN_EMAIL` | `admin@midominio.com` | Correo del `SUPER_ADMIN` inicial (solo se usa si todavía no existe ninguno) |
+| `INITIAL_ADMIN_PASSWORD` | `CAMBIAME` | Contraseña del `SUPER_ADMIN` inicial (8 a 72 bytes; sin ella, con la base vacía, la app no arranca) |
 | `MINIO_ROOT_USER` | `minio_admin` | Usuario admin de MinIO (mínimo 3 caracteres, si no MinIO no arranca) |
 | `MINIO_ROOT_PASSWORD` | `CAMBIAME` | Password admin de MinIO (obligatoria, **mínimo 8 caracteres**, si no MinIO tira `FATAL` y no arranca) |
 

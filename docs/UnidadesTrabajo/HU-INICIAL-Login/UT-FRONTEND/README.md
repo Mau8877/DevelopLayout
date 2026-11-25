@@ -6,11 +6,13 @@
 
 ## Antes de implementar cualquier UT
 
-Leer las rules de [`frontend/`](../../../../.claude/rules/frontend/) y [`SEGURIDAD_OWASP.md`](../../../../.claude/rules/SEGURIDAD_OWASP.md). Estas fichas **no** sustituyen esas reglas: si hay conflicto, ganan las rules del proyecto.
+Leer en especial `COMPONENTIZACION_FRONTEND.md` y `ERRORES_LOGGING_FRONTEND.md`, y el resto de las rules de [`frontend/`](../../../../.claude/rules/frontend/) y [`SEGURIDAD_OWASP.md`](../../../../.claude/rules/SEGURIDAD_OWASP.md). Estas fichas **no** sustituyen esas reglas: si hay conflicto, ganan las rules del proyecto.
 
 ## Decisiones de diseño
 
 - La sesión se obtiene de `/auth/me` con TanStack Query; no se copia a Zustand ni a ningún storage.
+- Los componentes genéricos (`FormField`, `Label`, `Alert`, `ErrorState`, `CenteredCardLayout`) se crean en `components/` y no dentro del feature `auth`.
+- Los fallos sin sobre se normalizan a `ApiError` (`CLIENT_*`) en `apiClient`.
 
 ## Orden de ejecución
 
@@ -42,3 +44,9 @@ Leer las rules de [`frontend/`](../../../../.claude/rules/frontend/) y [`SEGURID
 ## Qué NO incluyen estas UT
 
 - Refresh, logout y recuperación.
+
+## Notas de implementación (desviaciones respecto de las fichas)
+
+- El botón de envío se deshabilita mientras la mutación está en curso en vez de usar `debounce` (evita el doble envío con más fuerza y sin temporizadores).
+- `withXSRFToken: true` en `apiClient`: sin eso axios no adjunta `X-XSRF-TOKEN` cuando la API está en otro origen (dev, otro puerto).
+- Verificado en el entorno de escritura: `tsc` y `eslint` limpios. `vitest` **no pudo ejecutarse** (binario nativo de otra plataforma), así que los tests están escritos pero sin correr.

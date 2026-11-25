@@ -55,3 +55,12 @@ Leer las rules de [`backend/`](../../../../.claude/rules/backend/) y [`SEGURIDAD
 
 - Refresh, logout y recuperación de contraseña.
 - Registro público de usuarios.
+
+## Notas de implementación (desviaciones respecto de las fichas)
+
+- `JwtAuthenticationFilter` **no** es `@Component`: Spring Boot registraría una copia en la cadena de servlets, fuera de Spring Security, y la request quedaría marcada como ya filtrada. Se instancia en `SecurityConfig`.
+- UT-BE-06: el filtro y los resolvers se prueban a nivel unitario (`JwtAuthenticationFilterTest`) y de punta a punta en `AuthControllerTest`, no con un `MockMvc` aparte.
+- UT-BE-07: no hay `AuthServiceTest` separado; sus casos (éxito, 401 igual para ambos fallos, 423, 403, bitácora) viven en `AuthControllerTest`. El test de igualdad de tiempos no se escribió (inestable en CI); la igualdad se logra por diseño (BCrypt contra hash ficticio).
+- Bitácora: la clave del detalle es `correoRef` (no `...Hash`) porque `BitacoraService` rechaza claves que contengan `hash`.
+- Se agregó `HttpMessageNotReadableException` → 400 `ERR_SYS_01` en `GlobalExceptionHandler` y `spring.jackson.deserialization.fail-on-unknown-properties=true` (sin eso un campo extra se ignoraba o daba 500).
+- Estas UT **no se compilaron ni se ejecutaron** en el entorno donde se escribieron (sin Java 21/Maven/Docker).

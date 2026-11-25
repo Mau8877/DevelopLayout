@@ -9,7 +9,7 @@
 
 ## Antes de implementar
 
-Leer `mobile/NAVEGACION_MOBILE.md` y `.claude/rules/SEGURIDAD_OWASP.md`.
+Leer `mobile/ERRORES_LOGGING_MOBILE.md`, `mobile/NAVEGACION_MOBILE.md` y `.claude/rules/SEGURIDAD_OWASP.md`.
 
 ## Solicitud de negocio
 
@@ -25,10 +25,15 @@ Existe el `GoRouter` central con `redirect` según `authProvider` y `main.dart` 
 - `main.dart`: `MaterialApp.router` con ese router.
 - Pantalla inicial mínima por rol usando los shells existentes.
 
+- `core/logging/app_logger.dart`: log solo en debug (`kDebugMode`), sin `print`; `ARQUITECTURA_MOBILE.md` agrega `core/logging/`.
+- `main.dart`: `FlutterError.onError`, `PlatformDispatcher.instance.onError` y `ErrorWidget.builder` genérico en release.
+
 **Archivos esperados (crear/tocar):**
 
 - `projects/mobile/lib/core/routing/app_router.dart`
 - `projects/mobile/lib/main.dart`
+- `projects/mobile/lib/core/logging/app_logger.dart`
+- `.claude/rules/ARQUITECTURA_MOBILE.md`
 
 ## Fuera de alcance (no tocar)
 

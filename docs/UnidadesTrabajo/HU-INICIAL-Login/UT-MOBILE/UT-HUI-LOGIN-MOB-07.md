@@ -23,6 +23,8 @@ Quedan tests de parsing, service, provider y redirect.
 
 - Reunir en `test/features/auth/` los tests de UT 01–04 y agregar el test de `redirect` con provider simulado.
 
+- Incluir el test de `mensajeDeError` y de la normalización de errores del interceptor.
+
 **Archivos esperados (crear/tocar):**
 
 - `projects/mobile/test/features/auth/app_router_redirect_test.dart`

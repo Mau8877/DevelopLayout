@@ -9,7 +9,7 @@
 
 ## Antes de implementar
 
-Leer `mobile/CONSUMO_API_MOBILE.md` y `.claude/rules/SEGURIDAD_OWASP.md`.
+Leer `mobile/ERRORES_LOGGING_MOBILE.md`, `mobile/CONSUMO_API_MOBILE.md` y `.claude/rules/SEGURIDAD_OWASP.md`.
 
 ## Solicitud de negocio
 

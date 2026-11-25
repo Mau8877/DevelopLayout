@@ -6,12 +6,14 @@
 
 ## Antes de implementar cualquier UT
 
-Leer las rules de [`mobile/`](../../../../.claude/rules/mobile/) y [`SEGURIDAD_OWASP.md`](../../../../.claude/rules/SEGURIDAD_OWASP.md). Estas fichas **no** sustituyen esas reglas: si hay conflicto, ganan las rules del proyecto.
+Leer en especial `COMPONENTIZACION_MOBILE.md` y `ERRORES_LOGGING_MOBILE.md`, y el resto de las rules de [`mobile/`](../../../../.claude/rules/mobile/) y [`SEGURIDAD_OWASP.md`](../../../../.claude/rules/SEGURIDAD_OWASP.md). Estas fichas **no** sustituyen esas reglas: si hay conflicto, ganan las rules del proyecto.
 
 ## Decisiones de diseño
 
 - Los DTOs viven en `features/{feature}/models/` y los tokens en `core/storage/` (UT 01 actualiza las rules).
 - Los tokens van en el body y se guardan en `flutter_secure_storage`.
+- Los widgets genéricos (`AppTextField`, `AppButton`) viven en `lib/shared/widgets/` desde el primer uso.
+- Los fallos sin sobre llegan como `ApiException` (`CLIENT_*`) y la UI usa `mensajeDeError`.
 
 ## Orden de ejecución
 
@@ -44,3 +46,9 @@ Leer las rules de [`mobile/`](../../../../.claude/rules/mobile/) y [`SEGURIDAD_O
 ## Qué NO incluyen estas UT
 
 - Refresh, logout y recuperación.
+
+## Notas de implementación (desviaciones respecto de las fichas)
+
+- Se agregó `ApiClient.create(...)` (con adaptador inyectable) para poder probar el cliente; `ApiClient.instance` lo usa con la configuración real.
+- `loginUiProvider` no hizo falta: el estado de "enviando" vive en la propia pantalla y `AuthNotifier.login` relanza el error.
+- Estas UT **no se compilaron ni se probaron** (sin Flutter/Dart en el entorno de escritura): ni `flutter analyze` ni `flutter test` se corrieron.

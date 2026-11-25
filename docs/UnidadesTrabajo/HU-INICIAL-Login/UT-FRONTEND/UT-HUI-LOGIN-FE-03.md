@@ -9,7 +9,7 @@
 
 ## Antes de implementar
 
-Leer `frontend/TANSTACK_QUERY_FRONTEND.md`, `frontend/ESTADO_GLOBAL_FRONTEND.md` y `.claude/rules/SEGURIDAD_OWASP.md`.
+Leer `frontend/ERRORES_LOGGING_FRONTEND.md`, `frontend/TANSTACK_QUERY_FRONTEND.md`, `frontend/ESTADO_GLOBAL_FRONTEND.md` y `.claude/rules/SEGURIDAD_OWASP.md`.
 
 ## Solicitud de negocio
 
