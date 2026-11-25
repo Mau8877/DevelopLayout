@@ -3,6 +3,62 @@
 Scripts de automatización del proyecto. Se corren en **tu máquina** (necesitan
 `pnpm`, `flutter` y Java; el backend usa el `mvnw` del repo).
 
+## `setup:env`: preparar los `.env` en un paso
+
+Crea (o completa) los `.env` de los cuatro proyectos a partir de sus
+`.env.example`, con secretos aleatorios. Solo necesita Node; no instala nada.
+
+```bash
+pnpm setup:env          # crea/completa los .env
+pnpm setup:env:check    # no escribe nada; falla si falta algo o queda un CAMBIAME
+```
+
+- **Nunca pisa un valor que ya existe.** Solo reemplaza lo que sigue diciendo
+  `CAMBIAME` y agrega las claves que el `.env.example` tiene y tu `.env` no.
+  Se puede correr las veces que haga falta.
+- **No imprime los secretos.** El reporte dice cuántos generó, no cuáles. Están
+  en cada `.env` (ignorado por git, con permisos 600 en Linux/macOS).
+- **Mantiene los archivos sincronizados:** el `.env` del backend toma de la raíz
+  la misma contraseña de Postgres, del rol `app_runtime`, de Redis y de MinIO, y
+  el mismo `JWT_SECRET`.
+- **Qué te toca a vos:** cambiar `INITIAL_ADMIN_EMAIL` (el script avisa si sigue
+  con el valor de ejemplo), y los nombres de base y usuario si el proyecto usa
+  otros. Los secretos que generó los podés leer del `.env` (ej. la contraseña
+  del administrador inicial).
+- Los tests del script: `pnpm test:scripts`.
+
+## `db:backup` / `db:verify`: respaldo de Postgres y prueba de restauración
+
+```bash
+pnpm db:backup              # backups/<base>-<fecha>.dump (formato custom de pg_dump)
+pnpm db:backup --keep 7     # y conserva solo los 7 más recientes
+pnpm db:verify              # restaura el último respaldo en una base TEMPORAL, comprueba
+                            # migraciones/tablas/usuarios y la borra (tu base real no se toca)
+```
+
+- Requiere el stack levantado (`docker compose up`). Con `--prod` usa `docker-compose.prod.yml`.
+- Un respaldo que nunca se restauró no es un respaldo: corré `db:verify` después de cada `db:backup`.
+- Contiene datos reales (hashes de contraseñas, bitácora): `backups/` está en `.gitignore`. Guardalo cifrado y fuera de la máquina.
+- **Restauración manual** (base real, con la app detenida): `docker compose exec -T postgres pg_restore -U <usuario> -d <base> --clean --if-exists --no-owner < backups/<archivo>.dump` (en Linux/macOS/Git Bash; en PowerShell 5 la redirección `<` no existe, usá `cmd /c`).
+- Tests: `pnpm test:scripts`.
+
+## `openapi:sync` / `openapi:types`: contrato de la API para los clientes
+
+```bash
+pnpm openapi:sync     # con el backend de dev levantado: guarda docs/api/openapi.json
+pnpm openapi:types    # genera projects/frontend/src/shared/api/schema.d.ts desde ese snapshot
+pnpm openapi:sync --check   # falla si el backend en vivo ya no coincide con el snapshot
+```
+
+- El snapshot (`docs/api/openapi.json`) **se versiona**: es el contrato, y su diff en un PR
+  muestra exactamente qué cambió para frontend y mobile. Se normaliza (claves ordenadas, sin `servers`).
+- El test `OpenApiContractTest` (backend) falla si el contrato publicado difiere del snapshot:
+  si cambiás un endpoint o un DTO, corré `openapi:sync` y commiteá el snapshot con el cambio.
+- `schema.d.ts` se **genera, no se edita a mano** (sí se commitea, para que el build y CI no dependan del backend) (reemplaza escribir a mano los
+  tipos de request/response del frontend). Mobile (Dart) no genera código: valida contra el
+  snapshot en sus tests de parsing cuando haga falta.
+- Tests: `pnpm test:scripts`.
+
 ## `update-deps`: actualizar y validar las dependencias
 
 Actualiza las dependencias de los tres proyectos y comprueba que todo sigue

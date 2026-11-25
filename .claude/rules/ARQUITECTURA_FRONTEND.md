@@ -32,7 +32,12 @@ src/
 └── index.css             # Directivas de Tailwind + tokens de tema
 ```
 
-`shared/` no existe todavía como carpeta real (se crea recién cuando
+`shared/api/schema.d.ts` es el único archivo que existe hoy en `shared/`: tipos
+**generados** del contrato OpenAPI (`pnpm openapi:sync` + `pnpm openapi:types`,
+ver `scripts/README.md`). No se edita a mano; los tipos de request/response se
+toman de ahí en vez de escribirse a mano.
+
+`shared/` más allá de ese archivo no existe todavía como carpeta real (se crea recién cuando
 aparece el primer caso concreto que la necesita — ver el criterio de "no
 anticipar" en
 [TANSTACK_QUERY_FRONTEND.md](frontend/TANSTACK_QUERY_FRONTEND.md#endpoints-usados-por-más-de-una-feature)).

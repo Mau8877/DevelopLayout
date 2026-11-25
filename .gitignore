@@ -83,3 +83,8 @@ salida.txt
 
 # Certificados de prueba locales (docker-compose.prod.yml)
 .certs/
+
+# ===========================
+# Respaldos de la base (datos reales: nunca al repo)
+# ===========================
+backups/
