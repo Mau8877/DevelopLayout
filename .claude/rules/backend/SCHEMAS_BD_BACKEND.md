@@ -192,4 +192,6 @@ viven aquí: las columnas comunes de `BaseModel` (`id`, `codigo_<tabla>`,
 `created_at`, `updated_at`, `deleted_at`) se muestran abreviadas en una sola
 fila `BaseModel base` por tabla; las FK dentro de un schema son por `id` y
 entre schemas por `codigo`; RLS está activado y forzado en toda tabla salvo
-las marcadas `RLS-OPT-OUT` (hoy solo `rol`).
+las marcadas `RLS-OPT-OUT` (hoy solo `rol`). `sesion` repite `usuario_codigo`
+(solo para RLS) y lo ata a `usuario_id` con una FK compuesta
+`(usuario_id, usuario_codigo)` hacia `usuario`, que lleva `UNIQUE (id, codigo_usuario)`.

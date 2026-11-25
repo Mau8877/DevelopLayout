@@ -25,7 +25,7 @@ erDiagram
     sesion {
         BaseModel base "id, codigo_sesion, created_at, updated_at, deleted_at"
         bigint usuario_id FK
-        uuid usuario_codigo "para RLS"
+        uuid usuario_codigo "para RLS, FK compuesta con usuario_id"
         char refresh_hash UK "sha256, nunca el token"
         char refresh_hash_anterior "deteccion de reuso"
         varchar estado "ACTIVA | REVOCADA | EXPIRADA"
