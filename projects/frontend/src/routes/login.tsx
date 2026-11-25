@@ -1,13 +1,13 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
+import { ensureSession, LoginScreen } from '@/features/auth'
+import { queryClient } from '@/store'
 
 export const Route = createFileRoute('/login')({
-  component: LoginPage,
+  // Si ya hay sesión, no tiene sentido mostrar el login.
+  beforeLoad: async () => {
+    if (await ensureSession(queryClient)) {
+      throw redirect({ to: '/panel' })
+    }
+  },
+  component: LoginScreen,
 })
-
-function LoginPage() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
-      <h1 className="text-2xl font-semibold">Iniciar sesión</h1>
-    </div>
-  )
-}

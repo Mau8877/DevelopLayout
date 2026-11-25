@@ -18,6 +18,10 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
+    rules: {
+      // Único punto de log: utils/logger.ts (ver ERRORES_LOGGING_FRONTEND.md).
+      'no-console': 'error',
+    },
   },
   {
     // Los archivos de src/routes/ exportan `Route` (config de TanStack

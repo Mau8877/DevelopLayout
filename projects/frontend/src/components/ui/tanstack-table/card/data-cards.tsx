@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
+import { logger } from '@/utils/logger'
 import type { DataStateProps } from '../shared'
 import type { DataTableInstance } from '../shared/types'
 import type { DataTableFeatures } from '../shared/tableFeatures'
@@ -58,7 +59,7 @@ function AutoCard<TData extends RowData>({ row, rowNumber, renderActions }: Auto
     visibleCells.find((cell) => cell.column.columnDef.meta?.cardTitle) ?? visibleCells[0]
 
   if (import.meta.env.DEV && titleCell && !titleCell.column.columnDef.meta?.cardTitle) {
-    console.warn(
+    logger.warn(
       `[DataCards] Ninguna columna tiene "meta.cardTitle: true" -- usando "${titleCell.column.id}" como título por fallback.`,
     )
   }

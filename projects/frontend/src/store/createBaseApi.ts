@@ -1,4 +1,5 @@
 import axios, { type AxiosInstance, type CreateAxiosDefaults, type InternalAxiosRequestConfig } from 'axios'
+import { logger } from '@/utils/logger'
 
 // * Activado por VITE_ENABLE_API_LOGS (ver .env.example). Con la variable en
 // * false/ausente no se loguea nada -- ni siquiera el resumen colapsado.
@@ -18,23 +19,27 @@ function fullUrl(config: InternalAxiosRequestConfig | undefined): string {
   return `${config.baseURL ?? ''}${url}`
 }
 
-// * console.groupCollapsed es el "acordeón" nativo de la consola del
-// * navegador: la primera línea (código + success/failed + URL) queda
-// * siempre visible, y el body de la respuesta solo se ve si se hace click
-// * para expandir el grupo -- no hace falta ninguna librería de UI para esto.
+// * El body de /auth/** (login, refresh, contraseñas) nunca se loguea: puede
+// * traer credenciales o tokens. Los headers (Authorization, Cookie,
+// * X-XSRF-TOKEN) tampoco se loguean en ningún caso.
+export function redactBody(url: string, body: unknown): unknown {
+  return /\/auth(\/|$|\?)/.test(url) ? '[REDACTED]' : body
+}
+
+// * El grupo colapsado es el "acordeón" nativo de la consola del navegador:
+// * la primera línea (código + success/failed + URL) queda siempre visible, y
+// * el body solo se ve si se expande.
 function logResponse(method: string, url: string, status: number, ok: boolean, body: unknown) {
   if (!LOGS_ENABLED) return
 
   const codeBadge = ok ? BADGE_CODE_SUCCESS : BADGE_CODE_FAILED
   const labelBadge = ok ? BADGE_LABEL_SUCCESS : BADGE_LABEL_FAILED
 
-  console.groupCollapsed(
+  logger.group(
     `%c ${status} %c ${ok ? 'SUCCESS' : 'FAILED'}\n${method} ${url}`,
-    codeBadge,
-    labelBadge,
+    [codeBadge, labelBadge],
+    redactBody(url, body),
   )
-  console.log(body)
-  console.groupEnd()
 }
 
 /**
