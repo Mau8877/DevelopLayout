@@ -83,8 +83,16 @@ services:
       - DOCKER_HOST=unix:///var/run/docker.sock
       - TESTCONTAINERS_RYUK_DISABLED=true
       - SPRING_DATASOURCE_URL=jdbc:postgresql://app-postgres:5432/${POSTGRES_DB}
-      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
-      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      # La app corre con app_runtime; Flyway migra con el dueño (POSTGRES_USER).
+      - SPRING_DATASOURCE_USERNAME=app_runtime
+      - SPRING_DATASOURCE_PASSWORD=${APP_RUNTIME_PASSWORD:?Definí APP_RUNTIME_PASSWORD en .env}
+      - SPRING_FLYWAY_USER=${POSTGRES_USER}
+      - SPRING_FLYWAY_PASSWORD=${POSTGRES_PASSWORD}
+      - APP_RUNTIME_PASSWORD=${APP_RUNTIME_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET:?Definí JWT_SECRET en .env}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost}
+      - INITIAL_ADMIN_EMAIL=${INITIAL_ADMIN_EMAIL}
+      - INITIAL_ADMIN_PASSWORD=${INITIAL_ADMIN_PASSWORD}
       - SPRING_DATA_REDIS_HOST=app-redis
       - SPRING_DATA_REDIS_PASSWORD=${REDIS_PASSWORD:?Definí REDIS_PASSWORD en .env}
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
@@ -156,7 +164,9 @@ services:
   # * imagen de Chainguard: corre sin root y no puede escribir en el volumen, por eso `user: '0'`;
   # * no trae curl, así que el healthcheck habla HTTP con /dev/tcp de bash (tampoco hay grep).
   minio:
-    image: cgr.dev/chainguard/minio:latest
+    # ! Única imagen sin tag fijo: Chainguard solo publica `latest` en su capa gratuita.
+    # ! Es solo desarrollo; en producción MINIO_IMAGE es obligatoria y fija (docker-compose.prod.yml).
+    image: ${MINIO_IMAGE:-cgr.dev/chainguard/minio:latest}
     user: '0'
     container_name: app-minio
     environment:
@@ -181,9 +191,10 @@ services:
       retries: 3
 
   # Contenedor temporal para crear el bucket automáticamente
-  # * Imagen congelada (bitnamilegacy): la de Chainguard no trae sh y create-buckets.sh lo necesita.
+  # * Imagen congelada (bitnamilegacy, sin actualizaciones): tag fijo; la de Chainguard no trae sh y create-buckets.sh lo necesita.
+  # ? Reemplazar por una imagen mantenida de `mc` cuando exista una con shell y tag fijo.
   minio-init:
-    image: bitnamilegacy/minio-client:latest
+    image: bitnamilegacy/minio-client:2025.7.21-debian-12-r3
     container_name: app-minio-init
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
