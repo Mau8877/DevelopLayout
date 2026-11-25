@@ -18,6 +18,7 @@ import com.example.backend.features.auth.enums.TipoCliente;
 import com.example.backend.features.auth.service.AuthService;
 import com.example.backend.security.CurrentUserId;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
@@ -35,7 +36,7 @@ public class AuthController {
 
     /** Entrega la cookie `XSRF-TOKEN` (double-submit) al cliente web. */
     @GetMapping("/csrf")
-    public ResponseEntity<Void> csrf(CsrfToken token) {
+    public ResponseEntity<Void> csrf(@Parameter(hidden = true) CsrfToken token) {
         // * Leer el valor fuerza a Spring Security a escribir la cookie (token diferido).
         token.getToken();
         return ResponseEntity.noContent().build();
@@ -61,7 +62,7 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<UsuarioSesionResponse>> me(@CurrentUserId java.util.UUID codigo) {
+    public ResponseEntity<ApiResponse<UsuarioSesionResponse>> me(@Parameter(hidden = true) @CurrentUserId java.util.UUID codigo) {
         return ResponseEntity.ok(ApiResponse.success(authService.me(codigo), "Sesión actual"));
     }
 }
