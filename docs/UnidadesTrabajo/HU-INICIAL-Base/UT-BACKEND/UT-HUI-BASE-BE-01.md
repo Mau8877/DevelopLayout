@@ -37,6 +37,7 @@ Queda creado el schema `authentication` y en él quedan creadas `usuario`, `rol`
 - Primera sentencia de la migración: `CREATE SCHEMA IF NOT EXISTS authentication;`. Todas las tablas, índices, políticas y funciones de esta UT se escriben calificados (`authentication.usuario`, `authentication.sesion`, ...), sin depender del `search_path`.
 - Ninguna tabla queda en `public`.
 - Actualizar `docs/BASE_DE_DATOS.mermaid` para que refleje la migración (tablas, columnas, FK), sin comentarios `%%`, y cambiar el estado de `authentication` a "Migrado" en la sección "Estado de los schemas" de `.claude/rules/backend/SCHEMAS_BD_BACKEND.md`.
+- Consistencia de `sesion.usuario_codigo`: en `usuario`, restricción `UNIQUE (id, codigo_usuario)`; en `sesion`, `FOREIGN KEY (usuario_id, usuario_codigo) REFERENCES authentication.usuario (id, codigo_usuario)`. Así la base rechaza una sesión cuyo `usuario_codigo` no sea el del `usuario_id` (la columna existe para que la política de RLS no necesite subconsulta).
 
 **Archivos esperados (crear/tocar):**
 
@@ -65,6 +66,7 @@ Flyway aplica la migración en una base vacía y las tres tablas existen con RLS
 5. `SELECT authentication.purgar_bitacora(12)` borra solo filas anteriores a 12 meses.
 6. `SELECT table_name FROM information_schema.tables WHERE table_schema = 'authentication'` lista `usuario`, `rol`, `usuario_rol`, `sesion` y `bitacora`; con `table_schema = 'public'` solo aparece `flyway_schema_history`.
 7. El diagrama de `docs/BASE_DE_DATOS.mermaid` coincide con `\d authentication.*` en `psql` (mismas tablas, columnas y FK) y se renderiza en la vista previa de Mermaid sin errores.
+8. `INSERT` en `sesion` con un `usuario_codigo` que no corresponde al `usuario_id` falla por la FK compuesta.
 
 ## Seguridad
 

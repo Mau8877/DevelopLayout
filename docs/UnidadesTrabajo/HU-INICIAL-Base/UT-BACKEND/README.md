@@ -14,6 +14,7 @@ Leer las rules de [`backend/`](../../../../.claude/rules/backend/) y [`SEGURIDAD
 - El administrador inicial se crea con la conexión dueña del esquema: en el arranque no hay usuario autenticado y RLS está forzado. Es la única escritura fuera de `app_runtime` y queda documentada como excepción.
 - El correo se resuelve en las políticas de RLS con `app.login_email`, que fija el flujo de login/recuperación y expone una sola fila; así `usuario` no necesita `RLS-OPT-OUT` aunque el login ocurra antes de conocer al usuario.
 - Tablas en singular y en español (`usuario`, `rol`, `usuario_rol`, `sesion`, `bitacora`); schemas en inglés. Las FK entre schemas se hacen por `codigo` (UUID), nunca por `id`; dentro de `authentication` las FK usan `id` (`usuario_id`, `rol_id`). Ver [PERSISTENCIA_BD_BACKEND.md](../../../../.claude/rules/backend/PERSISTENCIA_BD_BACKEND.md).
+- `sesion` guarda `usuario_id` y `usuario_codigo` (este último solo para que RLS compare con `app.current_user` sin subconsulta); la FK compuesta `(usuario_id, usuario_codigo)` hacia `usuario` garantiza que coincidan.
 
 ## Orden de ejecución
 
