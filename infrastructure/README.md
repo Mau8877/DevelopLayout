@@ -8,7 +8,7 @@ monta cada servicio:
 | --- | --- |
 | `nginx/` | `nginx.conf` (proxy de desarrollo, HTTP + WebSockets para Vite) y `nginx.prod.conf` (producción: TLS, HSTS, CSP) |
 | `postgres/init/` | Scripts de inicialización de Postgres (vacía por ahora) |
-| `redis/` | `redis.conf` (memoria, desalojo LRU y persistencia AOF; la contraseña viene del `.env`) |
+| `redis/` | `redis.conf` (memoria sin desalojo y persistencia AOF; la contraseña viene del `.env`) |
 | `minio/` | `create-buckets.sh`: crea el bucket privado al levantar el stack |
 | `prometheus/` | `prometheus.yml`: scrapea las métricas del backend |
 | `grafana/` | Provisioning del datasource de Prometheus |

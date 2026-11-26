@@ -32,6 +32,7 @@ jobs:
           filters: |
             backend:
               - 'projects/backend/**'
+              - 'infrastructure/redis/**'
             frontend:
               - 'projects/frontend/**'
               - 'pnpm-lock.yaml'
