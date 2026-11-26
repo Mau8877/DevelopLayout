@@ -21,13 +21,14 @@ Hooks de búsqueda y cierre.
 
 ## Alcance
 
-- `api/useSesionesAdmin.ts` (búsqueda por correo), `useCerrarSesionAdmin.ts` y `useCerrarTodasAdmin.ts`; claves `['auth','admin','sesiones',params]`.
+- `api/useSesionesAdmin.ts` (búsqueda por correo), `useCerrarSesionAdmin.ts` y `useCerrarTodasAdmin.ts`; claves `['auth','admin','sesiones','list',{ busqueda, page, pageSize }]`, donde `busqueda` es un número de búsqueda: **el correo no entra en la clave**.
 
 **Archivos esperados (crear/tocar):**
 
 - `projects/frontend/src/features/auth/api/useSesionesAdmin.ts`
 - `projects/frontend/src/features/auth/api/useCerrarSesionAdmin.ts`
 - `projects/frontend/src/features/auth/api/useCerrarTodasAdmin.ts`
+- `projects/frontend/src/features/auth/api/keys.ts` y `index.ts`
 
 ## Fuera de alcance (no tocar)
 

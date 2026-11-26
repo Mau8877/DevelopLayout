@@ -8,6 +8,10 @@
 
 Leer las rules de [`frontend/`](../../../../.claude/rules/frontend/) y [`SEGURIDAD_OWASP.md`](../../../../.claude/rules/SEGURIDAD_OWASP.md). Estas fichas **no** sustituyen esas reglas: si hay conflicto, ganan las rules del proyecto.
 
+## Antes de empezar
+
+El layout `_admin` y el menú con `Link` ya existen (HU-INICIAL-SesionesAdmin).
+
 ## Orden de ejecución
 
 | Código | Nombre | Depende de |

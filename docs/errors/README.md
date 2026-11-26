@@ -50,6 +50,11 @@ docs/errors/
 - [`ERR_AUTH_04`](auth/ERRORES_AUTH.md#err_auth_04) — El refresh token ya no es válido (401)
 - [`ERR_AUTH_07`](auth/ERRORES_AUTH.md#err_auth_07) — No autenticado (401)
 - [`ERR_AUTH_08`](auth/ERRORES_AUTH.md#err_auth_08) — Acceso denegado o CSRF inválido (403)
+- [`ERR_AUTH_09`](auth/ERRORES_AUTH.md#err_auth_09) — La sesión a cerrar no existe (404)
+
+### Bitácora (`BIT`)
+
+- [`ERR_BIT_01`](bitacora/ERRORES_BITACORA.md#err_bit_01) — Rango de fechas inválido (400)
 
 <!--
   A medida que se agregan módulos de negocio (usuarios, pedidos...),

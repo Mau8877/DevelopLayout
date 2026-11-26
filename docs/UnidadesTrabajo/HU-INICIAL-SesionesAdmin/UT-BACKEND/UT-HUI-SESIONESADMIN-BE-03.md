@@ -21,7 +21,7 @@ Tests de CA01–CA07.
 
 ## Alcance
 
-- `SesionAdminControllerTest`: admin permitido, `USUARIO` → 403 en todas, correo inexistente → vacío, 404 de sesión inexistente, revocación inmediata, eventos con actor y afectado, CSRF.
+- `SesionAdminControllerTest`: admin permitido, `USUARIO` → 403 en todas, correo inexistente → vacío, 404 de sesión inexistente, revocación inmediata, eventos con actor y afectado, CSRF, sesiones vencidas fuera del listado, respuesta sin hashes, `pageSize` mayor a 100 → 400, y que el contexto de administrador no puede modificar usuarios.
 
 **Archivos esperados (crear/tocar):**
 

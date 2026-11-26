@@ -10,7 +10,11 @@ Leer las rules de [`backend/`](../../../../.claude/rules/backend/) y [`SEGURIDAD
 
 ## Decisiones de diseño
 
+- Schema: `authentication` — existente — solo agrega una política RLS.
 - La purga usa una función `SECURITY DEFINER`, así `app_runtime` nunca tiene `DELETE`.
+- Con `FORCE ROW LEVEL SECURITY`, un dueño sin superusuario necesita además una política `SELECT` durante la purga; sin ella borra 0 filas sin avisar. La política es solo para el dueño (`TO CURRENT_USER`).
+- La consulta usa Criteria en una clase propia, no `JpaSpecificationExecutor`, que en Spring Data JPA 4.2 incluye `delete` y `update`.
+- `RlsContext.usarAdmin()` ya existe (lo crea HU-INICIAL-SesionesAdmin, que va antes).
 - Instancia única: la tarea programada no usa bloqueo distribuido.
 
 ## Orden de ejecución

@@ -2,7 +2,7 @@
 
 **Historia:** Administrador lista y cierra sesiones de cualquier usuario.
 **Fuente HU:** [`HU-INICIAL-SesionesAdmin.md`](../../../HistoriasDeUsuario/HU-INICIAL-SesionesAdmin.md)
-**Recurso HTTP / contrato:** `GET /api/v1/admin/sesiones?email=`, `DELETE /api/v1/admin/sesiones/{codigo}`, `POST /api/v1/admin/usuarios/{codigoUsuario}/sesiones/cerrar`.
+**Recurso HTTP / contrato:** `POST /api/v1/admin/sesiones/buscar`, `DELETE /api/v1/admin/sesiones/{codigo}`, `POST /api/v1/admin/usuarios/{codigoUsuario}/sesiones/cerrar`.
 
 ## Antes de implementar cualquier UT
 
@@ -10,7 +10,12 @@ Leer las rules de [`backend/`](../../../../.claude/rules/backend/) y [`SEGURIDAD
 
 ## Decisiones de diseño
 
+- Schema: `authentication` — existente — solo agrega una política RLS.
 - No hay listado general de usuarios: se busca por correo exacto (evita enumerar usuarios).
+- La búsqueda es `POST` con el correo en el body: no queda en URLs ni en logs de acceso.
+- Política `usuario_lectura_admin` (`FOR SELECT` con `app.is_admin`). No se reutiliza `app.login_email`, que además permite modificar la fila.
+- El correo se resuelve a través de un service de `features/usuarios` (dueño del dato).
+- Primer listado paginado del proyecto: la validación de `page`/`pageSize` (máximo 100) va en `common/util`.
 - `RlsContext.usarAdmin()` solo se llama desde servicios con `@PreAuthorize` ya verificado.
 
 ## Orden de ejecución

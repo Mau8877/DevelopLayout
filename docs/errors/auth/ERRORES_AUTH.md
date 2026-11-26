@@ -41,3 +41,10 @@
 - **Excepción:** ninguna (lo escribe `RestAccessDeniedHandler` a nivel de filtros)
 - **Significado:** el usuario está autenticado pero no tiene permiso, o una request web con cookies no trajo un token CSRF válido.
 - **Dónde se lanza:** `RestAccessDeniedHandler.handle()` (reglas de ruta, CSRF y rechazos de `@PreAuthorize`, que `GlobalExceptionHandler` relanza).
+
+## `ERR_AUTH_09`
+
+- **HTTP:** 404
+- **Excepción:** `NotFoundException`
+- **Significado:** un administrador pidió cerrar una sesión que no existe.
+- **Dónde se lanza:** `SesionAdminService.cerrar()`

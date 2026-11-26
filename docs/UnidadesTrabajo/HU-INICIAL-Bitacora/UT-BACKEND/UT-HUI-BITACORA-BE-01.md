@@ -22,7 +22,7 @@ Existe `GET /api/v1/bitacora` paginado y filtrable, solo para `SUPER_ADMIN`.
 ## Alcance
 
 - `features/bitacora/service/BitacoraQueryService.java` con `@PreAuthorize("hasRole('SUPER_ADMIN')")`: fija `RlsContext.usarAdmin()` y consulta con `Specification` (acción, módulo, resultado, usuario, `desde`, `hasta`), orden `created_at` descendente; `desde > hasta` → `ValidationException` `ERR_BIT_01`.
-- Agregar a `BitacoraRepository` la consulta paginada (`JpaSpecificationExecutor`); sin métodos de modificación.
+- `common/bitacora/repository/BitacoraConsultaRepository.java`: consulta paginada con Criteria; **solo lectura** (sin `JpaSpecificationExecutor`). Paginación validada con `common/util/Paginacion`.
 - `features/bitacora/dto/BitacoraResponse.java` (`codigo`, `fecha`, `usuarioCodigo`, `accion`, `modulo`, `entidad`, `entidadCodigo`, `resultado`, `ip`, `detalle`; sin `id`) y `controller/BitacoraController.java` delgado con `page`, `pageSize` (máximo 100) y `filter[...]`.
 - `ERR_BIT_01` en `BitacoraErrorCodes` y su sección en `docs/errors/bitacora/ERRORES_BITACORA.md` + índice.
 
@@ -32,7 +32,8 @@ Existe `GET /api/v1/bitacora` paginado y filtrable, solo para `SUPER_ADMIN`.
 - `projects/backend/src/main/java/com/example/backend/features/bitacora/dto/BitacoraResponse.java`
 - `projects/backend/src/main/java/com/example/backend/features/bitacora/controller/BitacoraController.java`
 - `projects/backend/src/main/java/com/example/backend/features/bitacora/BitacoraErrorCodes.java`
-- `projects/backend/src/main/java/com/example/backend/common/bitacora/repository/BitacoraRepository.java`
+- `projects/backend/src/main/java/com/example/backend/common/bitacora/repository/BitacoraConsultaRepository.java`
+- `docs/api/openapi.json` y `projects/frontend/src/shared/api/schema.d.ts` (contrato)
 - `docs/errors/bitacora/ERRORES_BITACORA.md`
 - `docs/errors/README.md`
 

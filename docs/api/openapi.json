@@ -1,6 +1,60 @@
 {
   "components": {
     "schemas": {
+      "ApiResponseListBitacoraResponse": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/BitacoraResponse"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PageMeta"
+          },
+          "status": {
+            "type": "string"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseListSesionResponse": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/SesionResponse"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PageMeta"
+          },
+          "status": {
+            "type": "string"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "ApiResponseLoginResponse": {
         "properties": {
           "data": {
@@ -71,6 +125,72 @@
         },
         "type": "object"
       },
+      "BitacoraResponse": {
+        "properties": {
+          "accion": {
+            "type": "string"
+          },
+          "codigo": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "detalle": {
+            "additionalProperties": {},
+            "type": "object"
+          },
+          "entidad": {
+            "type": "string"
+          },
+          "entidadCodigo": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "fecha": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "ip": {
+            "type": "string"
+          },
+          "modulo": {
+            "type": "string"
+          },
+          "resultado": {
+            "enum": [
+              "EXITO",
+              "FALLO"
+            ],
+            "type": "string"
+          },
+          "usuarioCodigo": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "BuscarSesionesRequest": {
+        "properties": {
+          "email": {
+            "format": "email",
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string"
+          },
+          "page": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "pageSize": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "type": "object"
+      },
       "LoginRequest": {
         "properties": {
           "email": {
@@ -134,6 +254,44 @@
         },
         "type": "object"
       },
+      "SesionResponse": {
+        "properties": {
+          "codigo": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "creadaEn": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "expiraEn": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "ip": {
+            "type": "string"
+          },
+          "tipoCliente": {
+            "enum": [
+              "WEB",
+              "MOBILE"
+            ],
+            "type": "string"
+          },
+          "ultimoUsoEn": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "userAgent": {
+            "type": "string"
+          },
+          "usuarioCodigo": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "UsuarioSesionResponse": {
         "properties": {
           "codigo": {
@@ -160,6 +318,98 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/admin/sesiones/buscar": {
+      "post": {
+        "operationId": "buscar",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuscarSesionesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListSesionResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "sesion-admin-controller"
+        ]
+      }
+    },
+    "/api/v1/admin/sesiones/{codigo}": {
+      "delete": {
+        "operationId": "cerrar",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "codigo",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "sesion-admin-controller"
+        ]
+      }
+    },
+    "/api/v1/admin/usuarios/{codigoUsuario}/sesiones/cerrar": {
+      "post": {
+        "operationId": "cerrarTodas",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "codigoUsuario",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "sesion-admin-controller"
+        ]
+      }
+    },
     "/api/v1/auth/csrf": {
       "get": {
         "operationId": "csrf",
@@ -278,6 +528,101 @@
         },
         "tags": [
           "auth-controller"
+        ]
+      }
+    },
+    "/api/v1/bitacora": {
+      "get": {
+        "operationId": "listar",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "required": false,
+            "schema": {
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[accion]",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[modulo]",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[resultado]",
+            "required": false,
+            "schema": {
+              "enum": [
+                "EXITO",
+                "FALLO"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[usuarioCodigo]",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "desde",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasta",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListBitacoraResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "bitacora-controller"
         ]
       }
     }

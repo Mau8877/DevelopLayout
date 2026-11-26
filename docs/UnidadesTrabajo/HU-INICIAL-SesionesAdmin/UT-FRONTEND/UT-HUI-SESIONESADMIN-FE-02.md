@@ -21,7 +21,9 @@ Existe la ruta del grupo admin con búsqueda y acciones.
 
 ## Alcance
 
-- `screens/SesionesAdminScreen.tsx`: campo de correo exacto, tabla de sesiones, "Cerrar" y "Cerrar todas" con confirmación.
+- `screens/SesionesAdminScreen.tsx`: campo de correo exacto, tabla de sesiones, "Cerrar" y "Cerrar todas" con confirmación, y copiar el código del usuario.
+- `routes/_authenticated/_admin.tsx`: guard (`SUPER_ADMIN`, si no → `/panel`) y `AdminLayout`.
+- `AppSidebar` navega con `Link`.
 - `routes/_authenticated/_admin/sesiones-usuarios.tsx` y entrada en `adminNavItems`.
 
 **Archivos esperados (crear/tocar):**
@@ -29,6 +31,8 @@ Existe la ruta del grupo admin con búsqueda y acciones.
 - `projects/frontend/src/features/auth/screens/SesionesAdminScreen.tsx`
 - `projects/frontend/src/routes/_authenticated/_admin/sesiones-usuarios.tsx`
 - `projects/frontend/src/layouts/admin/adminNavItems.ts`
+- `projects/frontend/src/routes/_authenticated/_admin.tsx`
+- `projects/frontend/src/components/layout/AppSidebar.tsx`
 
 ## Fuera de alcance (no tocar)
 

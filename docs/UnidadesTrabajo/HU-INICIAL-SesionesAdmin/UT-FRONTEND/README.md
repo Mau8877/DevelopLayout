@@ -8,6 +8,11 @@
 
 Leer las rules de [`frontend/`](../../../../.claude/rules/frontend/) y [`SEGURIDAD_OWASP.md`](../../../../.claude/rules/SEGURIDAD_OWASP.md). Estas fichas **no** sustituyen esas reglas: si hay conflicto, ganan las rules del proyecto.
 
+## Decisiones de diseño
+
+- No existía el layout `_admin`: lo crea `FE-02`, con el guard por rol (solo UX; autoriza el backend).
+- Al haber rutas reales, el menú lateral navega con `Link` (sin recargar la app).
+
 ## Orden de ejecución
 
 | Código | Nombre | Depende de |

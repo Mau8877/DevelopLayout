@@ -2,7 +2,7 @@
 
 | Id | Nombre corto de HU | Prioridad | PHU | Estado |
 | --- | --- | --- | --- | --- |
-| HU-INICIAL-SESIONESADMIN | Administrar sesiones de usuarios | Media |  | Pendiente |
+| HU-INICIAL-SESIONESADMIN | Administrar sesiones de usuarios | Media |  | Hecha |
 
 **Como:** administrador
 **Quiero:** ver y cerrar las sesiones de cualquier usuario
@@ -20,8 +20,11 @@ Depende de [HU-INICIAL-Refresh](HU-INICIAL-Refresh.md) (reutiliza la revocación
 **Reglas de negocio**
 
 - Solo `SUPER_ADMIN` (`@PreAuthorize` en el service).
-- La búsqueda es por correo exacto, sin búsqueda parcial (evita listar usuarios por fuerza bruta).
-- Motivo de revocación `SUPER_ADMIN`; el evento `AUTH_SESION_CERRADA_ADMIN` guarda el `codigo` del usuario afectado.
+- La búsqueda es por correo exacto, sin búsqueda parcial (evita listar usuarios por fuerza bruta). El correo viaja en el **body** (nunca en la URL, que queda en los logs del proxy) y no se guarda en la clave de caché del cliente.
+- El administrador encuentra usuarios con una política RLS **de solo lectura**: no puede modificarlos.
+- "Sesión activa" es la que está `ACTIVA` y no venció. "Cerrar todas" revoca todas las `ACTIVA`, incluidas las vencidas (su access token podría seguir vigente).
+- Se registra un evento por sesión cerrada. El administrador puede cerrar la suya: tendrá que volver a iniciar sesión.
+- Motivo de revocación `ADMIN`; el evento `AUTH_SESION_CERRADA_ADMIN` guarda el `codigo` del usuario afectado.
 - Las respuestas siguen la paginación obligatoria con `pageSize` máximo 100.
 
 ---
@@ -30,11 +33,13 @@ Depende de [HU-INICIAL-Refresh](HU-INICIAL-Refresh.md) (reutiliza la revocación
 
 - **CA01:** Dado un administrador y un correo existente, el sistema debe listar las sesiones activas de ese usuario, paginadas.
 - **CA02:** Dado un correo inexistente, el sistema debe responder con lista vacía (sin revelar nada más).
-- **CA03:** Dado un administrador y el `codigo` de una sesión, el sistema debe revocarla (motivo `SUPER_ADMIN`) y rechazar de inmediato su access token.
+- **CA03:** Dado un administrador y el `codigo` de una sesión, el sistema debe revocarla (motivo `ADMIN`) y rechazar de inmediato su access token.
 - **CA04:** Dado un administrador y un usuario, el sistema debe poder revocar todas sus sesiones activas.
 - **CA05:** Dado un usuario sin rol `SUPER_ADMIN`, el sistema debe responder 403 en todas las operaciones.
 - **CA06:** Dado cada cierre, el sistema debe registrar en la bitácora al administrador (actor) y al usuario afectado.
 - **CA07:** Dado un `DELETE`/`POST` web sin `X-XSRF-TOKEN` válido, el sistema debe responder 403.
+- **CA08:** Dado el listado, la respuesta no debe incluir el hash del refresh token ni ningún `id` interno, ni sesiones vencidas.
+- **CA09:** Dado el contexto de administrador en la base, debe poder leer usuarios pero no modificarlos.
 
 ## Seguridad
 
