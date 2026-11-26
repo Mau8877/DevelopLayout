@@ -7,6 +7,8 @@ public final class AuthAcciones {
     public static final String AUTH_LOGIN_OK = "AUTH_LOGIN_OK";
     public static final String AUTH_LOGIN_FALLO = "AUTH_LOGIN_FALLO";
     public static final String AUTH_CUENTA_BLOQUEADA = "AUTH_CUENTA_BLOQUEADA";
+    public static final String AUTH_REFRESH_REUSO = "AUTH_REFRESH_REUSO";
+    public static final String AUTH_LOGOUT = "AUTH_LOGOUT";
 
     private AuthAcciones() {
     }

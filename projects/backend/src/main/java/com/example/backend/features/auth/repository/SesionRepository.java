@@ -5,9 +5,14 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.example.backend.features.auth.enums.EstadoSesion;
 import com.example.backend.features.auth.model.Sesion;
+
+import jakarta.persistence.LockModeType;
 
 /**
  * ! Con RLS forzado, solo se ven las sesiones del `app.current_user`, las de
@@ -20,6 +25,15 @@ public interface SesionRepository extends JpaRepository<Sesion, Long> {
     Optional<Sesion> findByRefreshHashAnterior(String refreshHashAnterior);
 
     Optional<Sesion> findByCodigo(UUID codigo);
+
+    /** Igual que los finders por hash, pero bloquea la fila hasta el fin de la transacción. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select s from Sesion s where s.refreshHash = :hash")
+    Optional<Sesion> bloquearPorRefreshHash(@Param("hash") String hash);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select s from Sesion s where s.refreshHashAnterior = :hash")
+    Optional<Sesion> bloquearPorRefreshHashAnterior(@Param("hash") String hash);
 
     List<Sesion> findByUsuarioCodigoAndEstado(UUID usuarioCodigo, EstadoSesion estado);
 

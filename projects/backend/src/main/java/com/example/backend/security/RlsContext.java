@@ -28,6 +28,11 @@ public class RlsContext {
         fijar("app.login_email", email);
     }
 
+    /** Deja ver la sesión cuyo hash (actual o anterior) coincide con el que presenta el cliente. */
+    public void usarRefreshHash(String hash) {
+        fijar("app.refresh_hash", hash);
+    }
+
     public void usarUsuario(UUID codigo) {
         fijar("app.current_user", codigo.toString());
     }

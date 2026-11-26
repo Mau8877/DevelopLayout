@@ -35,16 +35,25 @@ public class RateLimitFilter extends OncePerRequestFilter {
     // * Límite más estricto, por IP, solo para el login (además del global).
     private final ConcurrentHashMap<String, Bucket> loginBuckets = new ConcurrentHashMap<>();
 
+    // * /refresh no exige access token: lleva su propio límite por IP.
+    private final ConcurrentHashMap<String, Bucket> refreshBuckets = new ConcurrentHashMap<>();
+
     private final int capacity;
     private final int refillPerMinute;
     private final int loginCapacity;
     private final int loginRefillPerMinute;
+    private final int refreshCapacity;
+    private final int refreshRefillPerMinute;
 
     public RateLimitFilter(
             @Value("${app.ratelimit.capacity}") int capacity,
             @Value("${app.ratelimit.refill-per-minute}") int refillPerMinute,
             @Value("${app.ratelimit.login-capacity:10}") int loginCapacity,
-            @Value("${app.ratelimit.login-refill-per-minute:10}") int loginRefillPerMinute) {
+            @Value("${app.ratelimit.login-refill-per-minute:10}") int loginRefillPerMinute,
+            @Value("${app.ratelimit.refresh-capacity:30}") int refreshCapacity,
+            @Value("${app.ratelimit.refresh-refill-per-minute:30}") int refreshRefillPerMinute) {
+        this.refreshCapacity = refreshCapacity;
+        this.refreshRefillPerMinute = refreshRefillPerMinute;
         this.capacity = capacity;
         this.refillPerMinute = refillPerMinute;
         this.loginCapacity = loginCapacity;
@@ -65,8 +74,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
         Bucket bucket = buckets.computeIfAbsent(ip, k -> newBucket(capacity, refillPerMinute));
         boolean permitido = bucket.tryConsume(1);
 
-        if (permitido && esLogin(request)) {
+        if (permitido && esPost(request, "/api/v1/auth/login")) {
             permitido = loginBuckets.computeIfAbsent(ip, k -> newBucket(loginCapacity, loginRefillPerMinute))
+                    .tryConsume(1);
+        }
+        if (permitido && esPost(request, "/api/v1/auth/refresh")) {
+            permitido = refreshBuckets.computeIfAbsent(ip, k -> newBucket(refreshCapacity, refreshRefillPerMinute))
                     .tryConsume(1);
         }
 
@@ -78,9 +91,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
         writeTooManyRequests(response);
     }
 
-    private static boolean esLogin(HttpServletRequest request) {
-        return "POST".equalsIgnoreCase(request.getMethod())
-                && "/api/v1/auth/login".equals(request.getRequestURI());
+    private static boolean esPost(HttpServletRequest request, String uri) {
+        return "POST".equalsIgnoreCase(request.getMethod()) && uri.equals(request.getRequestURI());
     }
 
     private static Bucket newBucket(int capacity, int refillPerMinute) {

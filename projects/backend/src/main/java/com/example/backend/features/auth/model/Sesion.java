@@ -60,7 +60,8 @@ public class Sesion extends BaseModel {
     @Column(name = "tipo_cliente", nullable = false, updatable = false, length = 10)
     private TipoCliente tipoCliente;
 
-    @Column(name = "ip", updatable = false, length = 45)
+    @Setter
+    @Column(name = "ip", length = 45)
     private String ip;
 
     @Column(name = "user_agent", updatable = false, length = 255)

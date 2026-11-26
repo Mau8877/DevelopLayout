@@ -11,6 +11,7 @@ import org.slf4j.MDC;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import com.example.backend.common.bitacora.BitacoraService;
 import com.example.backend.common.bitacora.ResultadoBitacora;
@@ -29,9 +30,10 @@ import com.example.backend.features.usuarios.repository.UsuarioRepository;
 import com.example.backend.features.usuarios.repository.UsuarioRolRepository;
 import com.example.backend.security.JwtService;
 import com.example.backend.security.RlsContext;
+import com.example.backend.security.SesionRevocadaRegistry;
 
 /**
- * Lógica de login y de "quién soy".
+ * Lógica de login, renovación, cierre de sesión y "quién soy".
  *
  * * Anti-enumeración: correo inexistente y contraseña incorrecta dan el mismo
  * * error y ambos gastan un BCrypt (hash ficticio para el caso inexistente).
@@ -53,11 +55,14 @@ public class AuthService {
     private final UsuarioRolRepository usuarioRolRepository;
     private final RlsContext rlsContext;
     private final BitacoraService bitacora;
+    private final SesionRevocadaRegistry revocadas;
     private final String hashFicticio;
 
     public AuthService(LoginAttemptService loginAttempts, SesionService sesionService, JwtService jwtService,
             PasswordEncoder passwordEncoder, UsuarioRepository usuarioRepository,
-            UsuarioRolRepository usuarioRolRepository, RlsContext rlsContext, BitacoraService bitacora) {
+            UsuarioRolRepository usuarioRolRepository, RlsContext rlsContext, BitacoraService bitacora,
+            SesionRevocadaRegistry revocadas) {
+        this.revocadas = revocadas;
         this.loginAttempts = loginAttempts;
         this.sesionService = sesionService;
         this.jwtService = jwtService;
@@ -128,6 +133,52 @@ public class AuthService {
             return new LoginResult(new UsuarioSesionResponse(usuario.getCodigo(), usuario.getEmail(), roles),
                     access, creada.refreshToken());
         }
+    }
+
+    /**
+     * Rota el refresh token y emite un access token con los roles de la base.
+     *
+     * ! `noRollbackFor`: lo que SesionService marca al rechazar (REUSO,
+     * ! EXPIRADA) tiene que quedar confirmado. Cualquier otro error (base o
+     * ! Redis caídos) deshace todo y no se entrega ningún token.
+     */
+    @Transactional(noRollbackFor = UnauthorizedException.class)
+    public LoginResult refresh(String refreshToken, String ip, String userAgent) {
+        SesionService.SesionCreada rotada = sesionService.rotar(refreshToken, ip, userAgent);
+        UUID codigoUsuario = rotada.sesion().getUsuarioCodigo();
+        UUID codigoSesion = rotada.sesion().getCodigo();
+        try (MDC.MDCCloseable ignored = MDC.putCloseable("module", "auth")) {
+            rlsContext.usarUsuario(codigoUsuario);
+            Usuario usuario = usuarioRepository.findByCodigo(codigoUsuario)
+                    .filter(u -> u.getEstado() == EstadoUsuario.ACTIVO)
+                    .orElse(null);
+            List<String> roles = usuario == null ? List.of() : rolesActivos(usuario);
+            // * Falla cerrado: si Redis no responde, la consulta lanza y no se emite nada.
+            if (roles.isEmpty() || revocadas.estaRevocada(codigoSesion)) {
+                // * Se deshace la rotación: si no, un reintento parecería una reutilización.
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                LOG.warn("Renovación rechazada usuarioCodigo={} errorCode={}", codigoUsuario,
+                        AuthErrorCodes.ERR_AUTH_04);
+                throw new UnauthorizedException(AuthErrorCodes.ERR_AUTH_04,
+                        "Tu sesión ya no es válida, iniciá sesión de nuevo");
+            }
+
+            String access = jwtService.emitir(codigoUsuario, roles, codigoSesion);
+            LOG.info("Sesión renovada usuarioCodigo={}", codigoUsuario);
+            return new LoginResult(new UsuarioSesionResponse(codigoUsuario, usuario.getEmail(), roles),
+                    access, rotada.refreshToken());
+        }
+    }
+
+    @Transactional
+    public void logout(String refreshToken) {
+        sesionService.cerrar(refreshToken).ifPresent(sesion -> {
+            bitacora.registrar(sesion.getUsuarioCodigo(), AuthAcciones.AUTH_LOGOUT, AuthAcciones.MODULO,
+                    "sesion", sesion.getCodigo(), ResultadoBitacora.EXITO, null);
+            try (MDC.MDCCloseable ignored = MDC.putCloseable("module", "auth")) {
+                LOG.info("Sesión cerrada usuarioCodigo={}", sesion.getUsuarioCodigo());
+            }
+        });
     }
 
     @Transactional(readOnly = true)
