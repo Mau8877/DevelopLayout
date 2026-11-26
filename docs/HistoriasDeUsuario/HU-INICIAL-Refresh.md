@@ -2,7 +2,7 @@
 
 | Id | Nombre corto de HU | Prioridad | PHU | Estado |
 | --- | --- | --- | --- | --- |
-| HU-INICIAL-REFRESH | Renovar sesión | Alta |  | En progreso |
+| HU-INICIAL-REFRESH | Renovar sesión | Alta |  | Hecha |
 
 **Como:** usuario con sesión iniciada
 **Quiero:** que mi sesión se renueve automáticamente

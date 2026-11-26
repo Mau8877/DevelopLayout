@@ -57,7 +57,7 @@ Si más adelante exponés otros endpoints de Actuator (`/metrics`, `/env`, `/bea
 
 - [ ] `projects/frontend/package.json`: `"name": "frontend"` → el nombre que quieras.
 - [ ] `projects/frontend/index.html`: `<title>frontend</title>`.
-- [ ] `projects/frontend/src/routes/`: el scaffold trae `index.tsx`, `login.tsx` y `_authenticated/panel.tsx` como placeholders mínimos (no hay `App.tsx`). Reemplazá `panel.tsx` por tu primera pantalla real, sin dejar `_authenticated/` sin ninguna ruta hija: el build falla (ver `.claude/rules/frontend/RUTAS_NAVEGACION_FRONTEND.md`).
+- [ ] `projects/frontend/src/routes/`: el scaffold trae `login.tsx` (funcional), y `index.tsx` y `_authenticated/panel.tsx` como pantallas mínimas (no hay `App.tsx`). Reemplazá `panel.tsx` por tu primera pantalla real, sin dejar `_authenticated/` sin ninguna ruta hija: el build falla (ver `.claude/rules/frontend/RUTAS_NAVEGACION_FRONTEND.md`).
 - [ ] `projects/frontend/.env.example`: revisá `VITE_API_BASE_URL` si cambiás rutas/puertos. Es solo para desarrollo: la imagen de producción lo fija al construir (`--build-arg`, por defecto `/api/v1`, relativa porque frontend y API comparten origen detrás del proxy).
 
 ### 5. Mobile (Flutter)
@@ -71,7 +71,7 @@ Si más adelante exponés otros endpoints de Actuator (`/metrics`, `/env`, `/bea
   - `linux/CMakeLists.txt` (`APPLICATION_ID`)
   - `windows/runner/Runner.rc` (`CompanyName`, `LegalCopyright`)
 - [ ] Íconos y splash (`android/.../mipmap-*`, `ios/Runner/Assets.xcassets`, `macos/Runner/Assets.xcassets`, `web/icons`, `windows/runner/resources`): reemplazalos por los del proyecto real.
-- [ ] `lib/core/network/` (cliente `dio` con el interceptor del sobre de la API) y `lib/core/theme/` ya están implementados, y `lib/features/health/` es un chequeo de conectividad de ejemplo que se borra o reemplaza cuando haya una feature real. `lib/core/routing/` y `lib/features/auth/` están vacíos a propósito: se arman junto con la autenticación (ver `.claude/rules/ARQUITECTURA_MOBILE.md`).
+- [ ] `lib/core/` (cliente `dio`, router, almacenamiento seguro, tema) y `lib/features/auth/` (login, sesión y cierre) ya están implementados. `lib/features/health/` es un chequeo de conectividad de ejemplo que se borra o reemplaza cuando haya una feature real.
 - [ ] `.env` de mobile: `pubspec.yaml` lo declara como asset y no se commitea, así que creá el tuyo con `cp projects/mobile/.env.example projects/mobile/.env`; sin él `flutter analyze` falla con `asset_does_not_exist`.
 - [ ] Todos los `import 'package:mobile/...'` de `lib/` y `test/` (por ejemplo `test/widget_test.dart` importa `package:mobile/core/theme/app_theme.dart`) — actualizalos al nuevo nombre de paquete (`name:` de `pubspec.yaml`), por ejemplo `package:acme_mobile/...`. En Dart el nombre del import depende exclusivamente de ese `name:`, así que si no lo actualizás `flutter analyze`/`flutter test` van a fallar con `uri_does_not_exist`.
 

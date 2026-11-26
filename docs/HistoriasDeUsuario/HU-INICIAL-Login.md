@@ -2,7 +2,7 @@
 
 | Id | Nombre corto de HU | Prioridad | PHU | Estado |
 | --- | --- | --- | --- | --- |
-| HU-INICIAL-LOGIN | Iniciar sesión | Alta |  | Pendiente |
+| HU-INICIAL-LOGIN | Iniciar sesión | Alta |  | Hecha |
 
 **Como:** usuario registrado (web o mobile)
 **Quiero:** iniciar sesión con mi correo y contraseña
