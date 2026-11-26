@@ -18,6 +18,9 @@ aplicación) y a [SEGURIDAD_OWASP.md](../SEGURIDAD_OWASP.md) (A09).
 - **Un solo punto de escritura:** `common/bitacora/BitacoraService.registrar(...)`.
   Ningún módulo inserta en `bitacora` por su cuenta ni crea su propio repositorio.
 - IP y user agent se toman de la request actual cuando existe.
+- `registrarEnTransaccionPropia` solo desde código **sin** transacción abierta:
+  pide otra conexión y, en un flujo concurrente, agota el pool. Dentro de una
+  transacción se usa `registrar`.
 - `app_runtime` solo tiene `INSERT` (y `SELECT` bajo RLS para `SUPER_ADMIN`). Sin
   `UPDATE` ni `DELETE`. La purga usa una función de base de datos con
   privilegios del dueño.

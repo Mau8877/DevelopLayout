@@ -67,7 +67,8 @@ SELECT set_config('app.current_user', :codigo, true);
 
 Está implementado **una sola vez** en `security/RlsContext.java`, que exige una
 transacción activa y ofrece `usarCorreoDeLogin` (`app.login_email`),
-`usarRefreshHash` (`app.refresh_hash`), `usarUsuario` (`app.current_user`) y
+`usarRefreshSesion` (`app.refresh_sid`, solo con la firma del token ya
+validada), `usarUsuario` (`app.current_user`) y
 `usarAdmin` (`app.is_admin`).
 Ningún service llama a `set_config` por su cuenta. La única excepción es el
 alta del administrador inicial, que usa la conexión dueña (ver
@@ -97,6 +98,13 @@ técnica (`flyway_schema_history`). Se documenta así:
    salvo que la UT justifique lo contrario.
 
 "No me dio tiempo" o "es más fácil" **no** son razones válidas.
+
+## Migraciones que modifican datos
+
+Con `FORCE ROW LEVEL SECURITY`, un `UPDATE`/`DELETE` de una migración ve **0
+filas sin avisar** si el dueño no es superusuario. Dentro de la misma migración:
+`ALTER TABLE ... NO FORCE ROW LEVEL SECURITY`, el cambio y de nuevo `FORCE`. Se
+prueba con un dueño sin superusuario (`MigracionRefreshFirmadoTest`).
 
 ## 6. Tests
 

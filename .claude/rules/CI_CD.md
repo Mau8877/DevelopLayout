@@ -57,7 +57,8 @@ El pipeline usa un job `changes` (con la acción `dorny/paths-filter`) que
 detecta qué carpetas cambiaron en el PR/push, y cada job de proyecto
 (`backend`, `frontend`, `mobile`, `scripts`) solo corre si `changes` marcó
 que sus rutas tuvieron cambios (`backend` también con `infrastructure/redis/**`,
-porque un test verifica `redis.conf`). Esto es deliberado por dos razones:
+porque un test verifica `redis.conf`; `scripts` también con
+`docker-compose*.yml`, que `compose-seguridad.test.mjs` revisa). Esto es deliberado por dos razones:
 
 - **Este es un monorepo con 3 proyectos independientes** (ver
   [`README.md`](../../README.md)) que no comparten build ni runtime — no

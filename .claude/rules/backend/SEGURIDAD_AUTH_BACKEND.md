@@ -16,11 +16,6 @@ globs: projects/backend/**/*
 
 El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
 
-> **Riesgo pendiente:** `sesion` guarda un solo hash anterior. Un token robado
-> y rotado dos veces antes de que vuelva el usuario legítimo ya no se detecta
-> como reutilización (ver la HU de Refresh). Resolverlo antes de manejar datos
-> sensibles.
-
 ## Flujo: JWT + refresh token (web: solo cookies)
 
 > **Decisión de diseño (revisada): en web, TODO viaja en cookies
@@ -37,12 +32,15 @@ El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
   `codigo` del usuario (`sub`) y la lista de roles activos como claims,
   nada más. Viaja en la cookie `accessToken`; el backend también lo acepta
   en `Authorization: Bearer` para clientes que no son navegador (mobile).
-- **Refresh token**: opaco (UUID aleatorio, no JWT), 7 días, rotado en cada
-  uso. Se guarda **solo su hash** en la tabla `sesion` (Postgres es la fuente
-  de verdad: una fila por inicio de sesión, con tipo de cliente, IP, user
-  agent, estado y fechas). Viaja en la cookie `refreshToken` y solo se usa
-  contra `/api/v1/auth/refresh` y `/logout`. La sesión dura 7 días desde su
-  último uso, con un máximo absoluto de 30 días desde su creación.
+- **Refresh token**: texto firmado `{sesion}.{aleatorio}.{HMAC-SHA256}`
+  (`RefreshTokens`, no es un JWT), 7 días, rotado en cada uso. El cliente no lo
+  interpreta. La firma usa `REFRESH_TOKEN_SECRET`, **distinta de `JWT_SECRET`**
+  (cambiarla cierra todas las sesiones). En la tabla `sesion` se guarda **solo el
+  hash del token vigente** (Postgres es la fuente de verdad: una fila por inicio
+  de sesión, con tipo de cliente, IP, user agent, estado y fechas). Viaja en la
+  cookie `refreshToken` y solo se usa contra `/api/v1/auth/refresh` y
+  `/logout`. La sesión dura 7 días desde su último uso, con un máximo absoluto
+  de 30 días desde su creación.
 - **Identificador de sesión (`sid`)**: el access token lleva el `codigo` de su
   sesión. Al revocar una sesión, su `sid` entra en una lista de revocadas en
   Redis (TTL = vida del access token) que el filtro JWT consulta en cada
@@ -92,18 +90,35 @@ El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
     vencida pasa a `EXPIRADA`. Si Redis o la base fallan, no entrega tokens.
   - `POST /logout` → revoca la sesión (`REVOCADA`), la agrega a la lista de
     revocadas y, en web, borra las cookies. Siempre 200 (idempotente).
-- **Reutilización**: si llega un refresh token que ya fue rotado (coincide con
-  el hash anterior de una sesión activa), se asume robo: la sesión se revoca con
-  motivo `REUSO` y se registra en la bitácora ([BITACORA_BACKEND.md](BITACORA_BACKEND.md)).
-  La revocación se confirma aunque la respuesta sea 401 (`noRollbackFor`).
+- **Reutilización**: un token con firma válida para una sesión `ACTIVA` que no
+  es el vigente ya fue rotado, **por antiguo que sea**: se asume robo, la sesión
+  se revoca con motivo `REUSO` y se registra en la bitácora
+  ([BITACORA_BACKEND.md](BITACORA_BACKEND.md)). La revocación se confirma aunque
+  la respuesta sea 401 (`noRollbackFor`). Un token sin firma válida da 401 sin
+  tocar la base ni revocar nada.
 - **Clientes**: renuevan de a una vez y solo cierran la sesión local si el
   refresh responde 401 o 403; sin red, con 429 o con 500 la conservan. En web
   las pestañas se coordinan con un candado compartido (ver
   [TANSTACK_QUERY_FRONTEND.md](../frontend/TANSTACK_QUERY_FRONTEND.md#renovación-de-sesión)).
-- Redis guarda el contador de intentos de login y la lista de sesiones
+- Redis guarda los contadores de intentos de login y la lista de sesiones
   revocadas (a futuro, los tokens de recuperación de contraseña). **No**
   guarda refresh tokens. Corre con `maxmemory-policy noeviction`: no puede
   desalojar esos datos. El rate limit vive en memoria, no en Redis.
+
+## Límite de intentos de login
+
+`LoginAttemptService`:
+
+- Dos contadores: **por correo e IP** (5, `app.auth.max-failed-attempts`) y
+  **por cuenta sumando todas las IP** (100,
+  `app.auth.max-failed-attempts-per-account`), ambos por 15 minutos. Así un
+  tercero no deja fuera a otra persona con 5 intentos. El tope por cuenta se
+  loguea como alerta y queda en la bitácora con `alcance: cuenta`.
+- **Reservar antes de comprobar**, en un script Lua. Nunca "consultar, comparar
+  la contraseña y después sumar": 40 peticiones simultáneas evaluaban 40
+  contraseñas. Un login correcto devuelve su reserva.
+- Límites conocidos: con 20 o más IP todavía se puede bloquear una cuenta; quien
+  comparte IP comparte el límite de una misma cuenta.
 
 ## Usuarios y validación de credenciales
 
@@ -112,7 +127,9 @@ El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
   de acceso, único entre filas no borradas e insensible a mayúsculas),
   `passwordHash` (BCrypt) y `estado` (`ACTIVO` | `INACTIVO`). No hay
   `username`. El identificador público es `codigo`.
-- `AuthService.login()` busca el usuario con RLS (`app.login_email`) y compara
+- `AuthService.login()` **no es `@Transactional`**: lee en una transacción
+  corta, compara BCrypt sin conexión tomada y escribe en otra (ver
+  [Conexiones](#conexiones)). Busca el usuario con RLS (`app.login_email`) y compara
   con `PasswordEncoder` (`BCryptPasswordEncoder`). **No usa
   `AuthenticationManager`.** Si el correo no existe compara contra un hash
   ficticio, para igualar tiempos.
@@ -123,6 +140,13 @@ El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
   lista de sesiones revocadas y puebla el `SecurityContext`.
 - El primer `SUPER_ADMIN` lo crea `AdminInicialInitializer` con
   `INITIAL_ADMIN_EMAIL` e `INITIAL_ADMIN_PASSWORD`.
+
+## Conexiones
+
+**Ningún flujo pide una segunda conexión mientras tiene una tomada**
+(`REQUIRES_NEW` dentro de una transacción). Con el pool de 10, bastaban 10
+logins fallidos a la vez para que todos esperaran 30 s y devolvieran 500. Además,
+`spring.jpa.open-in-view=false`. `AuthPoolTest` lo prueba con un pool de 3.
 
 ## Roles y permisos
 
@@ -213,7 +237,7 @@ intentar de más).
 - **Algoritmo**: token bucket vía **Bucket4j** (`com.bucket4j:bucket4j_jdk11-core`,
   no `bucket4j-core` — esa coordinada vieja ya no es la que resuelve Maven
   Central; se verificó contra el índice de Maven Central antes de fijar la
-  versión). Un bucket por IP (`ConcurrentHashMap<String, Bucket>`), refill
+  versión). Un bucket por IP (caché de Caffeine), refill
   "greedy" (los tokens se regeneran continuo, no en ráfagas cada N segundos).
 - **Límites propios por IP**, además del global: login 10/min
   (`app.ratelimit.login-*`) y refresh 30/min (`app.ratelimit.refresh-*`).
@@ -235,15 +259,18 @@ intentar de más).
   `X-Forwarded-For` con cuidado (el primer valor, no el último — un cliente
   puede falsificar ese header).
 
+> **Memoria acotada:** cada entrada se libera tras al menos 10 minutos sin uso
+> (más, si el bucket tarda más en rellenarse) y cada caché tiene un máximo
+> (`app.ratelimit.max-clients`, 100.000). Al llegar al máximo se desaloja
+> alguna, que recupera su cupo antes de tiempo.
+
 > **Limitación conocida, aceptada a propósito:** el bucket vive en memoria
-> del proceso (`ConcurrentHashMap`), no es distribuido. Con una sola
-> instancia del backend (el caso de este proyecto) funciona perfecto. Si en
-> algún momento se corre más de una réplica, cada una tendría su propio
-> límite independiente (un atacante repartiendo requests entre instancias
-> efectivamente multiplica su cupo). Para eso existe
-> `bucket4j_jdk11-redis` (Redis ya está en el stack y
-> `spring-boot-starter-data-redis` ya está en el `pom.xml`) — no se implementa hasta que haya
-> más de una instancia real corriendo.
+> del proceso, no es distribuido. Con una sola instancia del backend (el caso de
+> este proyecto) funciona perfecto. Si en algún momento se corre más de una
+> réplica, cada una tendría su propio límite independiente (un atacante
+> repartiendo requests entre instancias multiplica su cupo). Para eso existe
+> `bucket4j_jdk11-redis` — no se implementa hasta que haya más de una instancia
+> real corriendo.
 
 > **Esto no reemplaza protección a nivel de infraestructura.** Un rate
 > limit en la app (como este) es la última línea de defensa. nginx
