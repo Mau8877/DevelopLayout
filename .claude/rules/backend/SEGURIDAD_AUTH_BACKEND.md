@@ -70,6 +70,11 @@ la autenticación "hecha" — no es un requisito opcional.
   (axios lo hace solo con `xsrfCookieName`/`xsrfHeaderName`). Las
   peticiones con `Authorization: Bearer` (mobile) no usan cookies y quedan
   exentas. Además, `CORS` limita los orígenes a `CORS_ALLOWED_ORIGINS`.
+  `SecurityConfig` desactiva la rotación del token CSRF por autenticación
+  (`NullAuthenticatedSessionStrategy`): sin sesión de servidor, cada request
+  con JWT cuenta como un inicio de sesión y borraba la cookie `XSRF-TOKEN`.
+  MockMvc no lo detecta; se prueba contra un servidor real
+  (`AuthCsrfCookieTest`).
 - **Clientes mobile (excepción)**: una app no tiene cookies del navegador.
   Con el header `X-Client-Type: mobile`, login y refresh devuelven ambos
   tokens en el **body** y la app los guarda en `flutter_secure_storage`
