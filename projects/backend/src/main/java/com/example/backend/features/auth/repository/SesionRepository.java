@@ -19,13 +19,11 @@ import jakarta.persistence.LockModeType;
 
 /**
  * ! Con RLS forzado, solo se ven las sesiones del `app.current_user`, las de
- * ! `app.is_admin` o la fila cuyo hash coincide con `app.refresh_hash`.
+ * ! `app.is_admin` o la de `app.refresh_sid` (token con firma ya validada).
  */
 public interface SesionRepository extends JpaRepository<Sesion, Long> {
 
     Optional<Sesion> findByRefreshHash(String refreshHash);
-
-    Optional<Sesion> findByRefreshHashAnterior(String refreshHashAnterior);
 
     Optional<Sesion> findByCodigo(UUID codigo);
 
@@ -33,6 +31,7 @@ public interface SesionRepository extends JpaRepository<Sesion, Long> {
     Page<Sesion> findByUsuarioCodigoAndEstadoAndExpiraEnAfter(UUID usuarioCodigo, EstadoSesion estado,
             Instant despuesDe, Pageable pageable);
 
+    /** Lee la sesión bloqueando la fila hasta el fin de la transacción. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select s from Sesion s where s.codigo = :codigo")
     Optional<Sesion> bloquearPorCodigo(@Param("codigo") UUID codigo);
@@ -41,15 +40,6 @@ public interface SesionRepository extends JpaRepository<Sesion, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select s from Sesion s where s.usuarioCodigo = :usuario and s.estado = :estado order by s.id")
     List<Sesion> bloquearPorUsuarioYEstado(@Param("usuario") UUID usuario, @Param("estado") EstadoSesion estado);
-
-    /** Igual que los finders por hash, pero bloquea la fila hasta el fin de la transacción. */
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select s from Sesion s where s.refreshHash = :hash")
-    Optional<Sesion> bloquearPorRefreshHash(@Param("hash") String hash);
-
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select s from Sesion s where s.refreshHashAnterior = :hash")
-    Optional<Sesion> bloquearPorRefreshHashAnterior(@Param("hash") String hash);
 
     List<Sesion> findByUsuarioCodigoAndEstado(UUID usuarioCodigo, EstadoSesion estado);
 

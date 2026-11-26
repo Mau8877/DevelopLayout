@@ -48,10 +48,6 @@ public class Sesion extends BaseModel {
     private String refreshHash;
 
     @Setter
-    @Column(name = "refresh_hash_anterior", length = 64)
-    private String refreshHashAnterior;
-
-    @Setter
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false, length = 20)
     private EstadoSesion estado;
@@ -84,8 +80,9 @@ public class Sesion extends BaseModel {
     @Column(name = "motivo_revocacion", length = 30)
     private MotivoRevocacion motivoRevocacion;
 
-    public Sesion(Long usuarioId, UUID usuarioCodigo, String refreshHash, TipoCliente tipoCliente,
+    public Sesion(UUID codigo, Long usuarioId, UUID usuarioCodigo, String refreshHash, TipoCliente tipoCliente,
             String ip, String userAgent, Instant expiraEn) {
+        asignarCodigo(codigo);
         this.usuarioId = usuarioId;
         this.usuarioCodigo = usuarioCodigo;
         this.refreshHash = refreshHash;

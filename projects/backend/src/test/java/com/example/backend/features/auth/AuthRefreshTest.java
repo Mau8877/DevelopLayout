@@ -42,7 +42,6 @@ class AuthRefreshTest extends AuthSesionIntegrationTest {
 
         Tokens nuevos = tokensDeCookies(res);
         assertThat(nuevos.refresh()).isNotEqualTo(inicial.refresh());
-        assertThat(columnaSesion("refresh_hash_anterior")).isEqualTo(hashInicial);
         assertThat(columnaSesion("refresh_hash")).isNotEqualTo(hashInicial);
         assertAccess(nuevos.access(), 200);
         mvc.perform(web("refresh", nuevos.refresh())).andExpect(status().isOk());
@@ -109,6 +108,43 @@ class AuthRefreshTest extends AuthSesionIntegrationTest {
 
         mvc.perform(web("refresh", inicial.refresh())).andExpect(status().isUnauthorized());
         assertThat(eventos("AUTH_REFRESH_REUSO")).isEqualTo(1);
+    }
+
+    @Test
+    void refresh_conUnTokenDeVariasRotacionesAtras_revocaLaSesion() throws Exception {
+        Tokens victima = loginWeb();
+        Tokens atacante = victima;
+        for (int i = 0; i < 3; i++) {
+            atacante = tokensDeCookies(mvc.perform(web("refresh", atacante.refresh()))
+                    .andExpect(status().isOk()).andReturn());
+        }
+
+        mvc.perform(web("refresh", victima.refresh())).andExpect(status().isUnauthorized());
+
+        assertThat(columnaSesion("estado")).isEqualTo("REVOCADA");
+        assertThat(columnaSesion("motivo_revocacion")).isEqualTo("REUSO");
+        assertThat(eventos("AUTH_REFRESH_REUSO")).isEqualTo(1);
+        assertAccess(atacante.access(), 401);
+        mvc.perform(web("refresh", atacante.refresh())).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void refresh_conUnTokenAlterado_da401SinRevocarNada() throws Exception {
+        Tokens tokens = loginWeb();
+        String original = tokens.refresh();
+        int medio = original.length() / 2;
+        String alterado = original.substring(0, medio) + (original.charAt(medio) == 'A' ? 'B' : 'A')
+                + original.substring(medio + 1);
+
+        for (String falso : List.of(alterado, original + "x", "a.b.c", "..", original.replace('.', '-'))) {
+            mvc.perform(web("refresh", falso))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.error").value("ERR_AUTH_04"));
+        }
+
+        assertThat(columnaSesion("estado")).isEqualTo("ACTIVA");
+        assertThat(eventos("AUTH_REFRESH_REUSO")).isZero();
+        mvc.perform(web("refresh", original)).andExpect(status().isOk());
     }
 
     @Test

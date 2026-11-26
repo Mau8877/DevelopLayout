@@ -60,6 +60,11 @@ public abstract class BaseModel {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
+    // * Para un Model que necesita su código antes de persistirse (ej. para firmarlo).
+    protected final void asignarCodigo(UUID codigoNuevo) {
+        this.codigo = codigoNuevo;
+    }
+
     @PrePersist
     protected void generarCodigoSiFalta() {
         if (codigo == null) {

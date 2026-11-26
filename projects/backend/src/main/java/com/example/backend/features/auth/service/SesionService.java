@@ -1,11 +1,12 @@
 package com.example.backend.features.auth.service;
 
-import java.security.SecureRandom;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +33,8 @@ import com.example.backend.security.SesionRevocadaRegistry;
 /**
  * Ciclo de vida de las sesiones: crear, rotar el refresh token, revocar y cerrar.
  *
- * * El token en claro (256 bits) solo se devuelve al llamador; en la base
- * * queda únicamente su SHA-256.
+ * * El token en claro solo se devuelve al llamador; en la base queda
+ * * únicamente el SHA-256 del vigente. Va firmado (ver RefreshTokens).
  * ! `crear` debe correr dentro de la transacción del login, con
  * ! `app.current_user` ya fijado (RLS exige que la fila sea del usuario).
  */
@@ -41,9 +42,9 @@ import com.example.backend.security.SesionRevocadaRegistry;
 public class SesionService {
 
     private static final Logger LOG = LoggerFactory.getLogger(SesionService.class);
-    private static final SecureRandom RANDOM = new SecureRandom();
 
     private final SesionRepository sesionRepository;
+    private final RefreshTokens refreshTokens;
     private final SesionRevocadaRegistry revocadas;
     private final RlsContext rlsContext;
     private final BitacoraService bitacora;
@@ -51,12 +52,14 @@ public class SesionService {
     private final Duration vidaMaxima;
     private final Duration accessTtl;
 
-    public SesionService(SesionRepository sesionRepository, SesionRevocadaRegistry revocadas,
+    public SesionService(SesionRepository sesionRepository, RefreshTokens refreshTokens,
+            SesionRevocadaRegistry revocadas,
             RlsContext rlsContext, BitacoraService bitacora,
             @Value("${app.auth.refresh-ttl:P7D}") Duration refreshTtl,
             @Value("${app.auth.session-max-lifetime:P30D}") Duration vidaMaxima,
             @Value("${app.jwt.access-ttl:PT15M}") Duration accessTtl) {
         this.sesionRepository = sesionRepository;
+        this.refreshTokens = refreshTokens;
         this.revocadas = revocadas;
         this.rlsContext = rlsContext;
         this.bitacora = bitacora;
@@ -66,10 +69,11 @@ public class SesionService {
     }
 
     public SesionCreada crear(Usuario usuario, TipoCliente tipo, String ip, String userAgent) {
-        String token = nuevoToken();
+        UUID codigo = UUID.randomUUID();
+        String token = refreshTokens.generar(codigo);
 
         Instant ahora = Instant.now();
-        Sesion sesion = new Sesion(usuario.getId(), usuario.getCodigo(), Sha256.hex(token), tipo,
+        Sesion sesion = new Sesion(codigo, usuario.getId(), usuario.getCodigo(), Sha256.hex(token), tipo,
                 truncar(ip, 45), truncar(userAgent, 255), ahora.plus(refreshTtl));
         sesion.setUltimoUsoEn(ahora);
         return new SesionCreada(sesionRepository.save(sesion), token);
@@ -85,22 +89,15 @@ public class SesionService {
      */
     @Transactional(noRollbackFor = UnauthorizedException.class)
     public SesionCreada rotar(String tokenEnClaro, String ip, String userAgent) {
-        if (tokenEnClaro == null || tokenEnClaro.isBlank()) {
-            throw sesionInvalida();
-        }
-        String hash = Sha256.hex(tokenEnClaro);
-        rlsContext.usarRefreshHash(hash);
-
-        Optional<Sesion> actual = sesionRepository.bloquearPorRefreshHash(hash);
-        if (actual.isEmpty()) {
-            detectarReutilizacion(hash);
-            throw sesionInvalida();
-        }
-
-        Sesion sesion = actual.get();
-        // * Con solo el hash, RLS deja leer la fila pero no actualizarla.
-        rlsContext.usarUsuario(sesion.getUsuarioCodigo());
+        // * Sin firma válida no se toca la base.
+        UUID codigo = refreshTokens.sesionDe(tokenEnClaro).orElseThrow(SesionService::sesionInvalida);
+        Sesion sesion = bloquear(codigo).orElseThrow(SesionService::sesionInvalida);
         if (sesion.getEstado() != EstadoSesion.ACTIVA) {
+            throw sesionInvalida();
+        }
+        // * Firmado por nosotros para esta sesión pero no es el vigente: ya fue rotado.
+        if (!esElVigente(sesion, tokenEnClaro)) {
+            revocarPorReutilizacion(sesion);
             throw sesionInvalida();
         }
 
@@ -111,9 +108,8 @@ public class SesionService {
             throw sesionInvalida();
         }
 
-        String token = nuevoToken();
+        String token = refreshTokens.generar(codigo);
         Instant porInactividad = ahora.plus(refreshTtl);
-        sesion.setRefreshHashAnterior(sesion.getRefreshHash());
         sesion.setRefreshHash(Sha256.hex(token));
         sesion.setUltimoUsoEn(ahora);
         sesion.setIp(truncar(ip, 45));
@@ -144,46 +140,43 @@ public class SesionService {
      */
     @Transactional
     public Optional<Sesion> cerrar(String tokenEnClaro) {
-        if (tokenEnClaro == null || tokenEnClaro.isBlank()) {
-            return Optional.empty();
-        }
-        String hash = Sha256.hex(tokenEnClaro);
-        rlsContext.usarRefreshHash(hash);
-        Optional<Sesion> activa = sesionRepository.bloquearPorRefreshHash(hash)
-                .filter(s -> s.getEstado() == EstadoSesion.ACTIVA);
-        activa.ifPresent(sesion -> {
-            rlsContext.usarUsuario(sesion.getUsuarioCodigo());
-            revocar(sesion, MotivoRevocacion.LOGOUT);
-        });
+        Optional<Sesion> activa = refreshTokens.sesionDe(tokenEnClaro)
+                .flatMap(this::bloquear)
+                .filter(s -> s.getEstado() == EstadoSesion.ACTIVA && esElVigente(s, tokenEnClaro));
+        activa.ifPresent(sesion -> revocar(sesion, MotivoRevocacion.LOGOUT));
         return activa;
     }
 
+    // * Se lee con `app.refresh_sid` y después se fija el usuario: con solo el
+    // * código, RLS deja leer la fila pero no actualizarla.
+    private Optional<Sesion> bloquear(UUID codigo) {
+        rlsContext.usarRefreshSesion(codigo);
+        Optional<Sesion> sesion = sesionRepository.bloquearPorCodigo(codigo);
+        sesion.ifPresent(s -> rlsContext.usarUsuario(s.getUsuarioCodigo()));
+        return sesion;
+    }
+
+    private static boolean esElVigente(Sesion sesion, String token) {
+        return MessageDigest.isEqual(sesion.getRefreshHash().getBytes(StandardCharsets.UTF_8),
+                Sha256.hex(token).getBytes(StandardCharsets.UTF_8));
+    }
+
     // * Un token ya rotado que vuelve a aparecer se asume robado.
-    private void detectarReutilizacion(String hash) {
-        sesionRepository.bloquearPorRefreshHashAnterior(hash)
-                .filter(s -> s.getEstado() == EstadoSesion.ACTIVA)
-                .ifPresent(sesion -> {
-                    rlsContext.usarUsuario(sesion.getUsuarioCodigo());
-                    revocar(sesion, MotivoRevocacion.REUSO);
-                    bitacora.registrarEnTransaccionPropia(sesion.getUsuarioCodigo(),
-                            AuthAcciones.AUTH_REFRESH_REUSO, AuthAcciones.MODULO, "sesion", sesion.getCodigo(),
-                            ResultadoBitacora.FALLO, Map.of());
-                    try (MDC.MDCCloseable ignored = MDC.putCloseable("module", "auth")) {
-                        LOG.warn("Refresh token reutilizado, sesión revocada sesionCodigo={} errorCode={}",
-                                sesion.getCodigo(), AuthErrorCodes.ERR_AUTH_04);
-                    }
-                });
+    private void revocarPorReutilizacion(Sesion sesion) {
+        revocar(sesion, MotivoRevocacion.REUSO);
+        // * Misma transacción que la revocación: pedir otra conexión con la
+        // * fila bloqueada agotaba el pool.
+        bitacora.registrar(sesion.getUsuarioCodigo(), AuthAcciones.AUTH_REFRESH_REUSO, AuthAcciones.MODULO,
+                "sesion", sesion.getCodigo(), ResultadoBitacora.FALLO, Map.of());
+        try (MDC.MDCCloseable ignored = MDC.putCloseable("module", "auth")) {
+            LOG.warn("Refresh token reutilizado, sesión revocada sesionCodigo={} errorCode={}",
+                    sesion.getCodigo(), AuthErrorCodes.ERR_AUTH_04);
+        }
     }
 
     private static UnauthorizedException sesionInvalida() {
         return new UnauthorizedException(AuthErrorCodes.ERR_AUTH_04,
                 "Tu sesión ya no es válida, iniciá sesión de nuevo");
-    }
-
-    private static String nuevoToken() {
-        byte[] bytes = new byte[32];
-        RANDOM.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
     private static String truncar(String valor, int max) {

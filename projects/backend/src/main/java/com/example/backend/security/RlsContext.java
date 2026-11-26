@@ -28,9 +28,13 @@ public class RlsContext {
         fijar("app.login_email", email);
     }
 
-    /** Deja ver la sesión cuyo hash (actual o anterior) coincide con el que presenta el cliente. */
-    public void usarRefreshHash(String hash) {
-        fijar("app.refresh_hash", hash);
+    /**
+     * Deja ver la sesión que nombra un refresh token.
+     *
+     * ! Solo después de validar la firma del token (`RefreshTokens`).
+     */
+    public void usarRefreshSesion(UUID sesionCodigo) {
+        fijar("app.refresh_sid", sesionCodigo.toString());
     }
 
     /**

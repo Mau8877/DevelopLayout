@@ -10,8 +10,10 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.example.backend.common.bitacora.BitacoraService;
 import com.example.backend.common.bitacora.ResultadoBitacora;
@@ -37,6 +39,10 @@ import com.example.backend.security.SesionRevocadaRegistry;
  *
  * * Anti-enumeración: correo inexistente y contraseña incorrecta dan el mismo
  * * error y ambos gastan un BCrypt (hash ficticio para el caso inexistente).
+ * ! `login` NO es @Transactional a propósito: ninguna conexión queda tomada
+ * ! mientras corre BCrypt, y nunca se pide una segunda (la bitácora de un fallo
+ * ! usa su propia transacción) teniendo ya una. Con eso, 10 fallos simultáneos
+ * ! agotaban el pool.
  * * La bitácora usa la clave `correoRef` (no `...Hash`: BitacoraService rechaza
  * * claves con 'hash'). El log de WARN usa solo un hash corto del correo, nunca el correo ni la
  * * contraseña ni tokens.
@@ -57,11 +63,16 @@ public class AuthService {
     private final BitacoraService bitacora;
     private final SesionRevocadaRegistry revocadas;
     private final String hashFicticio;
+    private final TransactionTemplate lectura;
+    private final TransactionTemplate escritura;
 
     public AuthService(LoginAttemptService loginAttempts, SesionService sesionService, JwtService jwtService,
             PasswordEncoder passwordEncoder, UsuarioRepository usuarioRepository,
             UsuarioRolRepository usuarioRolRepository, RlsContext rlsContext, BitacoraService bitacora,
-            SesionRevocadaRegistry revocadas) {
+            SesionRevocadaRegistry revocadas, PlatformTransactionManager transacciones) {
+        this.lectura = new TransactionTemplate(transacciones);
+        this.lectura.setReadOnly(true);
+        this.escritura = new TransactionTemplate(transacciones);
         this.revocadas = revocadas;
         this.loginAttempts = loginAttempts;
         this.sesionService = sesionService;
@@ -83,27 +94,32 @@ public class AuthService {
     public record LoginResult(UsuarioSesionResponse usuario, String accessToken, String refreshToken) {
     }
 
-    @Transactional
     public LoginResult login(LoginCommand cmd) {
         String email = cmd.email().trim().toLowerCase(Locale.ROOT);
         String emailHash = Sha256.hex(email).substring(0, 12);
         try (MDC.MDCCloseable ignored = MDC.putCloseable("module", "auth")) {
-            if (loginAttempts.estaBloqueado(email)) {
-                LOG.warn("Login bloqueado por intentos fallidos emailHash={} errorCode={}", emailHash,
-                        AuthErrorCodes.ERR_AUTH_02);
+            LoginAttemptService.Reserva reserva = loginAttempts.reservar(email, cmd.ip());
+            if (reserva != LoginAttemptService.Reserva.PERMITIDO) {
+                boolean porCuenta = reserva == LoginAttemptService.Reserva.BLOQUEADO_CUENTA;
+                String alcance = porCuenta ? "cuenta" : "origen";
+                // * El bloqueo por cuenta es la señal de un ataque repartido: sirve de alerta.
+                LOG.warn("{} emailHash={} errorCode={}", porCuenta
+                        ? "ALERTA: tope de intentos de la cuenta alcanzado desde varias IP"
+                        : "Login bloqueado por intentos fallidos", emailHash, AuthErrorCodes.ERR_AUTH_02);
                 bitacora.registrarEnTransaccionPropia(AuthAcciones.AUTH_CUENTA_BLOQUEADA, AuthAcciones.MODULO,
-                        null, null, ResultadoBitacora.FALLO, Map.of("correoRef", emailHash));
+                        null, null, ResultadoBitacora.FALLO, Map.of("correoRef", emailHash, "alcance", alcance));
                 throw new LockedException(AuthErrorCodes.ERR_AUTH_02,
                         "Demasiados intentos fallidos, intentá de nuevo más tarde");
             }
 
-            rlsContext.usarCorreoDeLogin(email);
-            Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email).orElse(null);
+            Usuario usuario = lectura.execute(estado -> {
+                rlsContext.usarCorreoDeLogin(email);
+                return usuarioRepository.findByEmailIgnoreCase(email).orElse(null);
+            });
             boolean passwordOk = passwordEncoder.matches(cmd.password(),
                     usuario == null ? hashFicticio : usuario.getPasswordHash());
 
             if (usuario == null || !passwordOk) {
-                loginAttempts.registrarFallo(email);
                 LOG.warn("Login fallido emailHash={} errorCode={}", emailHash, AuthErrorCodes.ERR_AUTH_01);
                 bitacora.registrarEnTransaccionPropia(AuthAcciones.AUTH_LOGIN_FALLO, AuthAcciones.MODULO, null,
                         null, ResultadoBitacora.FALLO, Map.of("correoRef", emailHash));
@@ -111,6 +127,7 @@ public class AuthService {
             }
 
             if (usuario.getEstado() != EstadoUsuario.ACTIVO) {
+                loginAttempts.liberar(email, cmd.ip());
                 LOG.warn("Login de usuario no activo emailHash={} errorCode={}", emailHash,
                         AuthErrorCodes.ERR_AUTH_03);
                 bitacora.registrarEnTransaccionPropia(usuario.getCodigo(), AuthAcciones.AUTH_LOGIN_FALLO,
@@ -119,20 +136,30 @@ public class AuthService {
                 throw new ForbiddenException(AuthErrorCodes.ERR_AUTH_03, "La cuenta no está activa");
             }
 
-            loginAttempts.reiniciar(email);
-            rlsContext.usarUsuario(usuario.getCodigo());
-            List<String> roles = rolesActivos(usuario);
-            SesionService.SesionCreada creada =
-                    sesionService.crear(usuario, cmd.tipoCliente(), cmd.ip(), cmd.userAgent());
-            String access = jwtService.emitir(usuario.getCodigo(), roles, creada.sesion().getCodigo());
-
-            bitacora.registrar(usuario.getCodigo(), AuthAcciones.AUTH_LOGIN_OK, AuthAcciones.MODULO, "sesion",
-                    creada.sesion().getCodigo(), ResultadoBitacora.EXITO, null);
+            LoginResult resultado = escritura.execute(estado -> abrirSesion(usuario.getCodigo(), cmd));
+            loginAttempts.confirmarExito(email, cmd.ip());
             LOG.info("Login exitoso usuarioCodigo={} tipoCliente={}", usuario.getCodigo(), cmd.tipoCliente());
-
-            return new LoginResult(new UsuarioSesionResponse(usuario.getCodigo(), usuario.getEmail(), roles),
-                    access, creada.refreshToken());
+            return resultado;
         }
+    }
+
+    // * Se relee el usuario dentro de la transacción que escribe: pudo cambiar
+    // * mientras se comparaba la contraseña.
+    private LoginResult abrirSesion(UUID codigoUsuario, LoginCommand cmd) {
+        rlsContext.usarUsuario(codigoUsuario);
+        Usuario usuario = usuarioRepository.findByCodigo(codigoUsuario)
+                .filter(u -> u.getEstado() == EstadoUsuario.ACTIVO)
+                .orElseThrow(() -> new UnauthorizedException(AuthErrorCodes.ERR_AUTH_01, MSG_CREDENCIALES));
+        List<String> roles = rolesActivos(usuario);
+        SesionService.SesionCreada creada =
+                sesionService.crear(usuario, cmd.tipoCliente(), cmd.ip(), cmd.userAgent());
+        String access = jwtService.emitir(codigoUsuario, roles, creada.sesion().getCodigo());
+
+        bitacora.registrar(codigoUsuario, AuthAcciones.AUTH_LOGIN_OK, AuthAcciones.MODULO, "sesion",
+                creada.sesion().getCodigo(), ResultadoBitacora.EXITO, null);
+
+        return new LoginResult(new UsuarioSesionResponse(codigoUsuario, usuario.getEmail(), roles),
+                access, creada.refreshToken());
     }
 
     /**
