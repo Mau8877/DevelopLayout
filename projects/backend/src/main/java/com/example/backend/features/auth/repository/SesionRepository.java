@@ -1,9 +1,12 @@
 package com.example.backend.features.auth.repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -25,6 +28,19 @@ public interface SesionRepository extends JpaRepository<Sesion, Long> {
     Optional<Sesion> findByRefreshHashAnterior(String refreshHashAnterior);
 
     Optional<Sesion> findByCodigo(UUID codigo);
+
+    /** Sesiones utilizables del usuario: `ACTIVA` y no vencidas. */
+    Page<Sesion> findByUsuarioCodigoAndEstadoAndExpiraEnAfter(UUID usuarioCodigo, EstadoSesion estado,
+            Instant despuesDe, Pageable pageable);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select s from Sesion s where s.codigo = :codigo")
+    Optional<Sesion> bloquearPorCodigo(@Param("codigo") UUID codigo);
+
+    /** Con orden fijo, para que dos cierres masivos no se bloqueen entre sí. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select s from Sesion s where s.usuarioCodigo = :usuario and s.estado = :estado order by s.id")
+    List<Sesion> bloquearPorUsuarioYEstado(@Param("usuario") UUID usuario, @Param("estado") EstadoSesion estado);
 
     /** Igual que los finders por hash, pero bloquea la fila hasta el fin de la transacción. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)

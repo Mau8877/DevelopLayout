@@ -33,6 +33,15 @@ public class RlsContext {
         fijar("app.refresh_hash", hash);
     }
 
+    /**
+     * Contexto de administrador: ve y revoca sesiones, lee usuarios y la bitácora.
+     *
+     * ! Solo desde services con `@PreAuthorize` de administrador ya verificado.
+     */
+    public void usarAdmin() {
+        fijar("app.is_admin", "true");
+    }
+
     public void usarUsuario(UUID codigo) {
         fijar("app.current_user", codigo.toString());
     }
