@@ -11,8 +11,8 @@ globs: projects/backend/**/*
 | Login, `/me`, refresh, logout y token CSRF | Implementado (HU Base, Login, Refresh) |
 | Cierre de sesión | Backend y web probados; falta la validación mobile en emulador (HU Logout) |
 | Recuperación y cambio de contraseña, envío de correo | **No implementado** |
-| Gestión de usuarios y roles | **No implementada**. Antes necesita políticas RLS de administrador: `usuario` y `usuario_rol` solo permiten la fila propia o la del login, y `RlsContext` no fija `app.is_admin` |
-| Administrar sesiones y consultar la bitácora | **No implementado** |
+| Administrar sesiones y consultar la bitácora | Implementado, solo `SUPER_ADMIN` (HU SesionesAdmin, Bitacora) |
+| Gestión de usuarios y roles | **No implementada** (sin HU). El administrador solo puede **leer** `usuario`; falta la política para `usuario_rol` y las de escritura |
 
 El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
 

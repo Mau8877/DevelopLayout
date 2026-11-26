@@ -34,6 +34,8 @@ Todo fallo de una llamada a la API llega a hooks y componentes como `ApiError`
 - Se muestra `ApiError.message` (mensaje de negocio en español ya definido por el
   backend). Nunca `error.stack`, el body completo, ni un `JSON.stringify` del error.
 - Sin `alert()`/`confirm()` del navegador.
+- Los avisos (`components/ui/toast.ts`) necesitan `<Toaster />`, montado una sola
+  vez en `main.tsx`.
 - Mensajes de login y reset: se muestran tal cual los devuelve el backend (no se
   reescriben para revelar si un usuario existe, ver A07).
 - `401` se resuelve **solo** en el interceptor de `apiClient` (refresh y

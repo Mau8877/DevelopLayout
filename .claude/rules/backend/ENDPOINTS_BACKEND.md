@@ -39,6 +39,11 @@ GET /api/v1/usuarios?page=1&pageSize=20&search=texto&filter[rol]=admin
 
 - **Ningún endpoint de listado puede omitir la paginación**, ni siquiera si
   hoy tiene pocos registros — se pagina desde el primer día.
+- `page` y `pageSize` se validan con `common/util/Paginacion` (máximo 100) y el
+  bloque `meta` se arma con `PageMeta.de(pagina)`.
+- **Un dato personal no va en la URL** (queda en los logs del proxy). Un listado
+  que se busca por correo o similar es un `POST .../buscar` con el criterio y la
+  paginación en el body (ej. `POST /api/v1/admin/sesiones/buscar`).
 - El response correspondiente sigue el contrato de
   [RESPONSES_BACKEND.md](RESPONSES_BACKEND.md) (`data` array + bloque `meta`).
 - Si un listado necesita un `sort`/orden, no está definido todavía en este

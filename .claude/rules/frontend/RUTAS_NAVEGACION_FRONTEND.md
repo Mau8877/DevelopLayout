@@ -113,9 +113,13 @@ para el esquema de roles del lado del backend — el frontend usa el mismo
   usa `UsuarioLayout`. La decisión de a qué grupo pertenece cada ruta es
   estructural (en qué carpeta vive el archivo), no una condición en runtime
   dentro de un layout único.
-- **Excepción provisoria:** `/panel`, la única ruta privada hoy, elige el
-  layout según el rol en runtime. No es el patrón a copiar: con las primeras
-  rutas reales por rol se pasa a los layouts pathless de arriba.
+- `_authenticated/_admin.tsx` es el layout de administrador: su `beforeLoad`
+  manda a `/panel` a quien no es `SUPER_ADMIN` y monta `AdminLayout`. El título
+  de cada pantalla es el `staticData.breadcrumb` de su ruta. Toda pantalla de
+  administrador va dentro de `_authenticated/_admin/`.
+- **Excepción:** `/panel`, común a todos los roles, elige el layout en runtime.
+  No es el patrón a copiar.
+- El menú lateral navega con `Link` (sin recargar la app).
 - Los layouts de rol conectan "Cerrar sesión" (`useLogout`) y se lo pasan a
   `AppShell` como `onLogout`.
 - Los `navItems` de ejemplo apuntan a rutas que todavía no existen.

@@ -56,6 +56,13 @@ enumerar cada combinación de filtros a mano. Después de una mutación
 `['usuarios', 'list']`; si la mutación afecta un recurso puntual que ya
 estaba cacheado, se invalida también su `['usuarios', 'detail', id]`.
 
+### Criterios sensibles
+
+Un correo u otro dato personal **no entra en la `queryKey`**: se usa un
+identificador de la búsqueda y el dato queda en la `queryFn` (ver
+`features/auth/api/useSesionesAdmin.ts`). El `placeholderData` solo conserva
+resultados de la misma búsqueda.
+
 ## Dónde viven las queries/mutations
 
 Dentro de la carpeta `api/` de cada feature (arquitectura feature-based, ver

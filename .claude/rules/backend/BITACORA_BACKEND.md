@@ -48,11 +48,15 @@ que cambiaron con sus nombres, nunca valores sensibles.
 ## Consulta y retención
 
 - Solo `SUPER_ADMIN` consulta (`@PreAuthorize` en el service), paginada, con
-  `pageSize` máximo 100.
-- Retención configurable (`app.bitacora.retention-months`, 12 por defecto).
-  **Pendiente:** existe la función `authentication.purgar_bitacora(meses)`, pero
-  todavía no hay propiedad ni tarea programada que la invoque. La consulta
-  llega con la HU de Bitácora.
+  `pageSize` máximo 100 (`GET /api/v1/bitacora`). La lectura vive en
+  `BitacoraConsultaRepository` (Criteria, solo lectura). No uses
+  `JpaSpecificationExecutor` en repositorios de solo lectura: incluye `delete` y
+  `update`.
+- Retención configurable (`app.bitacora.retention-months`, variable
+  `BITACORA_RETENTION_MONTHS`, 12 por defecto; menor a 1 impide arrancar).
+  `BitacoraPurgaJob` corre cada día a las 03:00 del servidor y llama a
+  `authentication.purgar_bitacora`. Sin bloqueo distribuido: con más de una
+  réplica hay que agregarlo.
 
 ## Tests
 

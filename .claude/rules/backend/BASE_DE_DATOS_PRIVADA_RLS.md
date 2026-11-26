@@ -67,14 +67,23 @@ SELECT set_config('app.current_user', :codigo, true);
 
 Está implementado **una sola vez** en `security/RlsContext.java`, que exige una
 transacción activa y ofrece `usarCorreoDeLogin` (`app.login_email`),
-`usarRefreshHash` (`app.refresh_hash`) y `usarUsuario` (`app.current_user`).
+`usarRefreshHash` (`app.refresh_hash`), `usarUsuario` (`app.current_user`) y
+`usarAdmin` (`app.is_admin`).
 Ningún service llama a `set_config` por su cuenta. La única excepción es el
 alta del administrador inicial, que usa la conexión dueña (ver
 `docs/seguridad/RLS_EXCEPCIONES.md`).
 
-**Pendiente:** nada fija todavía `app.is_admin`, y `usuario` y `usuario_rol` no
-tienen política de administrador. La primera HU que administre usuarios tiene
-que crear ambas cosas.
+### Contexto de administrador
+
+- `usarAdmin()` solo se llama desde un service cuyo método exige el rol con
+  `@PreAuthorize`, **antes** de tocar datos.
+- Con él se ven y revocan sesiones, se lee la bitácora y se **leen** usuarios
+  (política `usuario_lectura_admin`, solo `FOR SELECT`).
+- **Dale al administrador la política más estrecha posible** (`FOR SELECT` si
+  solo lee). No reutilices `app.login_email` para buscar usuarios: también
+  permite modificar la fila.
+- **Pendiente:** `usuario_rol` no tiene política de administrador y no hay
+  escritura de administrador sobre usuarios (llegará con su gestión).
 
 ## 5. Excepciones (`RLS-OPT-OUT`)
 
@@ -91,6 +100,10 @@ técnica (`flyway_schema_history`). Se documenta así:
 
 ## 6. Tests
 
+- Una función `SECURITY DEFINER` sobre una tabla con `FORCE ROW LEVEL SECURITY`
+  se prueba también con un **dueño sin superusuario** (bases administradas): el
+  superusuario ignora RLS y esconde políticas faltantes. La purga de la
+  bitácora borraba 0 filas sin avisar (`PurgaDuenoSinSuperusuarioTest`).
 - Un test de integración con Testcontainers por tabla con RLS: usuario A no
   ve/modifica filas de usuario B, y sin contexto no se ve nada.
 - Los tests deben conectarse con el rol `app_runtime` (no el superusuario),
