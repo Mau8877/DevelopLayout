@@ -32,3 +32,12 @@ export const useUiStore = create<UiState>()(
     }
   )
 )
+
+// * El tema se aplica con la clase `.dark` de <html> (ver index.css). Es síncrono a
+// * propósito: la animación de runThemeTransition necesita el cambio en el mismo tick.
+function aplicarTema(theme: Theme) {
+  document.documentElement.classList.toggle('dark', theme === 'dark')
+}
+
+aplicarTema(useUiStore.getState().theme)
+useUiStore.subscribe((state) => aplicarTema(state.theme))

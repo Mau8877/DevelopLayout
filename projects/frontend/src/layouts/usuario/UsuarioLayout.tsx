@@ -1,4 +1,5 @@
 import { AppShell } from '@/components/layout'
+import { useLogout } from '@/features/auth'
 
 import { usuarioNavItems } from './usuarioNavItems'
 import type { UsuarioLayoutProps } from './usuarioTypes'
@@ -10,6 +11,8 @@ export function UsuarioLayout({
   activeHref,
   children,
 }: UsuarioLayoutProps) {
+  const logout = useLogout()
+
   return (
     <AppShell
       appName="App"
@@ -18,6 +21,7 @@ export function UsuarioLayout({
       activeHref={activeHref}
       user={user}
       notifications={notifications}
+      onLogout={() => logout.mutate()}
     >
       {children}
     </AppShell>

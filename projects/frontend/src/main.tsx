@@ -4,7 +4,8 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import './index.css'
 import { routeTree } from './routeTree.gen'
 import { ErrorState } from './components/ui/error-state'
-import { QueryProvider, ensureCsrfCookie } from './store'
+import { manejarSesionExpirada } from './features/auth'
+import { QueryProvider, ensureCsrfCookie, onSesionExpirada, queryClient } from './store'
 import { logger } from './utils/logger'
 
 // * Errores de render/carga y rutas inexistentes: pantalla genérica, sin
@@ -25,6 +26,12 @@ declare module '@tanstack/react-router' {
     router: typeof router
   }
 }
+
+onSesionExpirada(() => {
+  manejarSesionExpirada(queryClient, router.state.location.pathname, () => {
+    void router.navigate({ to: '/login' })
+  })
+})
 
 // * Errores que ningún componente atrapó: se registran por el logger (sin
 // * mostrar detalles técnicos al usuario).
