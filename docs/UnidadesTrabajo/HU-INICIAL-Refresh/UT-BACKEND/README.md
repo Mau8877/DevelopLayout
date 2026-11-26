@@ -21,7 +21,9 @@ Leer las rules de [`backend/`](../../../../.claude/rules/backend/) y [`SEGURIDAD
 | [UT-HUI-REFRESH-BE-02](./UT-HUI-REFRESH-BE-02.md) | AuthService.refresh y endpoint POST /refresh | UT-HUI-REFRESH-BE-01 |
 | [UT-HUI-REFRESH-BE-03](./UT-HUI-REFRESH-BE-03.md) | Tests de renovación | UT-HUI-REFRESH-BE-02 |
 
-**Cadena:** 01 → 02 → 03
+| [UT-HUI-REFRESH-BE-04](./UT-HUI-REFRESH-BE-04.md) | Refresh token firmado | UT-HUI-REFRESH-BE-03 |
+
+**Cadena:** 01 → 02 → 03 → 04
 
 ## Criterios de aceptación cubiertos
 

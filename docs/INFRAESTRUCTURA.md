@@ -155,10 +155,15 @@ Todos esos puertos se publican **solo en `127.0.0.1`**: el stack de desarrollo n
 
 ### 2.6 `minio` + `minio-init` — almacenamiento de archivos (S3-compatible)
 
-- **`minio`**: imagen `cgr.dev/chainguard/minio` (`minio/minio` ya no existe en Docker Hub; corre con `user: '0'` y su healthcheck usa `/dev/tcp` de bash porque no trae curl), expone la API S3 en `9000` y la
+- **`minio`**: imagen `cgr.dev/chainguard/minio` (`minio/minio` ya no existe en Docker Hub; corre **sin root** (uid 65532, `MINIO_UID` si tu imagen usa otro) y sin capabilities; su healthcheck usa `/dev/tcp` de bash porque no trae curl), expone la API S3 en `9000` y la
   consola web de administración en `9001`. Credenciales de
   `${MINIO_ROOT_USER}`/`${MINIO_ROOT_PASSWORD}`. Volumen `minio_data:/data`
   para persistencia.
+- **`minio-permisos`**: contenedor de una sola corrida que, antes de arrancar
+  MinIO, deja el volumen en manos de ese usuario (`chown`). Es el único paso como
+  root: sin red y solo con las capabilities `CHOWN` y `DAC_OVERRIDE`. Migra
+  solo los volúmenes creados cuando MinIO corría como root. **Volver a una
+  configuración con root no necesita deshacerlo.**
 - **`minio-init`**: contenedor de **una sola corrida** (imagen `bitnamilegacy/minio-client`, porque `minio/mc` ya no se publica en Docker Hub y la de Chainguard no trae `sh`;
   el cliente de línea de comandos de MinIO). Corre
   `infrastructure/minio/create-buckets.sh` una vez, crea el bucket, y
@@ -337,6 +342,7 @@ Usadas por `docker-compose.yml` (y por `docker-compose.prod.yml`) para levantar 
 | `GRAFANA_ADMIN_PASSWORD` | `CAMBIAME` | Password admin de Grafana (obligatoria) |
 | `APP_RUNTIME_PASSWORD` | `CAMBIAME` | Password del rol `app_runtime` con el que corre la app (obligatoria, solo letras y números). La crea la migración del rol; cambiarla después es `ALTER ROLE app_runtime PASSWORD '...'`, no editar la migración |
 | `JWT_SECRET` | `CAMBIAME_MINIMO_32_CARACTERES_ALEATORIOS` | Clave HS256 para firmar los access token (mínimo 32 caracteres, sin default; la app no arranca si falta, es corta o conserva el valor de ejemplo). Generar con `openssl rand -base64 48` |
+| `REFRESH_TOKEN_SECRET` | `CAMBIAME_MINIMO_32_CARACTERES_ALEATORIOS` | Clave que firma los refresh token (mínimo 32 caracteres, distinta de `JWT_SECRET`, sin default). Cambiarla cierra todas las sesiones. `pnpm setup:env` la genera |
 | `INITIAL_ADMIN_EMAIL` | `admin@midominio.com` | Correo del `SUPER_ADMIN` inicial (solo se usa si todavía no existe ninguno) |
 | `INITIAL_ADMIN_PASSWORD` | `CAMBIAME` | Contraseña del `SUPER_ADMIN` inicial (8 a 72 bytes; sin ella, con la base vacía, la app no arranca) |
 | `MINIO_ROOT_USER` | `minio_admin` | Usuario admin de MinIO (mínimo 3 caracteres, si no MinIO no arranca) |
@@ -526,7 +532,7 @@ agendarlo (cron/tarea del proveedor) y enviar el archivo, cifrado, a otro lugar.
 - **Sin métricas de nada más que el backend** — frontend/postgres/redis/minio
   no exponen métricas a Prometheus.
 - **Rate limit del backend no es distribuido** — vive en memoria del
-  proceso (`ConcurrentHashMap`), correcto para una sola instancia; con más
+  proceso (caché acotada), correcto para una sola instancia; con más
   de una réplica cada una tendría su propio cupo independiente (ver
   `SEGURIDAD_AUTH_BACKEND.md#rate-limit`).
 - **Redis está levantado y conectado, pero sin ningún uso real** todavía
