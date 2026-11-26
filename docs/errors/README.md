@@ -38,12 +38,16 @@ docs/errors/
 - [`ERR_SYS_00`](system/ERRORES_SISTEMA.md#err_sys_00) — Error interno no controlado (500)
 - [`ERR_SYS_01`](system/ERRORES_SISTEMA.md#err_sys_01) — Validación de Bean Validation fallida (400)
 - [`ERR_SYS_02`](system/ERRORES_SISTEMA.md#err_sys_02) — Límite de requests por IP superado (429)
+- [`ERR_SYS_03`](system/ERRORES_SISTEMA.md#err_sys_03) — Ruta inexistente (404)
+- [`ERR_SYS_04`](system/ERRORES_SISTEMA.md#err_sys_04) — Método no permitido (405)
+- [`ERR_SYS_05`](system/ERRORES_SISTEMA.md#err_sys_05) — Solicitud no compatible con el recurso (otro 4xx)
 
 ### Autenticación (`AUTH`)
 
 - [`ERR_AUTH_01`](auth/ERRORES_AUTH.md#err_auth_01) — Credenciales inválidas (401)
 - [`ERR_AUTH_02`](auth/ERRORES_AUTH.md#err_auth_02) — Cuenta bloqueada temporalmente por intentos fallidos (423)
 - [`ERR_AUTH_03`](auth/ERRORES_AUTH.md#err_auth_03) — Usuario no activo (403)
+- [`ERR_AUTH_04`](auth/ERRORES_AUTH.md#err_auth_04) — El refresh token ya no es válido (401)
 - [`ERR_AUTH_07`](auth/ERRORES_AUTH.md#err_auth_07) — No autenticado (401)
 - [`ERR_AUTH_08`](auth/ERRORES_AUTH.md#err_auth_08) — Acceso denegado o CSRF inválido (403)
 

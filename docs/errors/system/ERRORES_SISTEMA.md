@@ -20,9 +20,11 @@ feature).
 - **Excepción:** `ValidationException` (genérica, no de un módulo puntual)
 - **Significado:** Falló una validación automática de `@Valid`/Bean
   Validation sobre un DTO de request (campo obligatorio faltante, formato
-  inválido, etc.) — no una regla de negocio, esa se cataloga con su propio
+  inválido, etc.), o un parámetro ausente o mal tipado — no una regla de negocio, esa se cataloga con su propio
   código en el módulo que corresponda.
-- **Dónde se lanza:** `GlobalExceptionHandler.handleValidationException()`
+- **Dónde se lanza:** `GlobalExceptionHandler.handleValidationException()`,
+  `handleNotReadable()`, `handleTypeMismatch()` y `handleUnexpectedException()`
+  (errores 400 de Spring MVC)
 
 ## `ERR_SYS_02`
 
@@ -33,3 +35,24 @@ feature).
 - **Significado:** Se superó el límite de requests por IP configurado en
   `app.ratelimit.capacity` / `app.ratelimit.refill-per-minute`.
 - **Dónde se lanza:** `RateLimitFilter.writeTooManyRequests()`
+
+## `ERR_SYS_03`
+
+- **HTTP:** 404
+- **Excepción:** `NoResourceFoundException` (Spring MVC)
+- **Significado:** La ruta pedida no existe.
+- **Dónde se lanza:** `GlobalExceptionHandler.handleUnexpectedException()`
+
+## `ERR_SYS_04`
+
+- **HTTP:** 405
+- **Excepción:** `HttpRequestMethodNotSupportedException` (Spring MVC)
+- **Significado:** La ruta existe pero no admite ese verbo HTTP; la respuesta incluye la cabecera `Allow`.
+- **Dónde se lanza:** `GlobalExceptionHandler.handleUnexpectedException()`
+
+## `ERR_SYS_05`
+
+- **HTTP:** otro 4xx (ej. 406, 413, 415)
+- **Excepción:** cualquier `ErrorResponse` 4xx de Spring MVC sin código propio
+- **Significado:** La solicitud no es compatible con el recurso, por ejemplo un `Content-Type` no soportado.
+- **Dónde se lanza:** `GlobalExceptionHandler.handleUnexpectedException()`

@@ -140,21 +140,18 @@ Todos esos puertos se publican **solo en `127.0.0.1`**: el stack de desarrollo n
   lectura, con:
   ```
   maxmemory 256mb
-  maxmemory-policy allkeys-lru
+  maxmemory-policy noeviction
   appendonly yes
   ```
-  — límite de memoria de 256MB, política de desalojo LRU (descarta las
-  claves menos usadas recientemente cuando se llena), y persistencia AOF
-  habilitada (los datos sobreviven un restart del contenedor, no son
-  puramente cache volátil).
+  — límite de memoria de 256MB, **sin desalojo** y persistencia AOF
+  habilitada. Redis guarda datos de seguridad (bloqueos de login y sesiones
+  revocadas): al llenarse, las escrituras fallan en vez de borrarlos. Antes de
+  usarlo como caché hay que separarlo en otra instancia o dimensionar la memoria.
 - **Volumen**: `redis_data:/data` — para que la persistencia AOF de arriba
   tenga dónde escribir.
 - **Contraseña obligatoria**: arranca con `--requirepass ${REDIS_PASSWORD}` (el valor viene del `.env`, nunca de `redis.conf`, que se commitea), y su healthcheck se autentica con ella. El backend la recibe como `SPRING_DATA_REDIS_PASSWORD`.
-- **Estado de uso real**: el backend ya tiene `spring-boot-starter-data-redis`
-  agregado y `spring.data.redis.host` apuntando acá, pero **todavía no hay
-  ningún código de la aplicación que lo use de verdad** (el caso de uso
-  planeado es el storage de refresh tokens, ver `SEGURIDAD_AUTH_BACKEND.md`
-  — está documentado como pendiente, no implementado).
+- **Estado de uso real**: el backend lo usa para el bloqueo por intentos de
+  login y para consultar las sesiones revocadas.
 
 ### 2.6 `minio` + `minio-init` — almacenamiento de archivos (S3-compatible)
 

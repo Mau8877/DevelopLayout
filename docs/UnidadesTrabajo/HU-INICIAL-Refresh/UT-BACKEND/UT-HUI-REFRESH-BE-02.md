@@ -5,7 +5,7 @@
 | **Código** | `UT-HUI-REFRESH-BE-02` |
 | **Nombre** | AuthService.refresh y endpoint POST /refresh |
 | **Historia** | HU-INICIAL-Refresh-BE |
-| **Depende de** | UT-HUI-REFRESH-BE-01, UT-HUI-REFRESH-BE-01 |
+| **Depende de** | UT-HUI-REFRESH-BE-01 |
 
 ## Antes de implementar
 
@@ -26,6 +26,10 @@ Existe `POST /api/v1/auth/refresh` que entrega nuevos tokens.
 - Editar `SecurityConfig`: `permitAll` SOLO para `POST /api/v1/auth/refresh` (la autenticación es el refresh token en sí; el CSRF sigue activo en web). Justificación en comentario.
 - Rate limit propio para `/refresh`.
 - El access token nuevo lleva el mismo `sid` de la sesión; si la sesión ya no es `ACTIVA` no se emite.
+- Antes de entregar tokens, consultar `SesionRevocadaRegistry.estaRevocada(sid)`: si Redis no responde, el error se propaga (500), no se emite nada y la rotación se deshace (CA06).
+- Si el usuario está inactivo o sin roles, la rotación se deshace (`setRollbackOnly`) para no registrar después una reutilización falsa.
+- La respuesta usa el mismo `LoginResponse` del login.
+- Web nunca lee el body y mobile nunca lee la cookie (mobile está exento de CSRF).
 - `AuthService.refresh` recibe IP y user agent y los pasa a `SesionService.rotar`.
 
 **Archivos esperados (crear/tocar):**
@@ -35,6 +39,9 @@ Existe `POST /api/v1/auth/refresh` que entrega nuevos tokens.
 - `projects/backend/src/main/java/com/example/backend/features/auth/dto/RefreshRequest.java`
 - `projects/backend/src/main/java/com/example/backend/config/SecurityConfig.java`
 - `projects/backend/src/main/java/com/example/backend/security/RateLimitFilter.java`
+- `projects/backend/src/main/resources/application.properties`
+- `projects/backend/src/test/java/com/example/backend/security/RateLimitFilterTest.java`
+- `docs/api/openapi.json` y `projects/frontend/src/shared/api/schema.d.ts` (contrato)
 
 ## Fuera de alcance (no tocar)
 

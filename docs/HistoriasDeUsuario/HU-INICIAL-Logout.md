@@ -2,14 +2,14 @@
 
 | Id | Nombre corto de HU | Prioridad | PHU | Estado |
 | --- | --- | --- | --- | --- |
-| HU-INICIAL-LOGOUT | Cerrar sesión | Alta |  | Pendiente |
+| HU-INICIAL-LOGOUT | Cerrar sesión | Alta |  | En progreso |
 
 **Como:** usuario con sesión iniciada
 **Quiero:** cerrar mi sesión
 **Para:** que nadie más pueda usar mi cuenta desde este dispositivo
 
 **Descripción:**
-El usuario elige cerrar sesión. El sistema revoca la sesión (estado `REVOCADA`, motivo `LOGOUT`), agrega su identificador a la lista de sesiones revocadas de Redis (así su access token deja de valer de inmediato) y, en web, borra las cookies de acceso y refresh. El cliente limpia su estado y la caché de datos, y muestra el login. Si el refresh token ya no existe o el servidor no responde, el cliente igual cierra la sesión localmente.
+El usuario elige cerrar sesión. El sistema revoca la sesión (estado `REVOCADA`, motivo `LOGOUT`), agrega su identificador a la lista de sesiones revocadas de Redis (así su access token deja de valer de inmediato) y, en web, borra las cookies de acceso y refresh. El cliente limpia su estado y la caché de datos, y muestra el login. Si el refresh token ya no existe o el servidor no responde, el cliente igual cierra la sesión localmente. En web, si el servidor no recibe la petición, las cookies `HttpOnly` no se pueden borrar desde el cliente: al recargar la página la sesión puede reaparecer mientras siga vigente.
 
 Depende de [HU-INICIAL-Login](HU-INICIAL-Login.md).
 

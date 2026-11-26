@@ -18,7 +18,7 @@ Leer las rules de [`backend/`](../../../../.claude/rules/backend/) y [`SEGURIDAD
 | Código | Nombre | Depende de |
 |--------|--------|------------|
 | [UT-HUI-REFRESH-BE-01](./UT-HUI-REFRESH-BE-01.md) | SesionService.rotar, revocación y detección de reutilización | Login: SesionService.crear (HU-INICIAL-Login) |
-| [UT-HUI-REFRESH-BE-02](./UT-HUI-REFRESH-BE-02.md) | AuthService.refresh y endpoint POST /refresh | UT-HUI-REFRESH-BE-01, UT-HUI-REFRESH-BE-01 |
+| [UT-HUI-REFRESH-BE-02](./UT-HUI-REFRESH-BE-02.md) | AuthService.refresh y endpoint POST /refresh | UT-HUI-REFRESH-BE-01 |
 | [UT-HUI-REFRESH-BE-03](./UT-HUI-REFRESH-BE-03.md) | Tests de renovación | UT-HUI-REFRESH-BE-02 |
 
 **Cadena:** 01 → 02 → 03
