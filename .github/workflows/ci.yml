@@ -41,6 +41,7 @@ jobs:
               - 'projects/mobile/**'
             scripts:
               - 'scripts/**'
+              - 'docker-compose*.yml'
               - 'package.json'
 
   backend:

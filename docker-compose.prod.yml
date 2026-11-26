@@ -74,6 +74,7 @@ services:
       SPRING_FLYWAY_PASSWORD: ${POSTGRES_PASSWORD:?Definí POSTGRES_PASSWORD en .env}
       APP_RUNTIME_PASSWORD: ${APP_RUNTIME_PASSWORD}
       JWT_SECRET: ${JWT_SECRET:?Definí JWT_SECRET en .env}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:?Definí REFRESH_TOKEN_SECRET en .env}
       INITIAL_ADMIN_EMAIL: ${INITIAL_ADMIN_EMAIL}
       INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD}
       SPRING_DATA_REDIS_HOST: app-redis
@@ -146,15 +147,37 @@ services:
       timeout: 5s
       retries: 5
 
-  # Imagen de MinIO sin default: fijá un tag o digest concreto en .env
-  # (MINIO_IMAGE). `latest` no es reproducible ni auditable en producción.
-  minio:
+  # * Único paso como root: deja el volumen en manos del usuario sin privilegios y
+  # * termina. Migra los volúmenes creados cuando MinIO corría como root (sin esto
+  # * no arrancan). Sin red y solo con lo necesario para cambiar el dueño.
+  minio-permisos:
     image: ${MINIO_IMAGE:?Definí MINIO_IMAGE en .env con un tag o digest fijo (no latest)}
+    container_name: app-minio-permisos
     user: '0'
-    container_name: app-minio
-    restart: unless-stopped
+    entrypoint: ['chown', '-R', "${MINIO_UID:-65532}:${MINIO_UID:-65532}", '/data']
+    volumes:
+      - minio_data:/data
+    network_mode: none
+    restart: 'no'
     security_opt:
       - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+
+  # Imagen de MinIO sin default: fijá un tag o digest concreto en .env
+  # (MINIO_IMAGE). `latest` no es reproducible ni auditable en producción.
+  # Si tu imagen usa otro usuario sin privilegios, indicá su uid en MINIO_UID.
+  minio:
+    <<: *hardening
+    image: ${MINIO_IMAGE:?Definí MINIO_IMAGE en .env con un tag o digest fijo (no latest)}
+    user: "${MINIO_UID:-65532}:${MINIO_UID:-65532}"
+    container_name: app-minio
+    depends_on:
+      minio-permisos:
+        condition: service_completed_successfully
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Definí MINIO_ROOT_PASSWORD en .env}
