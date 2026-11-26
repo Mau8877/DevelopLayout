@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../features/auth/providers/auth_provider.dart';
 
 /// Shell del rol Admin -- AppBar + `NavigationDrawer` (Material 3, tres
 /// secciones). Equivalente mobile de `AdminLayout` en el frontend web (ver
 /// ARQUITECTURA_FRONTEND.md#layouts-por-rol): un Drawer calza mejor que un
 /// sidebar fijo en una pantalla angosta, pero cumple el mismo rol -- la
 /// navegación de nivel superior del rol admin.
-class AdminShell extends StatefulWidget {
+class AdminShell extends ConsumerStatefulWidget {
   const AdminShell({super.key});
 
   @override
-  State<AdminShell> createState() => _AdminShellState();
+  ConsumerState<AdminShell> createState() => _AdminShellState();
 }
 
 class _AdminSeccion {
@@ -25,7 +28,7 @@ const _secciones = [
   _AdminSeccion('Pedidos', Icons.list_alt_outlined),
 ];
 
-class _AdminShellState extends State<AdminShell> {
+class _AdminShellState extends ConsumerState<AdminShell> {
   int _selected = 0;
 
   @override
@@ -33,7 +36,16 @@ class _AdminShellState extends State<AdminShell> {
     final seccionActual = _secciones[_selected];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('App Admin')),
+      appBar: AppBar(
+        title: const Text('App Admin'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Cerrar sesión',
+            onPressed: () => ref.read(authProvider.notifier).logout(),
+          ),
+        ],
+      ),
       drawer: NavigationDrawer(
         selectedIndex: _selected,
         onDestinationSelected: (index) {

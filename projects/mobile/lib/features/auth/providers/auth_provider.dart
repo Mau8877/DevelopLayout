@@ -18,6 +18,10 @@ final authProvider = AsyncNotifierProvider<AuthNotifier, UsuarioSesion?>(AuthNot
 class AuthNotifier extends AsyncNotifier<UsuarioSesion?> {
   @override
   Future<UsuarioSesion?> build() async {
+    // * Cuando el refresh es rechazado, el redirect global lleva a /login.
+    ApiClient.onSesionExpirada = () => state = const AsyncData(null);
+    ref.onDispose(() => ApiClient.onSesionExpirada = null);
+
     final service = ref.read(authServiceProvider);
     if (!await service.hayToken()) return null;
     try {
@@ -28,6 +32,17 @@ class AuthNotifier extends AsyncNotifier<UsuarioSesion?> {
         await service.descartarTokens();
       }
       return null;
+    }
+  }
+
+  /// Cierra la sesión. Los tokens se borran aunque el servidor no responda.
+  Future<void> logout() async {
+    final service = ref.read(authServiceProvider);
+    try {
+      await service.logout();
+    } finally {
+      await service.descartarTokens();
+      state = const AsyncData(null);
     }
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:mobile/core/theme/app_theme.dart';
@@ -12,7 +13,7 @@ import 'package:mobile/layouts/usuario/usuario_shell.dart';
 void main() {
   testWidgets('muestra la sección inicial del shell de usuario', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(theme: AppTheme.light, home: const UsuarioShell()),
+      ProviderScope(child: MaterialApp(theme: AppTheme.light, home: const UsuarioShell())),
     );
 
     expect(find.text('Inicio'), findsWidgets);
