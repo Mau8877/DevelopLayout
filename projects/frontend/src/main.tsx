@@ -4,6 +4,7 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import './index.css'
 import { routeTree } from './routeTree.gen'
 import { ErrorState } from './components/ui/error-state'
+import { Toaster } from './components/ui/sonner'
 import { manejarSesionExpirada } from './features/auth'
 import { QueryProvider, ensureCsrfCookie, onSesionExpirada, queryClient } from './store'
 import { logger } from './utils/logger'
@@ -50,6 +51,7 @@ async function bootstrap() {
     <StrictMode>
       <QueryProvider>
         <RouterProvider router={router} />
+        <Toaster />
       </QueryProvider>
     </StrictMode>,
   )

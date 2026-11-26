@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useLocation } from '@tanstack/react-router'
+import { Link, useLocation } from '@tanstack/react-router'
 import { XIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -14,11 +14,8 @@ interface SidebarNavProps {
   onNavigate?: () => void
 }
 
-// * Se usa <a> en vez del <Link> tipado de TanStack Router porque los
-// * navItems de cada rol (src/layouts/) hoy apuntan a rutas que todavía no
-// * existen (ej. /usuarios, /pedidos) -- son placeholders de la estructura del
-// * menú, no rutas reales todavía. Cuando esas rutas se implementen, este
-// * componente pasa a usar <Link to={item.href}> para navegación tipada.
+// * `Link` navega sin recargar la app. Algunos navItems de ejemplo (src/layouts/)
+// * todavía apuntan a rutas que no existen y muestran "Página no encontrada".
 function SidebarNav({
   items,
   activeHref,
@@ -34,9 +31,9 @@ function SidebarNav({
         const Icon = item.icon
         const isActive = current === item.href
         return (
-          <a
+          <Link
             key={item.href}
-            href={item.href}
+            to={item.href}
             onClick={onNavigate}
             className={cn(
               'relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-primary/5 hover:text-sidebar-foreground',
@@ -51,7 +48,7 @@ function SidebarNav({
             <span className={cn(collapsed && 'md:hidden')}>
               {item.label}
             </span>
-          </a>
+          </Link>
         )
       })}
     </nav>
