@@ -65,9 +65,16 @@ no se filtra entre requests que reusan la misma conexión del pool):
 SELECT set_config('app.current_user', :codigo, true);
 ```
 
-Esto se implementa **una sola vez** (un componente en `security/`, no
-repetido por service) cuando se implemente la autenticación. Hasta
-entonces, ninguna tabla de negocio puede salir a producción.
+Está implementado **una sola vez** en `security/RlsContext.java`, que exige una
+transacción activa y ofrece `usarCorreoDeLogin` (`app.login_email`),
+`usarRefreshHash` (`app.refresh_hash`) y `usarUsuario` (`app.current_user`).
+Ningún service llama a `set_config` por su cuenta. La única excepción es el
+alta del administrador inicial, que usa la conexión dueña (ver
+`docs/seguridad/RLS_EXCEPCIONES.md`).
+
+**Pendiente:** nada fija todavía `app.is_admin`, y `usuario` y `usuario_rol` no
+tienen política de administrador. La primera HU que administre usuarios tiene
+que crear ambas cosas.
 
 ## 5. Excepciones (`RLS-OPT-OUT`)
 

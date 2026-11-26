@@ -18,8 +18,7 @@ Todo fallo de una llamada a la API llega a hooks y componentes como `ApiError`
 - **Fallos sin sobre** (sin conexión, timeout, respuesta no JSON de un proxy,
   `502/504`) → también `ApiError`, con códigos propios del cliente
   `CLIENT_NETWORK`, `CLIENT_TIMEOUT`, `CLIENT_UNKNOWN` y un mensaje genérico en
-  español. **Pendiente de implementar:** hoy esos casos rechazan un `AxiosError`
-  crudo; debe corregirse antes de la primera feature real.
+  español (`normalizeError`).
 - Un componente nunca inspecciona `AxiosError`, `error.response` ni
   `error.message` de una excepción que no sea `ApiError`.
 
@@ -52,9 +51,9 @@ Todo fallo de una llamada a la API llega a hooks y componentes como `ApiError`
 
 ## Logging
 
-- Un único `logger` (`src/utils/logger.ts`, a crear con la primera feature real).
-  Prohibido `console.log` suelto en código de la app; ESLint debe tener
-  `no-console` activo (permitiendo solo el `logger`).
+- Un único `logger` (`src/utils/logger.ts`). Prohibido `console.log` suelto en
+  código de la app; ESLint tiene `no-console` activo y solo el `logger` lo
+  desactiva.
 - En producción el `logger` no emite `debug`/`info`. `VITE_ENABLE_API_LOGS` debe
   ser `false` en cualquier build de producción.
 - **Nunca se loguea:** tokens, cookies, cabecera `Authorization`, passwords,

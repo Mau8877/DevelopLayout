@@ -12,11 +12,10 @@ muestra un error crudo, y ningún `catch` se traga un error en silencio.
 
 - El interceptor de `ApiClient` convierte el sobre `failed` en `ApiException`
   (`code` + `message`). **Fallos sin sobre** (sin conexión, timeout, respuesta
-  no JSON, `502/504`) también deben llegar como `ApiException` con códigos
-  propios del cliente (`CLIENT_NETWORK`, `CLIENT_TIMEOUT`, `CLIENT_UNKNOWN`) y
-  mensaje genérico en español. **Pendiente de implementar:** hoy esos casos
-  llegan como `DioException` sin `ApiException`.
-- Una función única en `core/network/` (p. ej. `mensajeDeError(Object error)`)
+  no JSON, `502/504`) llegan como `ApiException` con códigos propios del
+  cliente (`CLIENT_NETWORK`, `CLIENT_TIMEOUT`, `CLIENT_UNKNOWN`) y mensaje
+  genérico en español.
+- Una función única, `mensajeDeError(Object error)` (`core/network/`),
   traduce cualquier error a un texto para el usuario. Las pantallas la usan; no
   hacen `error.toString()`, no leen `DioException.response` ni muestran el body.
 - `features/health/` (pantalla de diagnóstico) es la única excepción a esto, y

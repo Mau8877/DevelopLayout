@@ -11,27 +11,27 @@ transversal a toda la app vive en `core/`.
 
 ## Estructura de `lib/`
 
-Ya scaffoldeada — la estructura real que existe hoy en el repo (`core/network`
-y `core/theme` ya implementados; `core/routing` todavía vacío; `layouts/`
-y `features/health/` como ejemplo de referencia real; `features/auth/`
-como ejemplo de referencia vacío):
+La estructura real que existe hoy en el repo (`core/`, `layouts/`,
+`shared/widgets/` y `features/auth/` implementados; `features/health/` es de
+diagnóstico):
 
 ```
 lib/
 ├── core/
-│   ├── network/     # ApiClient (Dio + interceptor de sobre), ya implementado (ver CONSUMO_API_MOBILE.md)
+│   ├── network/     # ApiClient (Dio + sobre), refresh_interceptor y error_message (ver CONSUMO_API_MOBILE.md)
 │   ├── routing/     # GoRouter único con el redirect global según la sesión (ver NAVEGACION_MOBILE.md)
-│   ├── storage/     # SecureTokenStorage: tokens en el almacenamiento seguro del sistema (ver CONSUMO_API_MOBILE.md)
+│   ├── storage/     # SecureTokenStorage: tokens en el almacenamiento seguro del sistema
 │   ├── logging/     # AppLogger: único punto de log, solo en debug (ver ERRORES_LOGGING_MOBILE.md)
-│   └── theme/       # AppColors/AppTheme, ya implementado con paleta neutra de placeholder
+│   └── theme/       # AppColors/AppTheme, con paleta neutra de placeholder
 ├── layouts/
-│   └── {rol}/       # Shell por rol (AdminShell, UsuarioShell, ya scaffoldeados como ejemplo)
+│   └── {rol}/       # Shell por rol (AdminShell, UsuarioShell), con "Cerrar sesión"
 ├── shared/
-│   └── widgets/     # Widgets genéricos, sin dominio (ver COMPONENTIZACION_MOBILE.md) -- se crea con el primero
+│   └── widgets/     # Widgets genéricos, sin dominio (AppButton, AppTextField)
 ├── features/
-│   ├── health/      # Feature de diagnóstico end-to-end (service+provider+screen) contra el backend real
+│   ├── auth/        # Referencia real: models, providers, screens, services
+│   ├── health/      # Feature de diagnóstico contra el backend real
 │   └── {feature}/   # Un feature de negocio (ver estructura abajo)
-└── main.dart         # Entry point, monta MaterialApp + ProviderScope (sin GoRouter todavía)
+└── main.dart         # Entry point: ProviderScope + MaterialApp.router
 ```
 
 `core/` es la única carpeta de nivel superior con código transversal real
@@ -49,16 +49,13 @@ mejor lugar para un chequeo de conectividad, mismo criterio que
 
 `layouts/{rol}/` sigue el mismo patrón que
 [ARQUITECTURA_FRONTEND.md](ARQUITECTURA_FRONTEND.md#estructura-de-src) del
-lado web: un shell delgado por rol (`AdminShell`, `UsuarioShell`, ya
-scaffoldeados) que no conoce lógica de negocio, solo la navegación de
-nivel superior de ese rol. Ninguno está conectado a `core/routing/`
-todavía (esa carpeta sigue vacía) — quedan disponibles para montarse
-cuando el proyecto defina su propio `GoRouter`.
+lado web: un shell delgado por rol, que `core/routing/app_router.dart` monta
+según el rol de la sesión. Su única acción sobre una feature es "Cerrar sesión"
+(`authProvider`).
 
 ## Estructura de un feature (`lib/features/{feature}/`)
 
-Ya scaffoldeada como ejemplo de referencia en `lib/features/auth/` (hoy
-vacía, solo `.gitkeep` en cada subcarpeta) — cualquier feature nueva sigue
+`lib/features/auth/` es la referencia real — cualquier feature nueva sigue
 esta misma forma:
 
 ```
@@ -83,7 +80,10 @@ convención de nombres), [CONSUMO_API_MOBILE.md](mobile/CONSUMO_API_MOBILE.md)
 ## Regla de dependencia
 
 `features/{feature}/` puede depender de `core/` y `shared/` — nunca al
-revés (`core/`/`shared/` no importan nada de `features/`). Una feature no
+revés (`core/`/`shared/` no importan nada de `features/`). **Única excepción:**
+`core/routing/`, que ensambla el árbol de rutas y por eso importa las pantallas,
+el provider de sesión y los shells (ver
+[NAVEGACION_MOBILE.md](mobile/NAVEGACION_MOBILE.md)). Una feature no
 depende de otra feature directo salvo que la relación de negocio lo
 justifique explícitamente, mismo criterio que
 [ARQUITECTURA_BACKEND.md](ARQUITECTURA_BACKEND.md#regla-de-dependencia).

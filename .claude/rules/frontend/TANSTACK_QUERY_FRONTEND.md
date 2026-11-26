@@ -147,19 +147,33 @@ Todo hook de `api/` de cada feature usa `apiClient` — no se crea una
 instancia de axios nueva por feature, y no se llama a `createBaseApi()` de
 nuevo fuera de `apiClient.ts` (una sola instancia real en toda la app).
 
-> Sin probar todavía contra un endpoint de negocio real (el backend no tiene
-> ningún `@RestController` aún) — sí se probó manualmente contra `/health` y
-> un endpoint inexistente (`403`/`404`), confirmando que el logging y el
-> manejo de error funcionan. Cuando exista el primer endpoint real, conviene
-> re-verificar el desempaquetado de `data`/`meta` contra una respuesta con
-> el sobre completo.
+  - Todo fallo sin sobre llega como `ApiError` con `CLIENT_NETWORK`,
+    `CLIENT_TIMEOUT` o `CLIENT_UNKNOWN`; `ApiError.status` guarda el HTTP.
+
+### Renovación de sesión
+
+Vive en `apiClient.ts`; ninguna pantalla maneja un 401 por su cuenta.
+
+- Ante un 401 (excepto `/auth/login`, `/auth/refresh` y `/auth/logout`) llama a
+  `POST /auth/refresh` una sola vez para todas las requests en curso y reintenta
+  cada una **una** vez.
+- Solo un 401 o 403 del refresh dispara `onSesionExpirada` (lo conecta
+  `main.tsx` con `manejarSesionExpirada`). Sin red, 429 o 500 la sesión se
+  conserva.
+- `store/candadoSesion.ts` serializa refresh y logout **entre pestañas** con
+  `navigator.locks` y, sin soporte (navegador viejo o `http://` fuera de
+  localhost), con una reserva con vencimiento en `localStorage` (id y hora,
+  nunca tokens; no es atómica). Todo lo que rote o cierre la sesión usa
+  `conCandadoDeSesion`.
+- La query de sesión usa la key `['auth', 'session']`. Al cerrar o expirar la
+  sesión se limpia la caché y esa query queda en `null`.
 
 ## Utilidades genéricas: `src/utils/`
 
 Funciones utilitarias que no son específicas de shadcn (eso sigue siendo
 `src/lib/utils.ts`, el `cn()` que el CLI espera en `@/lib/utils` — no se
-toca ni se mueve) van en `src/utils/`, una carpeta nueva y separada. Hoy
-solo tiene `debounce.ts` (debounce genérico, pensado para UX puntual —
+toca ni se mueve) van en `src/utils/`, una carpeta separada. Entre ellas,
+`logger.ts` (único punto de log) y `debounce.ts` (debounce genérico, pensado para UX puntual —
 doble-submit por doble-click, un buscador que no dispare en cada tecla — no
 para seguridad; el rate limit real está en el backend, ver
 [SEGURIDAD_AUTH_BACKEND.md](../backend/SEGURIDAD_AUTH_BACKEND.md#rate-limit)).

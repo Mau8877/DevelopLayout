@@ -6,26 +6,21 @@ globs: projects/mobile/**/*
 
 ## `go_router` con redirect global
 
-Un único `GoRouter` configurado en `lib/core/routing/` (scaffold ya creado,
-hoy solo tiene `.gitkeep` — es un prerequisito armarlo antes de la primera
-pantalla real). El chequeo de sesión **no se repite pantalla por pantalla**:
-se resuelve una sola vez en el callback `redirect` de la configuración raíz
-del router:
+Un único `GoRouter`, en `lib/core/routing/app_router.dart` (`routerProvider`).
+El chequeo de sesión **no se repite pantalla por pantalla**: se resuelve una
+sola vez en el `redirect` raíz, que delega en una función pura y testeable:
 
 ```dart
-// lib/core/routing/app_router.dart
-final router = GoRouter(
-  redirect: (context, state) {
-    final isLoggedIn = /* leer estado de sesión, ej. desde un provider de auth */;
-    final isLoggingIn = state.matchedLocation == '/login';
-
-    if (!isLoggedIn && !isLoggingIn) return '/login';
-    if (isLoggedIn && isLoggingIn) return '/';
-    return null; // sin redirect
-  },
-  routes: [ /* ... */ ],
-);
+String? redirectSegunSesion({
+  required AsyncValue<UsuarioSesion?> auth,
+  required String location,
+});
 ```
+
+Cargando la sesión → pantalla de carga; sin sesión → `/login`; con sesión en
+login o carga → inicio. El router escucha `authProvider`
+(`refreshListenable`), así que al cerrar sesión o al expirar redirige solo:
+ninguna pantalla navega a `/login` a mano.
 
 Mismo concepto que el guard de rutas del frontend web (ver
 [RUTAS_NAVEGACION_FRONTEND.md](../frontend/RUTAS_NAVEGACION_FRONTEND.md)):

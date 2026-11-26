@@ -50,6 +50,9 @@ que cambiaron con sus nombres, nunca valores sensibles.
 - Solo `SUPER_ADMIN` consulta (`@PreAuthorize` en el service), paginada, con
   `pageSize` máximo 100.
 - Retención configurable (`app.bitacora.retention-months`, 12 por defecto).
+  **Pendiente:** existe la función `authentication.purgar_bitacora(meses)`, pero
+  todavía no hay propiedad ni tarea programada que la invoque. La consulta
+  llega con la HU de Bitácora.
 
 ## Tests
 

@@ -85,6 +85,11 @@ Todo `GET` que devuelva una colección incluye el bloque `meta`:
 | `429` | Se superó el rate limit por IP (ver [SEGURIDAD_AUTH_BACKEND.md](SEGURIDAD_AUTH_BACKEND.md#rate-limit)) | Ninguna — lo escribe `RateLimitFilter` directo, no pasa por `GlobalExceptionHandler` |
 | `500` | Error no controlado / falla de infraestructura | Cualquier excepción no mapeada explícitamente |
 
+Los errores 4xx propios de Spring MVC (`404` de ruta inexistente, `405`, `406`,
+`413`, `415`, parámetros inválidos) conservan su status con `ERR_SYS_01`,
+`ERR_SYS_03`, `ERR_SYS_04` o `ERR_SYS_05` (ver
+[`docs/errors/`](../../../docs/errors/README.md)); nunca son un `500`.
+
 El detalle de la jerarquía de excepciones y el `@RestControllerAdvice` que
 hace este mapeo vive en [EXCEPCIONES_BACKEND.md](EXCEPCIONES_BACKEND.md) —
 acá solo se documenta el contrato de respuesta, no se duplica la

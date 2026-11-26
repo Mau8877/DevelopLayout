@@ -27,30 +27,29 @@ src/
 ├── lib/
 │   └── utils.ts          # `cn()` que shadcn espera en @/lib/utils -- no se toca ni se mueve
 ├── utils/                # Utilidades genéricas propias del proyecto (ver TANSTACK_QUERY_FRONTEND.md)
+├── routeTree.gen.ts      # Generado por TanStack Router (se commitea, no se edita)
 ├── setupTests.ts         # Setup global de Vitest (matchers de jest-dom)
 ├── main.tsx              # Composition root: QueryProvider + RouterProvider
 └── index.css             # Directivas de Tailwind + tokens de tema
 ```
 
-`shared/api/schema.d.ts` es el único archivo que existe hoy en `shared/`: tipos
-**generados** del contrato OpenAPI (`pnpm openapi:sync` + `pnpm openapi:types`,
-ver `scripts/README.md`). No se edita a mano; los tipos de request/response se
-toman de ahí en vez de escribirse a mano.
-
-`shared/` más allá de ese archivo no existe todavía como carpeta real (se crea recién cuando
-aparece el primer caso concreto que la necesita — ver el criterio de "no
-anticipar" en
+`shared/api/schema.d.ts` son tipos **generados** del contrato OpenAPI
+(`pnpm openapi:sync` + `pnpm openapi:types`, ver `scripts/README.md`). No se
+edita a mano; los tipos de request/response se toman de ahí. Es lo único que
+hay hoy en `shared/`: el resto se crea con el primer caso concreto que lo
+necesite (ver
 [TANSTACK_QUERY_FRONTEND.md](frontend/TANSTACK_QUERY_FRONTEND.md#endpoints-usados-por-más-de-una-feature)).
-`utils/` y `layouts/` ya existen: `utils/` tiene `debounce.ts`,
-`dayjsEs.ts`, `formatRelativeDate.ts` y `runThemeTransition.ts`; `layouts/`
-tiene un layout por rol de ejemplo (`admin/`, `usuario/`) — ver
+
+`utils/` tiene `debounce.ts`, `dayjsEs.ts`, `formatRelativeDate.ts`,
+`logger.ts` y `runThemeTransition.ts`. `layouts/` tiene un layout por rol
+(`admin/`, `usuario/`) — ver
 [Layouts por rol](frontend/RUTAS_NAVEGACION_FRONTEND.md#layouts-por-rol).
 
 ## Estructura de un feature (`src/features/{feature}/`)
 
-Ya scaffoldeada como ejemplo de referencia en `src/features/home/` (hoy
-vacía, solo con los `index.ts` de cada subcarpeta) — **cualquier feature
-nueva sigue exactamente esta misma forma**:
+`src/features/auth/` es la referencia real (`api/`, `schemas/`, `screens/`,
+`tests/`, `types/` e `index.ts`); `src/features/home/` es el scaffold vacío.
+**Cualquier feature nueva sigue esta misma forma**:
 
 ```
 src/features/usuarios/

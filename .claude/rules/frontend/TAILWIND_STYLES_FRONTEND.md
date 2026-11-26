@@ -25,6 +25,13 @@ esquivando el sistema de diseño en vez de extenderlo — si hace falta un
 tamaño/color nuevo con frecuencia, se agrega como token al tema, no se
 repite el valor arbitrario en cada lugar que lo necesita.
 
+## Modo oscuro
+
+Se activa solo con la clase `.dark` (la pone `useUiStore`, ver
+[ESTADO_GLOBAL_FRONTEND.md](ESTADO_GLOBAL_FRONTEND.md#tema)). `index.css` no usa
+`prefers-color-scheme` ni estilos globales sobre elementos fuera de
+`@layer base`: restos así de la demo de Vite dejaban títulos ilegibles.
+
 ## No hay paleta custom todavía
 
 Hoy el proyecto usa el tema **default** de shadcn (`components.json`:

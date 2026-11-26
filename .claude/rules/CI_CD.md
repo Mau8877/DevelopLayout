@@ -55,8 +55,9 @@ si el tag es anotado, usar el commit al que apunta `vX^{}`), no copiado de memor
 
 El pipeline usa un job `changes` (con la acción `dorny/paths-filter`) que
 detecta qué carpetas cambiaron en el PR/push, y cada job de proyecto
-(`backend`, `frontend`, `mobile`) solo corre si `changes` marcó que su
-carpeta tuvo cambios. Esto es deliberado por dos razones:
+(`backend`, `frontend`, `mobile`, `scripts`) solo corre si `changes` marcó
+que sus rutas tuvieron cambios (`backend` también con `infrastructure/redis/**`,
+porque un test verifica `redis.conf`). Esto es deliberado por dos razones:
 
 - **Este es un monorepo con 3 proyectos independientes** (ver
   [`README.md`](../../README.md)) que no comparten build ni runtime — no
@@ -83,13 +84,14 @@ sin nada adicional inventado solo para CI:
 | `backend` | `mvnw checkstyle:check` → `mvnw test` → `mvnw clean package` |
 | `frontend` | `pnpm install --frozen-lockfile` (desde la raíz, ver [docs/README.md](../../docs/README.md)) → `pnpm lint` → `pnpm test` → `pnpm build` → `pnpm audit --audit-level moderate` |
 | `mobile` | `flutter pub get` → `flutter analyze` → `flutter test` |
+| `scripts` | `node --test "scripts/**/*.test.mjs"` |
 
 - El job de `backend` levanta `postgres:18-alpine` y `redis:8-alpine` como
   `services:` del job (mismas versiones que `docker-compose.yml`) y le pasa
-  `SPRING_DATASOURCE_*`/`SPRING_DATA_REDIS_HOST` al paso de tests: el test
-  `@SpringBootTest` (`AppBackendApplicationTests`) arranca el contexto completo,
-  y sin base de datos ni Redis Flyway/el health check lo harían fallar. Si
-  se renombra la base (`POSTGRES_DB`), se actualiza también en `ci.yml`.
+  `SPRING_DATASOURCE_*`/`SPRING_DATA_REDIS_HOST` al paso de tests. Hoy los
+  tests de contexto completo levantan su propio Postgres con Testcontainers; el
+  Redis del job lo usan los que extienden solo `PostgresIntegrationTest`. Si se
+  renombra la base (`POSTGRES_DB`), se actualiza también en `ci.yml`.
 - El job de `backend` corre en un runner de Ubuntu, que trae Docker nativo
   disponible — a diferencia del setup local en Windows (ver
   [TESTING_BACKEND.md](backend/TESTING_BACKEND.md)), acá los tests que

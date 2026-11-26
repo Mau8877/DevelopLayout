@@ -4,22 +4,22 @@ globs: projects/backend/**/*
 
 # Seguridad y Autenticación — Backend
 
-> **Base de seguridad previa (ya aplicada):** el perfil `dev` separa lo
-> cómodo de lo seguro, Redis exige password y los puertos de infra están en
-> `127.0.0.1`. La autenticación real **aún no está implementada** y se
-> hace junto con RLS (rol `app_runtime`, contexto `app.current_user`, ver
-> [BASE_DE_DATOS_PRIVADA_RLS.md](BASE_DE_DATOS_PRIVADA_RLS.md)) y las reglas
-> de [SEGURIDAD_OWASP.md](../SEGURIDAD_OWASP.md) (A07).
-> `server.forward-headers-strategy=native` ya está activo para que el rate
-> limit use la IP real del cliente.
+## Estado actual
 
-## Estado actual (punto de partida)
+| Pieza | Estado |
+| --- | --- |
+| Login, `/me`, refresh, logout y token CSRF | Implementado (HU Base, Login, Refresh) |
+| Cierre de sesión | Backend y web probados; falta la validación mobile en emulador (HU Logout) |
+| Recuperación y cambio de contraseña, envío de correo | **No implementado** |
+| Gestión de usuarios y roles | **No implementada**. Antes necesita políticas RLS de administrador: `usuario` y `usuario_rol` solo permiten la fila propia o la del login, y `RlsContext` no fija `app.is_admin` |
+| Administrar sesiones y consultar la bitácora | **No implementado** |
 
-`SecurityConfig.java` hoy usa el `InMemoryUserDetailsManager` autogenerado
-por Spring Boot (usuario/password aleatorio impreso en el log en cada
-arranque). Esto es **solo un placeholder de desarrollo** y debe
-reemplazarse por la implementación real descrita abajo antes de considerar
-la autenticación "hecha" — no es un requisito opcional.
+El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
+
+> **Riesgo pendiente:** `sesion` guarda un solo hash anterior. Un token robado
+> y rotado dos veces antes de que vuelva el usuario legítimo ya no se detecta
+> como reutilización (ver la HU de Refresh). Resolverlo antes de manejar datos
+> sensibles.
 
 ## Flujo: JWT + refresh token (web: solo cookies)
 
@@ -81,52 +81,48 @@ la autenticación "hecha" — no es un requisito opcional.
   (Keystore/Keychain, MASVS-STORAGE); refresh y logout reciben el refresh
   token en el body. Sin ese header se usa siempre cookie.
 - **Endpoints** (`/api/v1/auth/...`):
-  - `POST /api/v1/auth/login` → valida credenciales, responde
-    `{ accessToken, usuario }` en el body y setea la cookie `refreshToken`.
-  - `POST /api/v1/auth/refresh` → lee el refresh token de la cookie, busca
-    su hash en `sesion`, valida que la sesión esté `ACTIVA` y no vencida,
-    rota el hash (guardando el anterior para detectar reutilización) y
-    responde con un access token nuevo y la cookie nueva.
-  - `POST /api/v1/auth/logout` → revoca la sesión (`REVOCADA`), la agrega a la
-    lista de revocadas de Redis y borra las cookies.
+  - `GET /csrf` → entrega la cookie `XSRF-TOKEN` (204).
+  - `POST /login` → valida credenciales y responde `data.usuario`
+    (`codigo`, `email`, `roles`). Web: los dos tokens van en cookies y no en
+    el body. Mobile: además `accessToken` y `refreshToken` en el body.
+  - `GET /me` → usuario y roles de la sesión vigente (privado).
+  - `POST /refresh` → web lee **solo** la cookie y mobile **solo** el body
+    (mobile está exento de CSRF, así que nunca se autentica con una cookie).
+    Rota el hash bloqueando la fila y responde igual que el login. Una sesión
+    vencida pasa a `EXPIRADA`. Si Redis o la base fallan, no entrega tokens.
+  - `POST /logout` → revoca la sesión (`REVOCADA`), la agrega a la lista de
+    revocadas y, en web, borra las cookies. Siempre 200 (idempotente).
 - **Reutilización**: si llega un refresh token que ya fue rotado (coincide con
-  el hash anterior de una sesión), se asume robo: la sesión se revoca con motivo
-  `REUSO` y se registra en la bitácora ([BITACORA_BACKEND.md](BITACORA_BACKEND.md)).
-- Redis se sigue usando para el bloqueo por intentos de login, los tokens de
-  recuperación de contraseña, el rate limit y la lista de sesiones revocadas;
-  **no** guarda refresh tokens (cada refresh ya escribe en la base, así que una
-  caché no aportaría nada).
+  el hash anterior de una sesión activa), se asume robo: la sesión se revoca con
+  motivo `REUSO` y se registra en la bitácora ([BITACORA_BACKEND.md](BITACORA_BACKEND.md)).
+  La revocación se confirma aunque la respuesta sea 401 (`noRollbackFor`).
+- **Clientes**: renuevan de a una vez y solo cierran la sesión local si el
+  refresh responde 401 o 403; sin red, con 429 o con 500 la conservan. En web
+  las pestañas se coordinan con un candado compartido (ver
+  [TANSTACK_QUERY_FRONTEND.md](../frontend/TANSTACK_QUERY_FRONTEND.md#renovación-de-sesión)).
+- Redis guarda el contador de intentos de login y la lista de sesiones
+  revocadas (a futuro, los tokens de recuperación de contraseña). **No**
+  guarda refresh tokens. Corre con `maxmemory-policy noeviction`: no puede
+  desalojar esos datos. El rate limit vive en memoria, no en Redis.
 
-## Reemplazo del `InMemoryUserDetailsManager`
+## Usuarios y validación de credenciales
 
-- Model `Usuario` (tabla `usuario`, schema `authentication`, `features/usuarios/model/Usuario.java`,
-  extiende `BaseModel` — ver [ARQUITECTURA_BACKEND.md](../ARQUITECTURA_BACKEND.md))
-  con al menos: `username` (único), `correo`/`email` (único), `passwordHash`
-  (BCrypt, nunca texto plano), `estado` (enum de negocio — ej.
-  `EstadoUsuario { ACTIVO, INACTIVO, ... }`, ver
-  [Roles](#roles-y-permisos) para la distinción con el bloqueo temporal
-  por intentos fallidos). Todavía no existe — es un requisito de esta
-  regla, no algo que ya esté implementado. El identificador público es
-  `codigo` (heredado de `BaseModel`), nunca se expone el detalle interno
-  de la fila.
-- Login puede aceptar `username` o `correo`/`email` indistintamente en el
-  mismo campo de entrada si el proyecto lo requiere — el repositorio
-  resuelve contra cualquiera de las dos columnas; si no hace falta esa
-  flexibilidad, un solo campo de login (`email` o `username`) alcanza.
-- `UserDetailsServiceImpl implements UserDetailsService` en `security/`, que
-  busca el usuario por su campo de login vía `UsuarioRepository` y arma el
-  `UserDetails`/principal con sus roles activos (ver
-  [Roles](#roles-y-permisos)) y su `estado` (mapeado a `enabled` de
-  `UserDetails` — `enabled = true` solo si `estado == ACTIVO`, para que
-  Spring Security dispare `DisabledException` automáticamente en cualquier
-  otro estado).
-- `SecurityConfig` pasa a usar este `UserDetailsService` + un
-  `PasswordEncoder` (`BCryptPasswordEncoder`) en vez del in-memory, vía un
-  `AuthenticationManager` (vía `AuthenticationConfiguration`) que el
-  `AuthService` del módulo `auth` usa para validar credenciales. El filtro
-  de autenticación por JWT (`OncePerRequestFilter` custom) valida el access
-  token en cada request y setea el `Authentication` en el
-  `SecurityContext`.
+- `Usuario` (`features/usuarios/model/Usuario.java`, tabla
+  `authentication.usuario`, extiende `BaseModel`) tiene `email` (identificador
+  de acceso, único entre filas no borradas e insensible a mayúsculas),
+  `passwordHash` (BCrypt) y `estado` (`ACTIVO` | `INACTIVO`). No hay
+  `username`. El identificador público es `codigo`.
+- `AuthService.login()` busca el usuario con RLS (`app.login_email`) y compara
+  con `PasswordEncoder` (`BCryptPasswordEncoder`). **No usa
+  `AuthenticationManager`.** Si el correo no existe compara contra un hash
+  ficticio, para igualar tiempos.
+- `UserDetailsServiceImpl` existe en `security/` y evita que Spring Boot cree
+  su usuario en memoria; el flujo de login no lo invoca.
+- `JwtAuthenticationFilter` (`OncePerRequestFilter`, creado en
+  `SecurityConfig`, no es `@Component`) valida el access token, consulta la
+  lista de sesiones revocadas y puebla el `SecurityContext`.
+- El primer `SUPER_ADMIN` lo crea `AdminInicialInitializer` con
+  `INITIAL_ADMIN_EMAIL` e `INITIAL_ADMIN_PASSWORD`.
 
 ## Roles y permisos
 
@@ -154,12 +150,15 @@ que va a hacer falta esa flexibilidad.
   datos (filas de la tabla `rol`), administrables sin desplegar código
   nuevo.
 - El JWT lleva la lista de nombres de roles activos como claim (array de
-  strings, ver [Flujo JWT](#flujo-jwt--refresh-token)) — `UserDetailsServiceImpl`
-  arma las `authorities` como `ROLE_{nombre}` por cada rol activo.
+  strings, ver [Flujo JWT](#flujo-jwt--refresh-token-web-solo-cookies)): lo arma
+  `AuthService` con los roles leídos de la base en el login y en cada refresh, y
+  `JwtAuthenticationFilter` lo convierte en `authorities` `ROLE_{nombre}`.
 - Se protege por rol con `@PreAuthorize("hasRole('SUPER_ADMIN')")` (o
   `hasAnyRole(...)` si aplica a más de uno) a nivel de método de `service`
   (no en el controller — mantiene la regla de controllers delgados de
-  [ENDPOINTS_BACKEND.md](ENDPOINTS_BACKEND.md)).
+  [ENDPOINTS_BACKEND.md](ENDPOINTS_BACKEND.md)). Funciona gracias a
+  `@EnableMethodSecurity` en `SecurityConfig`: sin esa anotación todo
+  `@PreAuthorize` se ignora en silencio (`ErroresYPermisosTest` lo cubre).
 - **No confundir con el bloqueo temporal por intentos fallidos de login**:
   ese bloqueo es un estado transitorio (ej. en Redis), no un valor de
   `Usuario.estado` ni de ningún rol — son dos mecanismos independientes.
@@ -216,6 +215,8 @@ intentar de más).
   Central; se verificó contra el índice de Maven Central antes de fijar la
   versión). Un bucket por IP (`ConcurrentHashMap<String, Bucket>`), refill
   "greedy" (los tokens se regeneran continuo, no en ráfagas cada N segundos).
+- **Límites propios por IP**, además del global: login 10/min
+  (`app.ratelimit.login-*`) y refresh 30/min (`app.ratelimit.refresh-*`).
 - **Config** (`application.properties`, sobreescribible por env var):
   `app.ratelimit.capacity` (default `100`) y
   `app.ratelimit.refill-per-minute` (default `100`) → `RATE_LIMIT_CAPACITY` /
@@ -241,23 +242,19 @@ intentar de más).
 > límite independiente (un atacante repartiendo requests entre instancias
 > efectivamente multiplica su cupo). Para eso existe
 > `bucket4j_jdk11-redis` (Redis ya está en el stack y
-> `spring-boot-starter-data-redis` ya está en el `pom.xml`, agregada para el
-> storage de refresh tokens de más arriba) — no se implementa hasta que haya
+> `spring-boot-starter-data-redis` ya está en el `pom.xml`) — no se implementa hasta que haya
 > más de una instancia real corriendo.
 
 > **Esto no reemplaza protección a nivel de infraestructura.** Un rate
-> limit en la app (como este) es la última línea de defensa, no la única —
-> nginx (que ya está en `docker-compose.yml` como proxy) también podría
-> tener su propio `limit_req_zone`/`limit_req`, más barato en recursos
-> porque corta el tráfico antes de que llegue a la JVM. No está configurado
-> todavía; si se agrega, va en una regla de infraestructura aparte, no acá.
+> limit en la app (como este) es la última línea de defensa. nginx
+> (`nginx.conf` y `nginx.prod.conf`) aplica además `limit_req` sobre `/api/`
+> (20 r/s, ráfaga de 40) y corta antes de llegar a la JVM.
 
 ## Endpoints públicos
 
-Solo quedan sin autenticación los ya definidos en `SecurityConfig`
-(`/health`, `/health/**`, `/prometheus`, `/swagger-ui/**`, `/v3/api-docs/**`)
-más los de `/api/v1/auth/login`, `/api/v1/auth/refresh` (obviamente, todavía
-no hay token) y `/api/v1/auth/register` si el proyecto lo requiere.
-Cualquier otro endpoint nuevo es privado por default — si necesita ser
-público, es una decisión explícita, no un olvido de agregar la regla en
-`SecurityConfig`.
+Sin autenticación solo quedan los declarados en `SecurityConfig`: `/health`,
+`/health/**`, `/prometheus`, `/swagger-ui/**`, `/v3/api-docs/**`,
+`GET /api/v1/auth/csrf` y `POST /api/v1/auth/login`, `/refresh` y `/logout`
+(en los dos últimos la credencial es el refresh token y en web el CSRF sigue
+activo). No hay registro público. Cualquier otro endpoint nuevo es privado por
+default: hacerlo público es una decisión explícita.
