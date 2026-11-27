@@ -9,9 +9,9 @@
 **Para:** recuperar el acceso a mi cuenta sin ayuda del administrador
 
 **Descripción:**
-Desde el login, el usuario pide recuperar su contraseña ingresando su correo. El sistema siempre responde lo mismo, exista o no la cuenta, y si existe y está activa envía un correo con un enlace de un solo uso válido 30 minutos que abre la pantalla de restablecer en el frontend web. Allí el usuario define una contraseña nueva (mínimo 8 caracteres, sin otras reglas); el sistema la guarda, invalida el token y todas las sesiones abiertas del usuario. En mobile solo se pide el correo; el enlace se abre en el navegador. Si el enlace es inválido, expiró o ya se usó, se muestra un error y se puede pedir otro.
+Desde el login, el usuario pide recuperar su contraseña ingresando su correo. El sistema responde siempre lo mismo y sin esperar a saber si la cuenta existe; si existe y está activa, envía después un correo con un enlace de un solo uso válido 30 minutos que abre la pantalla de restablecer en el frontend web. Allí el usuario define una contraseña nueva (mínimo 8 caracteres, sin otras reglas); el sistema la guarda, invalida el enlace y todas las sesiones abiertas del usuario y levanta el bloqueo por intentos fallidos. En mobile solo se pide el correo; el enlace se abre en el navegador. Si el enlace es inválido, expiró o ya se usó, se muestra un error y se puede pedir otro. Si la contraseña elegida no sirve, el enlace sigue valiendo.
 
-Depende de [HU-INICIAL-Base](HU-INICIAL-Base.md), de [HU-INICIAL-Login](HU-INICIAL-Login.md) (levantar el bloqueo) y de [HU-INICIAL-Refresh](HU-INICIAL-Refresh.md) (revocar sesiones), y requiere un servicio de correo (en desarrollo, Mailpit en el compose).
+Depende de [HU-INICIAL-Base](HU-INICIAL-Base.md), de [HU-INICIAL-Login](HU-INICIAL-Login.md) (levantar el bloqueo) y de [HU-INICIAL-Refresh](HU-INICIAL-Refresh.md) (revocar sesiones). Requiere un servicio de correo: en desarrollo, Mailpit en el compose; en producción, un servidor SMTP cuya configuración es obligatoria para desplegar.
 
 ---
 
@@ -27,11 +27,14 @@ Depende de [HU-INICIAL-Base](HU-INICIAL-Base.md), de [HU-INICIAL-Login](HU-INICI
 
 **Reglas de negocio**
 
-- Token aleatorio de alta entropía; se guarda solo su hash (en Redis con TTL de 30 minutos), un solo uso.
-- Respuesta uniforme exista o no el correo (anti enumeración), con rate limit específico por IP y por correo.
-- Pedir un enlace nuevo invalida el anterior.
-- La contraseña nueva cumple la misma política que en [HU-INICIAL-Base](HU-INICIAL-Base.md) (mínimo 8 caracteres, nada más) y no puede coincidir con la actual.
-- Restablecer la contraseña también levanta el bloqueo temporal por intentos fallidos.
+- Token aleatorio de alta entropía; se guarda solo su hash (en Redis, 30 minutos), un solo uso. Pedir un enlace nuevo invalida el anterior.
+- El enlace solo se consume cuando el cambio de contraseña se va a confirmar: un rechazo por la contraseña elegida no lo gasta. Si el sistema falla justo al confirmar, la contraseña no cambia y puede hacer falta pedir otro enlace.
+- La respuesta a la solicitud es uniforme y no depende de la cuenta (ni en contenido ni en tiempo): todo lo que depende de ella ocurre después de responder.
+- Dos límites distintos. **Por IP:** al superarlo, 429. **Por correo:** 3 solicitudes por hora, contadas antes de saber si la cuenta existe; al superarlo se responde igual que siempre, no se envía nada y el último enlace sigue valiendo.
+- El envío no está garantizado: si el correo falla o el servidor se reinicia en ese momento, el usuario pide otro enlace.
+- La contraseña nueva cumple la misma política que en [HU-INICIAL-Base](HU-INICIAL-Base.md) (mínimo 8 caracteres, nada más; máximo 72 bytes) y no puede coincidir con la actual.
+- Restablecer la contraseña levanta el bloqueo temporal por intentos fallidos, desde cualquier origen.
+- La dirección del enlace sale de la configuración del servidor, nunca de datos de la petición.
 
 ---
 
@@ -41,17 +44,27 @@ Depende de [HU-INICIAL-Base](HU-INICIAL-Base.md), de [HU-INICIAL-Login](HU-INICI
 - **CA02:** Dado un correo inexistente o de cuenta inactiva, el sistema debe responder 200 con el mismo mensaje y no enviar correo.
 - **CA03:** Dado un token válido y una contraseña que cumple la política, el sistema debe cambiarla, invalidar el token y cerrar todas las sesiones del usuario.
 - **CA04:** Dado un token inválido, expirado o ya usado, el sistema debe responder 400 con error catalogado y el frontend debe ofrecer pedir otro enlace.
-- **CA05:** Dado que la contraseña nueva tiene menos de 8 caracteres o no coincide con su confirmación, el sistema (o el formulario) debe rechazarla indicando el error bajo el campo.
-- **CA06:** Dado que se superan los intentos permitidos de solicitud, el sistema debe responder 429.
+- **CA05:** Dado que la contraseña nueva tiene menos de 8 caracteres, supera 72 bytes o no coincide con su confirmación, el sistema (o el formulario) debe rechazarla indicando el error bajo el campo, sin gastar el enlace.
+- **CA06:** Dado que una IP supera su límite de solicitudes o de intentos de restablecimiento, el sistema debe responder 429.
 - **CA07:** Dado que se pide un enlace nuevo, el enlace anterior debe dejar de funcionar.
 - **CA08:** Dado que se abre el enlace, el frontend debe quitar el token de la URL (`history.replaceState`) y la página debe servirse con `Referrer-Policy: no-referrer`.
-- **CA09:** Dado un correo existente y uno inexistente, el tiempo de respuesta de la solicitud debe ser equivalente.
+- **CA09:** Dado un correo existente y uno inexistente, la solicitud no debe consultar la cuenta ni enviar correo antes de responder, de modo que el tiempo de respuesta no dependa de la cuenta.
 - **CA10:** Dado un cambio de contraseña exitoso, el sistema debe registrar un evento `INFO` sin contraseña ni token.
-- **CA11:** Dado una solicitud o un cambio de contraseña, el sistema debe registrar `AUTH_RECUPERACION_SOLICITADA` y `AUTH_PASSWORD_RESTABLECIDA` en la bitácora, sin token ni contraseña.
+- **CA11:** Dado un correo enviado (o que falló) y un cambio de contraseña, el sistema debe registrar `AUTH_RECUPERACION_SOLICITADA` y `AUTH_PASSWORD_RESTABLECIDA` en la bitácora, con la IP y el user agent de la petición, sin token ni contraseña.
+- **CA12:** Dado que un correo supera 3 solicitudes en una hora, el sistema debe responder 200 con el mismo mensaje, no enviar correo y no invalidar el último enlace.
+- **CA13:** Dado un login con la contraseña anterior que coincide en el tiempo con el restablecimiento, al terminar no debe quedar ninguna sesión activa abierta con esa contraseña.
+- **CA14:** Dado que la contraseña nueva es igual a la actual, el sistema debe responder 400 con error catalogado y el enlace debe seguir sirviendo.
+- **CA15:** Dado que el servidor de correo no está disponible, la aplicación debe seguir sana (`/health`), la solicitud debe responder 200 y el fallo debe quedar registrado sin datos sensibles.
+- **CA16:** Dado un restablecimiento exitoso de una cuenta bloqueada, el usuario debe poder iniciar sesión de inmediato desde cualquier IP.
+- **CA17:** Dado un despliegue de producción sin la configuración de correo o sin la dirección HTTPS de la web, la aplicación no debe arrancar.
+- **CA18:** Dados dos restablecimientos simultáneos con el mismo enlace, solo uno debe tener éxito.
 
 ## Seguridad
 
-- Sin tokens ni contraseñas en logs ni en la URL de ninguna API (el token va en el enlace una sola vez y se envía por body al restablecer) (OWASP A07, A09).
+- **Datos sensibles:** correo, contraseña nueva y token de restablecimiento.
+- **Quién puede hacerlo:** cualquiera puede pedir un enlace (sin sesión); solo quien tiene el token vigente cambia la contraseña, y solo la de su cuenta (RLS) (OWASP A01).
+- **Abuso previsible:** enumerar cuentas (CA02, CA09), inundar un buzón (CA06, CA12), adivinar o reutilizar tokens (CA04, CA07, CA18), conservar un acceso robado durante el cambio (CA03, CA13) y envenenar el enlace con cabeceras de la petición (la dirección sale de la configuración). Quien conozca un correo puede consumir su cupo de envíos durante una hora; se acepta.
+- Sin tokens ni contraseñas en logs ni en la URL de ninguna API (el token va en el fragmento del enlace y se envía por body al restablecer) (OWASP A07, A09).
 
 ## Desarrollador
 

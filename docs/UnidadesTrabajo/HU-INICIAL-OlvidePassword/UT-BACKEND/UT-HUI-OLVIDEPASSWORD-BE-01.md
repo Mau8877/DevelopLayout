@@ -9,21 +9,22 @@
 
 ## Antes de implementar
 
-Leer `docs/INFRAESTRUCTURA.md`, `SEGURIDAD_OWASP.md` (Infraestructura) y `.claude/rules/SEGURIDAD_OWASP.md`.
+Leer `docs/INFRAESTRUCTURA.md` y `.claude/rules/SEGURIDAD_OWASP.md` (Infraestructura).
 
 ## Solicitud de negocio
 
-Sin bandeja de correo local no se puede probar la recuperación en desarrollo.
+Sin una bandeja local no se puede probar la recuperación en desarrollo.
 
 ## Objetivo
 
-El compose de desarrollo incluye Mailpit solo en `127.0.0.1`.
+El compose de desarrollo incluye Mailpit y el backend le envía los correos.
 
 ## Alcance
 
-- Servicio `mailpit` (imagen con tag fijo) en `docker-compose.yml`: SMTP 1025 y UI 8025 publicados solo en `127.0.0.1`; el backend lo alcanza por la red interna.
-- Documentarlo en `docs/INFRAESTRUCTURA.md` y `docs/README.md`.
-- No va en `docker-compose.prod.yml` (producción usa un SMTP real).
+- Servicio `mailpit` (`container_name: app-mailpit`) en `docker-compose.yml`, con tag fijo: SMTP `1025` y UI `8025` publicados solo en `127.0.0.1`, `cap_drop: ALL` y `no-new-privileges`.
+- En el `environment` del backend de desarrollo: `SPRING_MAIL_HOST=app-mailpit`, `SPRING_MAIL_PORT=1025`, `SPRING_MAIL_SMTP_AUTH=false`, `SPRING_MAIL_SMTP_STARTTLS=false`, `MAIL_FROM=no-reply@localhost` y `APP_FRONTEND_BASE_URL=http://localhost:5173`.
+- Descargar la imagen requiere permiso: se indica nombre, tag, origen y tamaño antes de hacerlo.
+- Documentarlo en `docs/INFRAESTRUCTURA.md` y en el checklist de `docs/README.md` (nombre del contenedor).
 
 **Archivos esperados (crear/tocar):**
 
@@ -31,10 +32,14 @@ El compose de desarrollo incluye Mailpit solo en `127.0.0.1`.
 - `docs/INFRAESTRUCTURA.md`
 - `docs/README.md`
 
+## Seguridad
+
+A02: puertos solo en `127.0.0.1`, imagen con tag fijo, contenedor sin capabilities. Mailpit no va en producción.
+
 ## Fuera de alcance (no tocar)
 
 - Código del backend.
-- Configuración SMTP de producción.
+- `docker-compose.prod.yml` (UT 07).
 
 ## Resultado esperado
 
@@ -42,9 +47,5 @@ Con `docker compose up`, la UI de Mailpit abre en `http://127.0.0.1:8025`.
 
 ## Validación
 
-1. `docker compose config --quiet` sin errores.
-2. Abrir la UI de Mailpit; desde fuera del equipo el puerto no responde.
-
-## Seguridad
-
-A02: sin puertos expuestos a la red, imagen con tag fijo.
+1. `docker compose config --quiet` sin errores y `pnpm test:scripts` en verde.
+2. La UI abre desde el equipo; los puertos figuran publicados solo en `127.0.0.1`.

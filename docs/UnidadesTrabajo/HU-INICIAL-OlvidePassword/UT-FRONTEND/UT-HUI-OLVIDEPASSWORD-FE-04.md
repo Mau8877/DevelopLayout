@@ -21,7 +21,7 @@ Tests de pantallas y schemas.
 
 ## Alcance
 
-- `tests/ForgotPasswordScreen.test.tsx`, `tests/ResetPasswordScreen.test.tsx` (verifica `replaceState` y que el token no queda en `location`), `tests/resetPasswordSchema.test.ts`.
+- `tests/ForgotPasswordScreen.test.tsx`, `tests/ResetPasswordScreen.test.tsx` (el fragmento desaparece de la URL; el token sigue disponible para reintentar tras `ERR_AUTH_06`; `ERR_AUTH_05` y sin token muestran el enlace para pedir otro; éxito deja la sesión en `null`), `tests/resetPasswordSchema.test.ts`.
 
 **Archivos esperados (crear/tocar):**
 
@@ -43,4 +43,4 @@ Pasan.
 
 ## Seguridad
 
-Cubre CA05 y CA08.
+Cubre CA04, CA05, CA08 y CA14.
