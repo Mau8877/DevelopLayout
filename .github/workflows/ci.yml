@@ -55,6 +55,9 @@ jobs:
               - 'docker-compose.prod.yml'
               - '.env.example'
               - '.github/workflows/ci.yml'
+              - 'scripts/prod-smoke.mjs'
+              - 'scripts/db-backup.mjs'
+              - 'scripts/setup-env.mjs'
 
   backend:
     needs: changes
@@ -233,12 +236,13 @@ jobs:
           ignore-unfixed: true
           exit-code: '1'
 
-  # Valida que las imágenes de producción construyan y que el compose de
-  # producción sea válido. No publica nada (CD sigue sin implementarse).
+  # Construye y escanea las imágenes de producción, y levanta el stack completo con
+  # datos descartables. No publica nada (CD sigue sin implementarse).
   docker:
     needs: changes
     if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.produccion == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Build imagen backend
@@ -282,3 +286,13 @@ jobs:
           TLS_CERT_DIR: /tmp
           CORS_ALLOWED_ORIGINS: https://ci.example.com
           MINIO_IMAGE: cgr.dev/chainguard/minio:latest
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      # Arranque, entrada por HTTPS, sesiones, bucket privado, y respaldo restaurado en
+      # un servidor vacío. Genera sus secretos y su certificado; usa volúmenes propios.
+      - name: Producción de punta a punta y recuperación
+        run: node scripts/prod-smoke.mjs
+        env:
+          # Mismo tag que los builds de arriba: reutiliza sus capas.
+          APP_VERSION: ci
