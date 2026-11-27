@@ -42,6 +42,32 @@ proyecto).
 > agrega a un `.trivyignore`, no se baja la severidad del escaneo.
 > `scripts/{linux,windows}/update-deps.*` hace la misma auditoría en local.
 
+## CVEs en las imágenes base
+
+Si Trivy marca paquetes del sistema con arreglo disponible, se actualizan en el
+`Dockerfile`; no se ignoran ni se baja la severidad. La imagen web usa
+`nginx-unprivileged:stable-alpine-slim`, corre `apk upgrade` y exige un mínimo
+de nginx (`nginx>=X.Y.Z`), porque la base fija su versión y `apk upgrade` solo
+no la sube. Ante un CVE nuevo de nginx se sube ese mínimo. **Pendiente:** el
+`proxy` de `docker-compose.prod.yml` usa la imagen pública sin parchear y CI no
+la escanea.
+
+## Versión de Flutter fija
+
+El job `mobile` fija `flutter-version` (la misma del desarrollo local). Con
+`channel: stable` a secas, una versión nueva marcó como obsoleto
+`package:flutter/material.dart` y rompió el CI sin cambios en el código.
+Dependabot no la actualiza: al subir de Flutter se cambia en `ci.yml` en el
+mismo cambio. **Pendiente:** a partir de la 3.47 hay que migrar a `material_ui`.
+
+## Falsos positivos de gitleaks
+
+Se anotan uno por uno: `gitleaks:allow` en la línea y, si el hallazgo está en un
+commit ya hecho, su fingerprint en `.gitleaksignore` con el motivo. Nunca se
+desactiva una regla ni se excluye una carpeta. gitleaks revisa cada commit del
+PR, así que rebasear cambia los hashes anotados. **Un secreto real no se ignora:
+se rota.**
+
 ## Pendiente: fijar las acciones de terceros por SHA
 
 Las acciones de `ci.yml` están fijadas por tag (`@v4`), que es mutable: el
@@ -55,8 +81,10 @@ si el tag es anotado, usar el commit al que apunta `vX^{}`), no copiado de memor
 
 El pipeline usa un job `changes` (con la acción `dorny/paths-filter`) que
 detecta qué carpetas cambiaron en el PR/push, y cada job de proyecto
-(`backend`, `frontend`, `mobile`) solo corre si `changes` marcó que su
-carpeta tuvo cambios. Esto es deliberado por dos razones:
+(`backend`, `frontend`, `mobile`, `scripts`) solo corre si `changes` marcó
+que sus rutas tuvieron cambios (`backend` también con `infrastructure/redis/**`,
+porque un test verifica `redis.conf`; `scripts` también con
+`docker-compose*.yml`, que `compose-seguridad.test.mjs` revisa). Esto es deliberado por dos razones:
 
 - **Este es un monorepo con 3 proyectos independientes** (ver
   [`README.md`](../../README.md)) que no comparten build ni runtime — no
@@ -83,13 +111,14 @@ sin nada adicional inventado solo para CI:
 | `backend` | `mvnw checkstyle:check` → `mvnw test` → `mvnw clean package` |
 | `frontend` | `pnpm install --frozen-lockfile` (desde la raíz, ver [docs/README.md](../../docs/README.md)) → `pnpm lint` → `pnpm test` → `pnpm build` → `pnpm audit --audit-level moderate` |
 | `mobile` | `flutter pub get` → `flutter analyze` → `flutter test` |
+| `scripts` | `node --test "scripts/**/*.test.mjs"` |
 
 - El job de `backend` levanta `postgres:18-alpine` y `redis:8-alpine` como
   `services:` del job (mismas versiones que `docker-compose.yml`) y le pasa
-  `SPRING_DATASOURCE_*`/`SPRING_DATA_REDIS_HOST` al paso de tests: el test
-  `@SpringBootTest` (`AppBackendApplicationTests`) arranca el contexto completo,
-  y sin base de datos ni Redis Flyway/el health check lo harían fallar. Si
-  se renombra la base (`POSTGRES_DB`), se actualiza también en `ci.yml`.
+  `SPRING_DATASOURCE_*`/`SPRING_DATA_REDIS_HOST` al paso de tests. Hoy los
+  tests de contexto completo levantan su propio Postgres con Testcontainers; el
+  Redis del job lo usan los que extienden solo `PostgresIntegrationTest`. Si se
+  renombra la base (`POSTGRES_DB`), se actualiza también en `ci.yml`.
 - El job de `backend` corre en un runner de Ubuntu, que trae Docker nativo
   disponible — a diferencia del setup local en Windows (ver
   [TESTING_BACKEND.md](backend/TESTING_BACKEND.md)), acá los tests que

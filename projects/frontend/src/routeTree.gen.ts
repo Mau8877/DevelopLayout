@@ -12,7 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/_admin'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
+import { Route as AuthenticatedAdminBitacoraRouteImport } from './routes/_authenticated/_admin/bitacora'
+import { Route as AuthenticatedAdminSesionesUsuariosRouteImport } from './routes/_authenticated/_admin/sesiones-usuarios'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +31,66 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/_admin',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
   id: '/panel',
   path: '/panel',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminBitacoraRoute =
+  AuthenticatedAdminBitacoraRouteImport.update({
+    id: '/bitacora',
+    path: '/bitacora',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminSesionesUsuariosRoute =
+  AuthenticatedAdminSesionesUsuariosRouteImport.update({
+    id: '/sesiones-usuarios',
+    path: '/sesiones-usuarios',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/panel': typeof AuthenticatedPanelRoute
+  '/bitacora': typeof AuthenticatedAdminBitacoraRoute
+  '/sesiones-usuarios': typeof AuthenticatedAdminSesionesUsuariosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/panel': typeof AuthenticatedPanelRoute
+  '/bitacora': typeof AuthenticatedAdminBitacoraRoute
+  '/sesiones-usuarios': typeof AuthenticatedAdminSesionesUsuariosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
+  '/_authenticated/_admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
+  '/_authenticated/_admin/bitacora': typeof AuthenticatedAdminBitacoraRoute
+  '/_authenticated/_admin/sesiones-usuarios': typeof AuthenticatedAdminSesionesUsuariosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/panel'
+  fullPaths: '/' | '/login' | '/panel' | '/bitacora' | '/sesiones-usuarios'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/panel'
-  id: '__root__' | '/' | '/_authenticated' | '/login' | '/_authenticated/panel'
+  to: '/' | '/login' | '/panel' | '/bitacora' | '/sesiones-usuarios'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/login'
+    | '/_authenticated/_admin'
+    | '/_authenticated/panel'
+    | '/_authenticated/_admin/bitacora'
+    | '/_authenticated/_admin/sesiones-usuarios'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -88,6 +122,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/_admin': {
+      id: '/_authenticated/_admin'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/panel': {
       id: '/_authenticated/panel'
       path: '/panel'
@@ -95,14 +136,44 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPanelRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/_admin/bitacora': {
+      id: '/_authenticated/_admin/bitacora'
+      path: '/bitacora'
+      fullPath: '/bitacora'
+      preLoaderRoute: typeof AuthenticatedAdminBitacoraRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/_admin/sesiones-usuarios': {
+      id: '/_authenticated/_admin/sesiones-usuarios'
+      path: '/sesiones-usuarios'
+      fullPath: '/sesiones-usuarios'
+      preLoaderRoute: typeof AuthenticatedAdminSesionesUsuariosRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminBitacoraRoute: typeof AuthenticatedAdminBitacoraRoute
+  AuthenticatedAdminSesionesUsuariosRoute: typeof AuthenticatedAdminSesionesUsuariosRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminBitacoraRoute: AuthenticatedAdminBitacoraRoute,
+  AuthenticatedAdminSesionesUsuariosRoute:
+    AuthenticatedAdminSesionesUsuariosRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
 }
 

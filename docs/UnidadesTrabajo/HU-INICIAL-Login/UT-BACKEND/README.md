@@ -27,6 +27,7 @@ Leer las rules de [`backend/`](../../../../.claude/rules/backend/) y [`SEGURIDAD
 | [UT-HUI-LOGIN-BE-07](./UT-HUI-LOGIN-BE-07.md) | AuthService.login y me | UT-HUI-LOGIN-BE-02, UT-HUI-LOGIN-BE-03, UT-HUI-LOGIN-BE-04, UT-HUI-LOGIN-BE-05, UT-HUI-LOGIN-BE-05, HU-INICIAL-Base: BitacoraService (UT-HUI-BASE-BE-06) |
 | [UT-HUI-LOGIN-BE-08](./UT-HUI-LOGIN-BE-08.md) | AuthController: csrf, login y me, cookies y permisos | UT-HUI-LOGIN-BE-06, UT-HUI-LOGIN-BE-07 |
 | [UT-HUI-LOGIN-BE-09](./UT-HUI-LOGIN-BE-09.md) | Tests de autenticación (login, lockout, autorización) | UT-HUI-LOGIN-BE-08 |
+| [UT-HUI-LOGIN-BE-10](./UT-HUI-LOGIN-BE-10.md) | Límite de intentos atómico, sin agotar conexiones | UT-HUI-LOGIN-BE-09 |
 
 **Cadena:** 01 → 02 → 03 → 04 → 05 → 06 → 07 → 08 → 09
 

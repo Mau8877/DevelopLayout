@@ -1,5 +1,6 @@
 package com.example.backend.security;
 
+import java.time.Duration;
 import java.util.UUID;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -20,6 +21,11 @@ public class SesionRevocadaRegistry {
 
     public SesionRevocadaRegistry(StringRedisTemplate redis) {
         this.redis = redis;
+    }
+
+    /** El TTL basta con la vida del access token: después ya no hay nada que cortar. */
+    public void revocar(UUID sid, Duration ttl) {
+        redis.opsForValue().set(PREFIJO + sid, "1", ttl);
     }
 
     public boolean estaRevocada(UUID sid) {

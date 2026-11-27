@@ -91,6 +91,16 @@ artefactos se renombraron con prefijo `testcontainers-` y la clase es
 > patrón de `assumeTrue` de arriba es obligatorio: un dev sin ese setting
 > tildado sigue pudiendo correr `mvn test` sin que le rompa el build.
 
+## Bases de los tests de integración
+
+- `support/PostgresIntegrationTest`: Postgres descartable, un solo rol.
+- `support/PostgresRuntimeIntegrationTest`: Postgres y Redis descartables, con
+  la app conectada como `app_runtime` (RLS aplica de verdad). Es la base para
+  todo flujo con datos o autenticación.
+- **CSRF se prueba contra un servidor real** (`WebEnvironment.RANDOM_PORT`, ver
+  `AuthCsrfCookieTest`): MockMvc sustituye el repositorio de CSRF y dejó pasar
+  un defecto que borraba la cookie `XSRF-TOKEN`.
+
 ## Convenciones
 
 - Seguridad (obligatorio, ver [SEGURIDAD_OWASP.md](../SEGURIDAD_OWASP.md)):

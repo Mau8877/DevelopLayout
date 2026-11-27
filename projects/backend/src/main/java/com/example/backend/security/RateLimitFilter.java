@@ -3,11 +3,15 @@ package com.example.backend.security;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Ticker;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
@@ -19,7 +23,11 @@ import jakarta.servlet.http.HttpServletResponse;
 /**
  * Rate limit por IP sobre /api/v1/** (endpoints de negocio).
  *
- * * En memoria (ConcurrentHashMap de buckets), no distribuido -- correcto
+ * * Las entradas se liberan tras un rato sin uso (cuando el bucket ya se rellenó,
+ * * borrarlo no cambia nada) y hay un máximo de clientes en memoria. Al llegar al
+ * * máximo se desaloja alguna, que recupera su cupo antes de tiempo: es el
+ * * precio de que la memoria tenga techo.
+ * * En memoria (caché de Caffeine), no distribuido -- correcto
  * * para una sola instancia de backend (el caso de este proyecto hoy). Si
  * * en algún momento se corre más de una réplica del backend, cada una
  * * tendría su propio límite independiente en vez de uno compartido; para
@@ -30,21 +38,46 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    private final ConcurrentHashMap<String, Bucket> buckets = new ConcurrentHashMap<>();
+    private static final Duration INACTIVIDAD_MINIMA = Duration.ofMinutes(10);
+
+    private final Cache<String, Bucket> buckets;
 
     // * Límite más estricto, por IP, solo para el login (además del global).
-    private final ConcurrentHashMap<String, Bucket> loginBuckets = new ConcurrentHashMap<>();
+    private final Cache<String, Bucket> loginBuckets;
+
+    // * /refresh no exige access token: lleva su propio límite por IP.
+    private final Cache<String, Bucket> refreshBuckets;
 
     private final int capacity;
     private final int refillPerMinute;
     private final int loginCapacity;
     private final int loginRefillPerMinute;
+    private final int refreshCapacity;
+    private final int refreshRefillPerMinute;
 
+    @Autowired
     public RateLimitFilter(
             @Value("${app.ratelimit.capacity}") int capacity,
             @Value("${app.ratelimit.refill-per-minute}") int refillPerMinute,
             @Value("${app.ratelimit.login-capacity:10}") int loginCapacity,
-            @Value("${app.ratelimit.login-refill-per-minute:10}") int loginRefillPerMinute) {
+            @Value("${app.ratelimit.login-refill-per-minute:10}") int loginRefillPerMinute,
+            @Value("${app.ratelimit.refresh-capacity:30}") int refreshCapacity,
+            @Value("${app.ratelimit.refresh-refill-per-minute:30}") int refreshRefillPerMinute,
+            @Value("${app.ratelimit.max-clients:100000}") int maxClientes) {
+        this(capacity, refillPerMinute, loginCapacity, loginRefillPerMinute, refreshCapacity,
+                refreshRefillPerMinute, maxClientes, Ticker.systemTicker());
+    }
+
+    RateLimitFilter(int capacity, int refillPerMinute, int loginCapacity, int loginRefillPerMinute,
+            int refreshCapacity, int refreshRefillPerMinute, int maxClientes, Ticker reloj) {
+        if (maxClientes < 1) {
+            throw new IllegalStateException("app.ratelimit.max-clients debe ser 1 o más");
+        }
+        this.buckets = nuevaCache(inactividad(capacity, refillPerMinute), maxClientes, reloj);
+        this.loginBuckets = nuevaCache(inactividad(loginCapacity, loginRefillPerMinute), maxClientes, reloj);
+        this.refreshBuckets = nuevaCache(inactividad(refreshCapacity, refreshRefillPerMinute), maxClientes, reloj);
+        this.refreshCapacity = refreshCapacity;
+        this.refreshRefillPerMinute = refreshRefillPerMinute;
         this.capacity = capacity;
         this.refillPerMinute = refillPerMinute;
         this.loginCapacity = loginCapacity;
@@ -62,11 +95,15 @@ public class RateLimitFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain) throws IOException, ServletException {
         String ip = resolveClientIp(request);
-        Bucket bucket = buckets.computeIfAbsent(ip, k -> newBucket(capacity, refillPerMinute));
+        Bucket bucket = buckets.get(ip, k -> newBucket(capacity, refillPerMinute));
         boolean permitido = bucket.tryConsume(1);
 
-        if (permitido && esLogin(request)) {
-            permitido = loginBuckets.computeIfAbsent(ip, k -> newBucket(loginCapacity, loginRefillPerMinute))
+        if (permitido && esPost(request, "/api/v1/auth/login")) {
+            permitido = loginBuckets.get(ip, k -> newBucket(loginCapacity, loginRefillPerMinute))
+                    .tryConsume(1);
+        }
+        if (permitido && esPost(request, "/api/v1/auth/refresh")) {
+            permitido = refreshBuckets.get(ip, k -> newBucket(refreshCapacity, refreshRefillPerMinute))
                     .tryConsume(1);
         }
 
@@ -78,9 +115,32 @@ public class RateLimitFilter extends OncePerRequestFilter {
         writeTooManyRequests(response);
     }
 
-    private static boolean esLogin(HttpServletRequest request) {
-        return "POST".equalsIgnoreCase(request.getMethod())
-                && "/api/v1/auth/login".equals(request.getRequestURI());
+    /** Nunca menor que lo que tarda un bucket vacío en rellenarse (con margen). */
+    static Duration inactividad(int capacidad, int recargaPorMinuto) {
+        Duration rellenado = Duration.ofMinutes(2L * Math.ceilDiv(capacidad, Math.max(1, recargaPorMinuto)));
+        return rellenado.compareTo(INACTIVIDAD_MINIMA) > 0 ? rellenado : INACTIVIDAD_MINIMA;
+    }
+
+    private static Cache<String, Bucket> nuevaCache(Duration inactividad, int maxClientes, Ticker reloj) {
+        // * `executor` en el mismo hilo: sin tareas de fondo y con tests deterministas.
+        return Caffeine.newBuilder()
+                .expireAfterAccess(inactividad)
+                .maximumSize(maxClientes)
+                .ticker(reloj)
+                .executor(Runnable::run)
+                .build();
+    }
+
+    /** Entradas retenidas entre las tres cachés, tras aplicar expiración y máximo. */
+    long entradasEnMemoria() {
+        buckets.cleanUp();
+        loginBuckets.cleanUp();
+        refreshBuckets.cleanUp();
+        return buckets.estimatedSize() + loginBuckets.estimatedSize() + refreshBuckets.estimatedSize();
+    }
+
+    private static boolean esPost(HttpServletRequest request, String uri) {
+        return "POST".equalsIgnoreCase(request.getMethod()) && uri.equals(request.getRequestURI());
     }
 
     private static Bucket newBucket(int capacity, int refillPerMinute) {

@@ -20,7 +20,7 @@ pnpm setup:env:check    # no escribe nada; falla si falta algo o queda un CAMBIA
   en cada `.env` (ignorado por git, con permisos 600 en Linux/macOS).
 - **Mantiene los archivos sincronizados:** el `.env` del backend toma de la raíz
   la misma contraseña de Postgres, del rol `app_runtime`, de Redis y de MinIO, y
-  el mismo `JWT_SECRET`.
+  las mismas claves `JWT_SECRET` y `REFRESH_TOKEN_SECRET`.
 - **Qué te toca a vos:** cambiar `INITIAL_ADMIN_EMAIL` (el script avisa si sigue
   con el valor de ejemplo), y los nombres de base y usuario si el proyecto usa
   otros. Los secretos que generó los podés leer del `.env` (ej. la contraseña

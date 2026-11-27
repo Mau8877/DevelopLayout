@@ -17,7 +17,7 @@ Expone la función al panel de administración.
 
 ## Objetivo
 
-Existen `GET /api/v1/admin/sesiones?email=`, `DELETE /api/v1/admin/sesiones/{codigo}` y `POST /api/v1/admin/usuarios/{codigoUsuario}/sesiones/cerrar`.
+Existen `POST /api/v1/admin/sesiones/buscar` (body `email`, `page`, `pageSize`), `DELETE /api/v1/admin/sesiones/{codigo}` y `POST /api/v1/admin/usuarios/{codigoUsuario}/sesiones/cerrar`.
 
 ## Alcance
 
@@ -26,6 +26,9 @@ Existen `GET /api/v1/admin/sesiones?email=`, `DELETE /api/v1/admin/sesiones/{cod
 **Archivos esperados (crear/tocar):**
 
 - `projects/backend/src/main/java/com/example/backend/features/auth/controller/SesionAdminController.java`
+- `projects/backend/src/main/java/com/example/backend/features/auth/dto/BuscarSesionesRequest.java`
+- `projects/backend/src/main/java/com/example/backend/common/util/Paginacion.java`
+- `docs/api/openapi.json` y `projects/frontend/src/shared/api/schema.d.ts` (contrato)
 
 ## Fuera de alcance (no tocar)
 

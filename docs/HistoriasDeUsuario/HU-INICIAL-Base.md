@@ -2,7 +2,7 @@
 
 | Id | Nombre corto de HU | Prioridad | PHU | Estado |
 | --- | --- | --- | --- | --- |
-| HU-INICIAL-BASE | Base de autenticación | Alta |  | Pendiente |
+| HU-INICIAL-BASE | Base de autenticación | Alta |  | Hecha |
 
 **Como:** equipo de desarrollo del proyecto
 **Quiero:** que el sistema tenga usuarios, roles y un administrador inicial desde el primer arranque

@@ -26,6 +26,11 @@ Un refresh token robado no debe servir indefinidamente y una sesión revocada de
 - Si el hash coincide con `refresh_hash_anterior` (token ya rotado) es reutilización: `revocar(sesion, REUSO)`, evento `AUTH_REFRESH_REUSO` con `registrarEnTransaccionPropia` y `UnauthorizedException` `ERR_AUTH_04`.
 - Si la sesión superó su vida máxima o `expira_en`, se marca `EXPIRADA` y responde `ERR_AUTH_04`. Hash desconocido o sesión no `ACTIVA` también `ERR_AUTH_04`.
 - `revocar` marca `REVOCADA` con `revocada_en` y motivo, y llama a `SesionRevocadaRegistry.revocar(sid, ttl = vida del access token)`. Idempotente.
+- La revocación y la expiración **se confirman aunque se responda 401**: las transacciones usan `noRollbackFor = UnauthorizedException`.
+- La fila se lee **con bloqueo** (`PESSIMISTIC_WRITE`): dos solicitudes no pueden canjear el mismo token.
+- Tras encontrar la sesión por su hash se fija además `RlsContext.usarUsuario(sesion.usuarioCodigo)`: la política RLS no permite actualizarla solo con el hash.
+- La reutilización de una sesión que ya no está `ACTIVA` solo responde `ERR_AUTH_04`, sin repetir el evento.
+- `Sesion.ip` pasa a ser actualizable.
 - Editar `SesionRevocadaRegistry` agregando solo `revocar(UUID sid, Duration ttl)`; si Redis falla se propaga el error.
 - Agregar `RlsContext.usarRefreshHash(String hash)` (`app.refresh_hash`).
 - `ERR_AUTH_04` en `AuthErrorCodes` y su sección en `docs/errors/auth/ERRORES_AUTH.md` + índice.
@@ -35,6 +40,9 @@ Un refresh token robado no debe servir indefinidamente y una sesión revocada de
 - `projects/backend/src/main/java/com/example/backend/features/auth/service/SesionService.java`
 - `projects/backend/src/main/java/com/example/backend/security/SesionRevocadaRegistry.java`
 - `projects/backend/src/main/java/com/example/backend/security/RlsContext.java`
+- `projects/backend/src/main/java/com/example/backend/features/auth/model/Sesion.java`
+- `projects/backend/src/main/java/com/example/backend/features/auth/repository/SesionRepository.java`
+- `projects/backend/src/test/java/com/example/backend/features/auth/service/SesionServiceTest.java`
 - `projects/backend/src/main/java/com/example/backend/features/auth/AuthAcciones.java`
 - `projects/backend/src/main/java/com/example/backend/features/auth/AuthErrorCodes.java`
 - `docs/errors/auth/ERRORES_AUTH.md`

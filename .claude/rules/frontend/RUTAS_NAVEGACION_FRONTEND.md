@@ -33,7 +33,8 @@ plugins: [
   nuevo contra la documentación oficial de la versión instalada antes de
   asumir que sigue siendo así.
 - `routeTree.gen.ts` se regenera solo en cada `pnpm dev`/`pnpm build` — no
-  se edita a mano y **no se commitea** (está en `.gitignore`).
+  se edita a mano y **sí se commitea**: `pnpm build` corre `tsc -b` antes que
+  Vite, así que un checkout limpio lo necesita para compilar.
 - `main.tsx` monta `<RouterProvider router={router} />` (con
   `createRouter({ routeTree })` y el `declare module` de registro de tipos
   que pide TanStack Router), no `<App />` — ese componente boilerplate de
@@ -69,8 +70,10 @@ src/routes/
 ```
 
 `_authenticated.tsx` usa el hook `beforeLoad` de TanStack Router para
-verificar sesión antes de renderizar cualquier ruta hija, y hace
-`throw redirect({ to: '/login' })` si no hay token válido. **Cualquier ruta
+verificar sesión (`ensureSession`, contra `GET /auth/me`; el cliente no puede
+leer los tokens) antes de renderizar cualquier ruta hija, y hace
+`throw redirect({ to: '/login' })` si no hay sesión. `ensureSession` usa
+`retry: false`: repetir un 401 gasta otro refresh de la cuota por IP. **Cualquier ruta
 nueva que necesite autenticación se agrega dentro de `_authenticated/`** —
 no se copia la validación de sesión adentro de cada ruta nueva.
 
@@ -81,8 +84,8 @@ no se copia la validación de sesión adentro de cada ruta nueva.
 > — un layout pathless sin hijos resuelve su propio `fullPath` como `/`, lo
 > que choca con `index.tsx`. No es un bug, es cómo funciona el file-based
 > routing de esta librería. Por eso hoy existe
-> `_authenticated/panel.tsx` — un placeholder mínimo, no una feature real,
-> que existe únicamente para que el guard tenga un hijo válido. **Se
+> `_authenticated/panel.tsx` — una pantalla mínima, no una feature real, que
+> le da al guard un hijo válido y monta el layout según el rol. **Se
 > reemplaza (o se le suman hermanos al lado) en cuanto exista la primera
 > feature real detrás del login** — no se borra sin poner al menos otra
 > ruta hija en su lugar, o el build vuelve a romperse por el mismo motivo.
@@ -110,6 +113,16 @@ para el esquema de roles del lado del backend — el frontend usa el mismo
   usa `UsuarioLayout`. La decisión de a qué grupo pertenece cada ruta es
   estructural (en qué carpeta vive el archivo), no una condición en runtime
   dentro de un layout único.
+- `_authenticated/_admin.tsx` es el layout de administrador: su `beforeLoad`
+  manda a `/panel` a quien no es `SUPER_ADMIN` y monta `AdminLayout`. El título
+  de cada pantalla es el `staticData.breadcrumb` de su ruta. Toda pantalla de
+  administrador va dentro de `_authenticated/_admin/`.
+- **Excepción:** `/panel`, común a todos los roles, elige el layout en runtime.
+  No es el patrón a copiar.
+- El menú lateral navega con `Link` (sin recargar la app).
+- Los layouts de rol conectan "Cerrar sesión" (`useLogout`) y se lo pasan a
+  `AppShell` como `onLogout`.
+- Los `navItems` de ejemplo apuntan a rutas que todavía no existen.
 - El layout no vuelve a validar el rol contra el backend en cada render —
   confía en el rol resuelto una vez por el guard de `_authenticated.tsx` (o
   por el hook de sesión que este consulte), para no repetir la misma

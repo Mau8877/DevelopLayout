@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../core/logging/app_logger.dart';
 import '../../../core/storage/secure_token_storage.dart';
 import '../models/login_response.dart';
 import '../models/usuario_sesion.dart';
@@ -26,6 +27,17 @@ class AuthService {
   Future<UsuarioSesion> me() async {
     final response = await _dio.get<Map<String, dynamic>>('/auth/me');
     return UsuarioSesion.fromJson(response.data!);
+  }
+
+  /// `POST /auth/logout`. Si falla se ignora: la sesión local se cierra igual.
+  Future<void> logout() async {
+    final refresh = await _tokens.leerRefresh();
+    if (refresh == null) return;
+    try {
+      await _dio.post<dynamic>('/auth/logout', data: {'refreshToken': refresh});
+    } on DioException catch (error) {
+      AppLogger.debug('El servidor no confirmó el cierre de sesión (${error.type.name})');
+    }
   }
 
   Future<bool> hayToken() async {

@@ -6,6 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../logging/app_logger.dart';
 import '../storage/secure_token_storage.dart';
+import 'refresh_interceptor.dart';
 
 /// Excepción tipada para cualquier fallo de una llamada a la API -- nunca se
 /// deja propagar un [DioException] crudo, sin código, hasta la UI.
@@ -34,11 +35,16 @@ class ApiException implements Exception {
 class ApiClient {
   static Dio? _instance;
 
+  /// Qué hacer cuando el backend ya no deja renovar la sesión. Lo registra el
+  /// provider de sesión: `core` no importa `features`.
+  static void Function()? onSesionExpirada;
+
   static Dio get instance {
     _instance ??= create(
       baseUrl: _baseUrl(),
       tokenStorage: SecureTokenStorage(),
       logs: dotenv.env['ENABLE_API_LOGS'] == 'true',
+      onSesionExpirada: () => onSesionExpirada?.call(),
     );
     return _instance!;
   }
@@ -66,6 +72,30 @@ class ApiClient {
     required SecureTokenStorage tokenStorage,
     HttpClientAdapter? adapter,
     bool logs = false,
+    void Function()? onSesionExpirada,
+  }) {
+    // * El auxiliar (refresh y reintentos) es igual pero sin el interceptor de refresh.
+    final auxiliar = _construir(baseUrl: baseUrl, tokenStorage: tokenStorage, adapter: adapter, logs: logs);
+    return _construir(
+      baseUrl: baseUrl,
+      tokenStorage: tokenStorage,
+      adapter: adapter,
+      logs: logs,
+      // * Va antes que el desempaquetado: necesita el error original de Dio.
+      refresh: RefreshInterceptor(
+        tokenStorage: tokenStorage,
+        auxiliar: auxiliar,
+        onSesionExpirada: onSesionExpirada,
+      ),
+    );
+  }
+
+  static Dio _construir({
+    required String baseUrl,
+    required SecureTokenStorage tokenStorage,
+    required bool logs,
+    HttpClientAdapter? adapter,
+    Interceptor? refresh,
   }) {
     final dio = Dio(
       BaseOptions(
@@ -88,6 +118,8 @@ class ApiClient {
         },
       ),
     );
+
+    if (refresh != null) dio.interceptors.add(refresh);
 
     dio.interceptors.add(
       InterceptorsWrapper(

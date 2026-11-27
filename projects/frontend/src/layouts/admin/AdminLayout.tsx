@@ -1,4 +1,5 @@
 import { AppShell } from '@/components/layout'
+import { useLogout } from '@/features/auth'
 
 import { adminNavItems } from './adminNavItems'
 import type { AdminLayoutProps } from './adminTypes'
@@ -10,6 +11,8 @@ export function AdminLayout({
   activeHref,
   children,
 }: AdminLayoutProps) {
+  const logout = useLogout()
+
   return (
     <AppShell
       appName="App Admin"
@@ -18,6 +21,7 @@ export function AdminLayout({
       activeHref={activeHref}
       user={user}
       notifications={notifications}
+      onLogout={() => logout.mutate()}
     >
       {children}
     </AppShell>

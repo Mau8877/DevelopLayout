@@ -21,7 +21,7 @@ Existe `useLogout` que llama a la API y limpia todo.
 
 ## Alcance
 
-- `api/useLogout.ts`: `POST /auth/logout`; en `onSettled` (haya o no respuesta) `queryClient.clear()` y navega a `/login`.
+- `api/useLogout.ts`: `POST /auth/logout`; en `onSettled` (haya o no respuesta) `queryClient.clear()`, deja la sesión en `null` (para que `/login` no vuelva a consultarla) y navega a `/login`. La petición usa el mismo candado que el refresh, para no cruzarse con una rotación en curso.
 
 **Archivos esperados (crear/tocar):**
 

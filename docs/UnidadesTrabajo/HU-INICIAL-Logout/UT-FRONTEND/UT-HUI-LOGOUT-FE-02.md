@@ -22,10 +22,14 @@ El `AppShell` tiene la acción "Cerrar sesión" para todos los roles.
 ## Alcance
 
 - Editar el `AppShell` de `components/layout/` para recibir un callback `onLogout` (no conoce roles ni hooks de feature); `AdminLayout` y `UsuarioLayout` le pasan `useLogout`.
+- `AppShell` entrega el callback a `AppHeader`, donde está el ítem del menú.
+- `/panel` muestra el layout según el rol (`SUPER_ADMIN` → `AdminLayout`); sin esto ninguna ruta usaba los layouts y la acción era inaccesible.
 
 **Archivos esperados (crear/tocar):**
 
 - `projects/frontend/src/components/layout/AppShell.tsx`
+- `projects/frontend/src/components/layout/AppHeader.tsx`
+- `projects/frontend/src/routes/_authenticated/panel.tsx`
 - `projects/frontend/src/layouts/admin/AdminLayout.tsx`
 - `projects/frontend/src/layouts/usuario/UsuarioLayout.tsx`
 

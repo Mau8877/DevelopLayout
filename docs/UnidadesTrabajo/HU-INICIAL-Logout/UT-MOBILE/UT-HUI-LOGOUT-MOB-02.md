@@ -27,6 +27,7 @@ Debe haber una forma visible de salir.
 
 - `projects/mobile/lib/layouts/admin/admin_shell.dart`
 - `projects/mobile/lib/layouts/usuario/usuario_shell.dart`
+- `projects/mobile/test/widget_test.dart`
 
 ## Fuera de alcance (no tocar)
 

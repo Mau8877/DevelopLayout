@@ -1,5 +1,6 @@
 export * from './createBaseApi'
 export * from './apiClient'
+export { conCandadoDeSesion } from './candadoSesion'
 export * from './queryClient'
 export * from './QueryProvider'
 export * from './useUiStore'

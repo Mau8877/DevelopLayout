@@ -65,9 +65,26 @@ no se filtra entre requests que reusan la misma conexión del pool):
 SELECT set_config('app.current_user', :codigo, true);
 ```
 
-Esto se implementa **una sola vez** (un componente en `security/`, no
-repetido por service) cuando se implemente la autenticación. Hasta
-entonces, ninguna tabla de negocio puede salir a producción.
+Está implementado **una sola vez** en `security/RlsContext.java`, que exige una
+transacción activa y ofrece `usarCorreoDeLogin` (`app.login_email`),
+`usarRefreshSesion` (`app.refresh_sid`, solo con la firma del token ya
+validada), `usarUsuario` (`app.current_user`) y
+`usarAdmin` (`app.is_admin`).
+Ningún service llama a `set_config` por su cuenta. La única excepción es el
+alta del administrador inicial, que usa la conexión dueña (ver
+`docs/seguridad/RLS_EXCEPCIONES.md`).
+
+### Contexto de administrador
+
+- `usarAdmin()` solo se llama desde un service cuyo método exige el rol con
+  `@PreAuthorize`, **antes** de tocar datos.
+- Con él se ven y revocan sesiones, se lee la bitácora y se **leen** usuarios
+  (política `usuario_lectura_admin`, solo `FOR SELECT`).
+- **Dale al administrador la política más estrecha posible** (`FOR SELECT` si
+  solo lee). No reutilices `app.login_email` para buscar usuarios: también
+  permite modificar la fila.
+- **Pendiente:** `usuario_rol` no tiene política de administrador y no hay
+  escritura de administrador sobre usuarios (llegará con su gestión).
 
 ## 5. Excepciones (`RLS-OPT-OUT`)
 
@@ -82,8 +99,19 @@ técnica (`flyway_schema_history`). Se documenta así:
 
 "No me dio tiempo" o "es más fácil" **no** son razones válidas.
 
+## Migraciones que modifican datos
+
+Con `FORCE ROW LEVEL SECURITY`, un `UPDATE`/`DELETE` de una migración ve **0
+filas sin avisar** si el dueño no es superusuario. Dentro de la misma migración:
+`ALTER TABLE ... NO FORCE ROW LEVEL SECURITY`, el cambio y de nuevo `FORCE`. Se
+prueba con un dueño sin superusuario (`MigracionRefreshFirmadoTest`).
+
 ## 6. Tests
 
+- Una función `SECURITY DEFINER` sobre una tabla con `FORCE ROW LEVEL SECURITY`
+  se prueba también con un **dueño sin superusuario** (bases administradas): el
+  superusuario ignora RLS y esconde políticas faltantes. La purga de la
+  bitácora borraba 0 filas sin avisar (`PurgaDuenoSinSuperusuarioTest`).
 - Un test de integración con Testcontainers por tabla con RLS: usuario A no
   ve/modifica filas de usuario B, y sin contexto no se ve nada.
 - Los tests deben conectarse con el rol `app_runtime` (no el superusuario),

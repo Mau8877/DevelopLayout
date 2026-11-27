@@ -26,8 +26,7 @@ erDiagram
         BaseModel base "id, codigo_sesion, created_at, updated_at, deleted_at"
         bigint usuario_id FK
         uuid usuario_codigo "para RLS, FK compuesta con usuario_id"
-        varchar refresh_hash UK "sha256 hex de 64, nunca el token"
-        varchar refresh_hash_anterior "sha256 hex, deteccion de reuso"
+        varchar refresh_hash UK "sha256 hex del token vigente, nunca el token"
         varchar estado "ACTIVA | REVOCADA | EXPIRADA"
         varchar tipo_cliente "WEB | MOBILE"
         varchar ip

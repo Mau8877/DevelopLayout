@@ -2,7 +2,7 @@
 
 | Id | Nombre corto de HU | Prioridad | PHU | Estado |
 | --- | --- | --- | --- | --- |
-| HU-INICIAL-BITACORA | Consultar la bitácora | Media |  | Pendiente |
+| HU-INICIAL-BITACORA | Consultar la bitácora | Media |  | Hecha |
 
 **Como:** administrador
 **Quiero:** consultar la bitácora de eventos del sistema con filtros
@@ -23,6 +23,9 @@ Depende de [HU-INICIAL-Base](HU-INICIAL-Base.md) (tabla y servicio de registro).
 - Filtros: `filter[accion]`, `filter[modulo]`, `filter[resultado]`, `filter[usuarioCodigo]`, `desde`, `hasta`, más `page`/`pageSize` (máximo 100).
 - La retención se configura con `app.bitacora.retention-months` (12 por defecto). La purga corre a diario y se registra en los logs, no en la propia bitácora.
 - La consulta nunca devuelve el `id` interno.
+- `desde` y `hasta` son instantes ISO-8601 con zona (ej. `2026-11-26T00:00:00-04:00`) y ambos se incluyen. La web envía el día local completo.
+- El usuario se identifica por su `codigo` (se puede copiar desde Sesiones de usuarios). Mostrar correos queda para la gestión de usuarios.
+- La purga debe funcionar aunque el dueño de la base no sea superusuario (bases administradas).
 - Cómo registrar eventos desde otros módulos: [BITACORA_BACKEND](../../.claude/rules/backend/BITACORA_BACKEND.md).
 
 ---

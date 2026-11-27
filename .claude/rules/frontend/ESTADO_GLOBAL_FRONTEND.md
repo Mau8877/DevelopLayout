@@ -9,7 +9,7 @@ globs: projects/frontend/**/*
 La carpeta `src/store/` es donde vive **todo lo relacionado a estado y
 datos** del lado del cliente: los stores de Zustand descritos acá, y
 también el cliente HTTP + `QueryClient` de TanStack Query (`createBaseApi.ts`,
-`apiClient.ts`, `queryClient.ts`, `QueryProvider.tsx` — ver
+`apiClient.ts`, `candadoSesion.ts`, `queryClient.ts`, `QueryProvider.tsx` — ver
 [TANSTACK_QUERY_FRONTEND.md](TANSTACK_QUERY_FRONTEND.md#cliente-http-centralizado-ya-implementado)).
 Es una decisión de **organización de carpetas**, no una relajación de la
 separación conceptual de abajo — TanStack Query sigue siendo el único que
@@ -79,6 +79,11 @@ combinan) solo cuando un store plano se vuelve difícil de navegar — en la
 práctica, cuando junta 3 o más responsabilidades no relacionadas entre sí, o
 supera ~150-200 líneas. No se arranca con slices "por prolijidad" en un
 store que hoy tiene 2 campos.
+
+## Tema
+
+`useUiStore` guarda el tema y **él mismo** pone o quita la clase `.dark` en
+`<html>`, al cargar y en cada cambio. Ningún componente toca esa clase.
 
 ## Nombres
 

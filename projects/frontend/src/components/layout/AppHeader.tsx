@@ -43,6 +43,8 @@ interface AppHeaderProps {
   user: LayoutUser
   /** Sin esto, la campanita no muestra "circulito" y el panel queda vacío. */
   notifications?: NotificationsController
+  /** Ver AppShellProps. */
+  onLogout?: () => void
 }
 
 const EMPTY_NOTIFICATIONS: NotificationsController = {
@@ -80,7 +82,7 @@ function toggleSidebar() {
 const headerButtonClass =
   'text-header-foreground hover:bg-header-foreground/15 hover:text-header-foreground focus-visible:ring-header-foreground/40'
 
-export function AppHeader({ appName, user, notifications = EMPTY_NOTIFICATIONS }: AppHeaderProps) {
+export function AppHeader({ appName, user, notifications = EMPTY_NOTIFICATIONS, onLogout }: AppHeaderProps) {
   const theme = useUiStore((s) => s.theme)
   const toggleTheme = useUiStore((s) => s.toggleTheme)
 
@@ -146,7 +148,7 @@ export function AppHeader({ appName, user, notifications = EMPTY_NOTIFICATIONS }
                 Configuración
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive">
+              <DropdownMenuItem variant="destructive" onClick={onLogout}>
                 <LogOutIcon />
                 Cerrar sesión
               </DropdownMenuItem>

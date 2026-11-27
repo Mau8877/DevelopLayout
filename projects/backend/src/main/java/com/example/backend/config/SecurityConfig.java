@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,6 +16,7 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -29,6 +31,8 @@ import com.example.backend.security.SesionRevocadaRegistry;
 
 @Configuration
 @EnableWebSecurity
+// ! Sin esto, todo @PreAuthorize de los services se ignora en silencio.
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Value("${app.cors.allowed-origins}")
@@ -69,6 +73,10 @@ public class SecurityConfig {
             .csrf(csrf -> csrf
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                // ! Sin sesión de servidor, cada request autenticada con JWT cuenta como
+                // ! "recién autenticada" y la estrategia por defecto borraba la cookie
+                // ! XSRF-TOKEN: el siguiente refresh o logout recibía 403.
+                .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy())
                 .ignoringRequestMatchers((RequestMatcher) SecurityConfig::esClienteSinCookies))
             .exceptionHandling(eh -> eh
                 .authenticationEntryPoint(authenticationEntryPoint)
@@ -86,10 +94,13 @@ public class SecurityConfig {
                 .requestMatchers("/health", "/health/**", "/prometheus").permitAll()
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 // 2. Auth público por diseño: todavía no hay sesión al pedir el token
-                //    CSRF ni al iniciar sesión. Solo estas dos rutas; todo lo demás de
-                //    /api/v1/auth (incluido /me) exige autenticación.
+                //    CSRF ni al iniciar sesión. En refresh y logout la credencial es el
+                //    propio refresh token (tienen que funcionar con el access token
+                //    vencido) y en web el CSRF sigue activo. Solo estas rutas; todo lo
+                //    demás de /api/v1/auth (incluido /me) exige autenticación.
                 .requestMatchers(HttpMethod.GET, "/api/v1/auth/csrf").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/auth/login", "/api/v1/auth/refresh",
+                        "/api/v1/auth/logout").permitAll()
                 // 3. Cualquier otra ruta es privada por defecto
                 .anyRequest().authenticated()
             );

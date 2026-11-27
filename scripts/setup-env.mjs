@@ -43,9 +43,9 @@ export function esPlaceholder(valor) {
   return valor.trim().startsWith(PLACEHOLDER);
 }
 
-/** JWT_SECRET: 64 caracteres base64url. El resto: 32 alfanuméricos (sirven en URLs, SQL y compose sin escapar). */
+/** Claves de firma (JWT y refresh): 64 caracteres base64url. El resto: 32 alfanuméricos (sirven en URLs, SQL y compose sin escapar). */
 export function generarSecreto(clave) {
-  if (clave === 'JWT_SECRET') return randomBytes(48).toString('base64url');
+  if (clave === 'JWT_SECRET' || clave === 'REFRESH_TOKEN_SECRET') return randomBytes(48).toString('base64url');
   let s = '';
   for (let i = 0; i < 32; i++) s += ALFANUMERICO[randomInt(ALFANUMERICO.length)];
   return s;

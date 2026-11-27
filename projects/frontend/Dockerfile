@@ -43,7 +43,18 @@ RUN pnpm --filter frontend build
 # nginx-unprivileged: corre como usuario sin privilegios y escucha en 8080
 # (un puerto >1024 no necesita root). Sirve solo estáticos; el proxy de
 # infrastructure/nginx/nginx.prod.conf es el que enruta /api al backend.
-FROM nginxinc/nginx-unprivileged:stable-alpine
+# La variante slim trae solo nginx: sin módulos dinámicos, curl ni librerías XML
+# que esta imagen no usa y que acumulan CVEs.
+FROM nginxinc/nginx-unprivileged:stable-alpine-slim
+
+# La imagen base se publica con menos frecuencia que los parches de Alpine y de
+# nginx: sin esto sale con CVEs que ya tienen arreglo (Trivy en CI). La base fija
+# `nginx=<versión>`, por eso `apk upgrade` solo no lo sube y hay que pedir el
+# mínimo corregido. Cuando la base ya lo traiga, esa línea no cambia nada.
+# Solo esto corre como root; el contenedor sigue corriendo como 101.
+USER root
+RUN apk upgrade --no-cache     && apk add --no-cache --upgrade 'nginx>=1.30.7'
+
 COPY projects/frontend/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/projects/frontend/dist /usr/share/nginx/html
 

@@ -12,7 +12,7 @@ export function CenteredCardLayout({ titulo, descripcion, children }: CenteredCa
   return (
     <main className="flex min-h-screen items-center justify-center bg-background p-4 text-foreground">
       <Card className="w-full max-w-sm">
-        <CardHeader>
+        <CardHeader className="text-center">
           <CardTitle className="text-xl">{titulo}</CardTitle>
           {descripcion && <CardDescription>{descripcion}</CardDescription>}
         </CardHeader>

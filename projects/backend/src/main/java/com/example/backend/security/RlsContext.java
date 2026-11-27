@@ -28,6 +28,24 @@ public class RlsContext {
         fijar("app.login_email", email);
     }
 
+    /**
+     * Deja ver la sesión que nombra un refresh token.
+     *
+     * ! Solo después de validar la firma del token (`RefreshTokens`).
+     */
+    public void usarRefreshSesion(UUID sesionCodigo) {
+        fijar("app.refresh_sid", sesionCodigo.toString());
+    }
+
+    /**
+     * Contexto de administrador: ve y revoca sesiones, lee usuarios y la bitácora.
+     *
+     * ! Solo desde services con `@PreAuthorize` de administrador ya verificado.
+     */
+    public void usarAdmin() {
+        fijar("app.is_admin", "true");
+    }
+
     public void usarUsuario(UUID codigo) {
         fijar("app.current_user", codigo.toString());
     }

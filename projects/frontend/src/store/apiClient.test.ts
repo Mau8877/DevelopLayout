@@ -72,6 +72,6 @@ describe('ensureCsrfCookie', () => {
     await ensureCsrfCookie()
 
     expect(get).toHaveBeenCalledTimes(1)
-    expect(get).toHaveBeenCalledWith('/auth/csrf')
+    expect(get).toHaveBeenCalledWith('/auth/csrf', { timeout: 15000 })
   })
 })

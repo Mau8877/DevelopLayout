@@ -4,27 +4,23 @@ globs: projects/mobile/**/*
 
 # Consumo de API — Mobile
 
-## Cliente `dio` centralizado (prerequisito)
+## Cliente `dio` centralizado (implementado)
 
-`dio` está en `pubspec.yaml`, pero **no existe todavía** ningún cliente
-configurado — `lib/core/network/` solo tiene un `.gitkeep`. Antes de
-escribir el primer `service` que llame al backend, hay que crear:
-
-- `lib/core/network/api_client.dart`: una instancia única de `Dio` con
-  `baseUrl` apuntando a la API (leído de configuración de entorno —
-  `flutter_dotenv` está instalado en `pubspec.yaml` pero tampoco está
-  wireado todavía, es otro prerequisito ligado a este mismo punto).
-- Un `Interceptor` que desempaqueta el sobre estándar del backend
+- `lib/core/network/api_client.dart`: la única instancia de `Dio` de la app, con
+  `baseUrl` leída de `.env` (`flutter_dotenv`). En release exige HTTPS.
+- Su interceptor desempaqueta el sobre estándar del backend
   (`{status, data, message, error, timestamp, meta?}`, mismo contrato que
   [RESPONSES_BACKEND.md](../backend/RESPONSES_BACKEND.md)):
-  - Si `status == "success"`, el interceptor deja pasar `data` (y `meta`
-    cuando exista) como el resultado real de la llamada — los `services` no
-    desestructuran el sobre a mano en cada método.
-  - Si `status == "failed"`, el interceptor lanza una excepción tipada
-    propia (ej. `ApiException(code: error, message: message)`) en vez de
-    dejar pasar una respuesta 2xx con `status: "failed"` como si fuera
-    éxito, o dejar que el `DioException` crudo (sin el código de negocio)
-    se propague tal cual hasta la UI.
+  - En éxito deja pasar `data` (y `meta` cuando exista); los `services` no
+    desestructuran el sobre.
+  - En error llega una `ApiException` (`code`, `message`) envuelta en
+    `DioException`; `core/network/error_message.dart` la extrae.
+- `lib/core/network/refresh_interceptor.dart` (`QueuedInterceptor`): ante un
+  401 renueva una sola vez y reintenta con un `Dio` auxiliar (reintentar por el
+  principal bloquearía la cola). Solo un 401 o 403 del refresh borra los tokens
+  y avisa por `ApiClient.onSesionExpirada`, que registra el provider de sesión
+  (`core` no importa `features`). Sin red, 429 o 500 los conserva. Si la sesión
+  se cierra durante un refresh, no se la revive.
 
 ## Servicios por feature
 

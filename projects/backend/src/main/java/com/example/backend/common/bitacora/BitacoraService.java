@@ -29,6 +29,8 @@ import jakarta.servlet.http.HttpServletRequest;
  * * perderse si la operación hace rollback.
  * * El actor sale del SecurityContext (claim `sub`) o se pasa explícito; sin
  * * ninguno queda NULL (p. ej. un login fallido).
+ * ! `registrarEnTransaccionPropia` nunca desde dentro de una transacción en un
+ * ! flujo concurrente: pide una segunda conexión y puede agotar el pool.
  * ! `detalle` se sanitiza: nunca claves de secretos y solo valores simples,
  * ! UUID o listas de nombres de campos.
  */

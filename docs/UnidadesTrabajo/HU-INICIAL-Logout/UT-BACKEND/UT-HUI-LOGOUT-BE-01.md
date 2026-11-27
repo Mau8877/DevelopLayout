@@ -33,6 +33,7 @@ Existe `POST /api/v1/auth/logout` que revoca la sesión y borra las cookies.
 - `projects/backend/src/main/java/com/example/backend/features/auth/controller/AuthController.java`
 - `projects/backend/src/main/java/com/example/backend/features/auth/AuthAcciones.java`
 - `projects/backend/src/main/java/com/example/backend/config/SecurityConfig.java`
+- `docs/api/openapi.json` y `projects/frontend/src/shared/api/schema.d.ts` (contrato)
 
 ## Fuera de alcance (no tocar)
 

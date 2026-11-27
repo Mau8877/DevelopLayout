@@ -26,8 +26,8 @@ Sin ese archivo, `flutter analyze` falla con `asset_does_not_exist`.
 ## Estructura
 
 Feature-based: `lib/features/{feature}/` por funcionalidad de negocio y
-`lib/core/` para lo transversal (`network/` con el cliente `dio`, `theme/`,
-`routing/`, este último todavía vacío). `lib/layouts/{rol}/` tiene un shell por
+`lib/core/` para lo transversal (`network/` con el cliente `dio` y la
+renovación de sesión, `routing/`, `storage/`, `logging/` y `theme/`). `lib/layouts/{rol}/` tiene un shell por
 rol. El detalle está en
 [`ARQUITECTURA_MOBILE.md`](../../.claude/rules/ARQUITECTURA_MOBILE.md) y las
 reglas de `.claude/rules/mobile/`.

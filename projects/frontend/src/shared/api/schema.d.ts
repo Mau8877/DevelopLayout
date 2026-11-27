@@ -4,6 +4,54 @@
  */
 
 export interface paths {
+    "/api/v1/admin/sesiones/buscar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["buscar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sesiones/{codigo}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["cerrar"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/usuarios/{codigoUsuario}/sesiones/cerrar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["cerrarTodas"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/csrf": {
         parameters: {
             query?: never;
@@ -36,6 +84,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/me": {
         parameters: {
             query?: never;
@@ -52,10 +116,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["refresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/bitacora": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ApiResponseListBitacoraResponse: {
+            data?: components["schemas"]["BitacoraResponse"][];
+            error?: string;
+            message?: string;
+            meta?: components["schemas"]["PageMeta"];
+            status?: string;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseListSesionResponse: {
+            data?: components["schemas"]["SesionResponse"][];
+            error?: string;
+            message?: string;
+            meta?: components["schemas"]["PageMeta"];
+            status?: string;
+            /** Format: date-time */
+            timestamp?: string;
+        };
         ApiResponseLoginResponse: {
             data?: components["schemas"]["LoginResponse"];
             error?: string;
@@ -73,6 +187,42 @@ export interface components {
             status?: string;
             /** Format: date-time */
             timestamp?: string;
+        };
+        ApiResponseVoid: {
+            data?: unknown;
+            error?: string;
+            message?: string;
+            meta?: components["schemas"]["PageMeta"];
+            status?: string;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        BitacoraResponse: {
+            accion?: string;
+            /** Format: uuid */
+            codigo?: string;
+            detalle?: {
+                [key: string]: unknown;
+            };
+            entidad?: string;
+            /** Format: uuid */
+            entidadCodigo?: string;
+            /** Format: date-time */
+            fecha?: string;
+            ip?: string;
+            modulo?: string;
+            /** @enum {string} */
+            resultado?: "EXITO" | "FALLO";
+            /** Format: uuid */
+            usuarioCodigo?: string;
+        };
+        BuscarSesionesRequest: {
+            /** Format: email */
+            email: string;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            pageSize?: number;
         };
         LoginRequest: {
             /** Format: email */
@@ -94,6 +244,25 @@ export interface components {
             /** Format: int32 */
             totalPages?: number;
         };
+        RefreshRequest: {
+            refreshToken?: string;
+        };
+        SesionResponse: {
+            /** Format: uuid */
+            codigo?: string;
+            /** Format: date-time */
+            creadaEn?: string;
+            /** Format: date-time */
+            expiraEn?: string;
+            ip?: string;
+            /** @enum {string} */
+            tipoCliente?: "WEB" | "MOBILE";
+            /** Format: date-time */
+            ultimoUsoEn?: string;
+            userAgent?: string;
+            /** Format: uuid */
+            usuarioCodigo?: string;
+        };
         UsuarioSesionResponse: {
             /** Format: uuid */
             codigo?: string;
@@ -109,6 +278,74 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    buscar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuscarSesionesRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListSesionResponse"];
+                };
+            };
+        };
+    };
+    cerrar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                codigo: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
+    cerrarTodas: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                codigoUsuario: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
     csrf: {
         parameters: {
             query?: never;
@@ -151,6 +388,30 @@ export interface operations {
             };
         };
     };
+    logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RefreshRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
     me: {
         parameters: {
             query?: never;
@@ -167,6 +428,59 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseUsuarioSesionResponse"];
+                };
+            };
+        };
+    };
+    refresh: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RefreshRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseLoginResponse"];
+                };
+            };
+        };
+    };
+    listar: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                "filter[accion]"?: string;
+                "filter[modulo]"?: string;
+                "filter[resultado]"?: "EXITO" | "FALLO";
+                "filter[usuarioCodigo]"?: string;
+                desde?: string;
+                hasta?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListBitacoraResponse"];
                 };
             };
         };

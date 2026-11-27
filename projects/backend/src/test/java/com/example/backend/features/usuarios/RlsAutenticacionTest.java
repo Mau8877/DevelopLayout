@@ -32,7 +32,6 @@ class RlsAutenticacionTest {
 
     private static final String PASSWORD_RUNTIME = "runtimepass123";
     private static final String HASH_A = "a".repeat(64);
-    private static final String HASH_A_ANTERIOR = "c".repeat(64);
     private static final String HASH_B = "b".repeat(64);
 
     private static PostgreSQLContainer postgres;
@@ -68,8 +67,8 @@ class RlsAutenticacionTest {
                     + "SELECT gen_random_uuid(), " + idA + ", id FROM authentication.rol WHERE nombre = 'USUARIO'");
             st.execute("INSERT INTO authentication.usuario_rol (codigo_usuario_rol, usuario_id, rol_id) "
                     + "SELECT gen_random_uuid(), " + idB + ", id FROM authentication.rol WHERE nombre = 'USUARIO'");
-            insertarSesion(owner, idA, CODIGO_A, HASH_A, HASH_A_ANTERIOR);
-            insertarSesion(owner, idB, CODIGO_B, HASH_B, null);
+            insertarSesion(owner, idA, CODIGO_A, HASH_A);
+            insertarSesion(owner, idB, CODIGO_B, HASH_B);
         }
     }
 
@@ -147,11 +146,24 @@ class RlsAutenticacionTest {
     }
 
     @Test
-    void sesion_conRefreshHash_soloSeVeLaFilaDeEseHashActualOAnterior() throws Exception {
-        assertThat(contar("authentication.sesion", Map.of("app.refresh_hash", HASH_B))).isEqualTo(1);
-        assertThat(contar("authentication.sesion", Map.of("app.refresh_hash", HASH_A))).isEqualTo(1);
-        assertThat(contar("authentication.sesion", Map.of("app.refresh_hash", HASH_A_ANTERIOR))).isEqualTo(1);
-        assertThat(contar("authentication.sesion", Map.of("app.refresh_hash", "f".repeat(64)))).isZero();
+    void sesion_conRefreshSid_soloSeVeEsaSesion() throws Exception {
+        String codigoSesion;
+        try (Connection owner = DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(),
+                postgres.getPassword());
+                PreparedStatement ps = owner.prepareStatement(
+                        "SELECT codigo_sesion::text FROM authentication.sesion WHERE refresh_hash = ?")) {
+            ps.setString(1, HASH_B);
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                codigoSesion = rs.getString(1);
+            }
+        }
+
+        assertThat(contar("authentication.sesion", Map.of("app.refresh_sid", codigoSesion))).isEqualTo(1);
+        assertThat(contar("authentication.sesion", Map.of("app.refresh_sid", UUID.randomUUID().toString())))
+                .isZero();
+        // El contexto anterior por hash ya no abre nada.
+        assertThat(contar("authentication.sesion", Map.of("app.refresh_hash", HASH_B))).isZero();
     }
 
     @Test
@@ -167,7 +179,7 @@ class RlsAutenticacionTest {
     @Test
     void sesion_conUsuarioCodigoDeOtroUsuario_fallaPorLaFkCompuesta() throws Exception {
         try (Connection owner = dueno()) {
-            assertThat(sqlState(() -> insertarSesion(owner, idA, CODIGO_B, "d".repeat(64), null)))
+            assertThat(sqlState(() -> insertarSesion(owner, idA, CODIGO_B, "d".repeat(64))))
                     .isEqualTo("23503");
         }
     }
@@ -279,16 +291,15 @@ class RlsAutenticacionTest {
         }
     }
 
-    private static void insertarSesion(Connection owner, long usuarioId, UUID usuarioCodigo, String hash,
-            String hashAnterior) throws SQLException {
+    private static void insertarSesion(Connection owner, long usuarioId, UUID usuarioCodigo, String hash)
+            throws SQLException {
         try (PreparedStatement ps = owner.prepareStatement(
                 "INSERT INTO authentication.sesion (codigo_sesion, usuario_id, usuario_codigo, refresh_hash, "
-                        + "refresh_hash_anterior, estado, tipo_cliente, expira_en) "
-                        + "VALUES (gen_random_uuid(), ?, ?, ?, ?, 'ACTIVA', 'WEB', now() + interval '7 days')")) {
+                        + "estado, tipo_cliente, expira_en) "
+                        + "VALUES (gen_random_uuid(), ?, ?, ?, 'ACTIVA', 'WEB', now() + interval '7 days')")) {
             ps.setLong(1, usuarioId);
             ps.setObject(2, usuarioCodigo);
             ps.setString(3, hash);
-            ps.setString(4, hashAnterior);
             ps.executeUpdate();
         }
     }

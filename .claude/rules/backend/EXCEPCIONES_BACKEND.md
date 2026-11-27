@@ -90,6 +90,10 @@ falla de infraestructura (DB caída, etc.), cae en el handler genérico del
   de `@Valid`/Bean Validation → `400`, con el código genérico de validación
   del módulo correspondiente (ej. `ERR_SYS_01` si no aplica a un módulo
   específico).
+- `AccessDeniedException`/`AuthenticationException` se **relanzan**, para que
+  Spring Security responda 401/403 (rechazos de `@PreAuthorize`).
+- Los errores 4xx de Spring MVC (ruta, método, tipo de contenido, parámetros)
+  conservan su status, con `ERR_SYS_01`/`03`/`04`/`05`.
 - Un `@ExceptionHandler(Exception.class)` catch-all → `500`, con un código
   genérico (ej. `ERR_SYS_00`), **sin** exponer el mensaje/stacktrace real al
   cliente (el mensaje de negocio es genérico: "Ocurrió un error inesperado"),

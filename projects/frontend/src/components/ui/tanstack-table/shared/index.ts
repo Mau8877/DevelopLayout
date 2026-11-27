@@ -5,6 +5,8 @@ export { getPaginationRange, ELLIPSIS } from './paginationRange'
 export { DataTablePagination } from './data-table-pagination'
 export type { DataTablePaginationProps } from './data-table-pagination'
 export type {
+  DataTableColumnDef,
+  DataTableInstance,
   UseDataTableOptions,
   UseDataTableReturn,
   DataTablePageMeta,

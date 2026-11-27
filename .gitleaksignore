@@ -1,0 +1,7 @@
+# Falsos positivos de gitleaks (ver .claude/rules/CI_CD.md). Cada entrada es un
+# hallazgo concreto (commit:archivo:regla:línea), nunca una regla ni una carpeta entera.
+#
+# Contraseña inventada de un usuario que solo existe en la base descartable de los tests.
+# La línea actual lleva `gitleaks:allow`; esto cubre el commit anterior a esa marca.
+# ! Si la rama se rebasea, el hash cambia y hay que actualizar la entrada.
+1a3acc332d4bfcaca44e4623174a7da79637028a:projects/backend/src/test/java/com/example/backend/features/auth/AuthSesionIntegrationTest.java:generic-api-key:31

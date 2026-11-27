@@ -16,6 +16,8 @@ export async function ensureSession(queryClient: QueryClient): Promise<UsuarioSe
       queryKey: authKeys.session,
       queryFn: fetchSession,
       revalidateIfStale: false,
+      // * Un 401 no cambia al repetirlo, y cada intento gasta un refresh de la cuota por IP.
+      retry: false,
     })
   } catch (error) {
     if (error instanceof ApiError && error.code === 'ERR_AUTH_07') return null

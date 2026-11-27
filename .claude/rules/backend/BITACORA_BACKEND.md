@@ -18,6 +18,9 @@ aplicación) y a [SEGURIDAD_OWASP.md](../SEGURIDAD_OWASP.md) (A09).
 - **Un solo punto de escritura:** `common/bitacora/BitacoraService.registrar(...)`.
   Ningún módulo inserta en `bitacora` por su cuenta ni crea su propio repositorio.
 - IP y user agent se toman de la request actual cuando existe.
+- `registrarEnTransaccionPropia` solo desde código **sin** transacción abierta:
+  pide otra conexión y, en un flujo concurrente, agota el pool. Dentro de una
+  transacción se usa `registrar`.
 - `app_runtime` solo tiene `INSERT` (y `SELECT` bajo RLS para `SUPER_ADMIN`). Sin
   `UPDATE` ni `DELETE`. La purga usa una función de base de datos con
   privilegios del dueño.
@@ -48,8 +51,15 @@ que cambiaron con sus nombres, nunca valores sensibles.
 ## Consulta y retención
 
 - Solo `SUPER_ADMIN` consulta (`@PreAuthorize` en el service), paginada, con
-  `pageSize` máximo 100.
-- Retención configurable (`app.bitacora.retention-months`, 12 por defecto).
+  `pageSize` máximo 100 (`GET /api/v1/bitacora`). La lectura vive en
+  `BitacoraConsultaRepository` (Criteria, solo lectura). No uses
+  `JpaSpecificationExecutor` en repositorios de solo lectura: incluye `delete` y
+  `update`.
+- Retención configurable (`app.bitacora.retention-months`, variable
+  `BITACORA_RETENTION_MONTHS`, 12 por defecto; menor a 1 impide arrancar).
+  `BitacoraPurgaJob` corre cada día a las 03:00 del servidor y llama a
+  `authentication.purgar_bitacora`. Sin bloqueo distribuido: con más de una
+  réplica hay que agregarlo.
 
 ## Tests
 
