@@ -24,7 +24,7 @@ RUN mvn clean package -DskipTests
 # ETAPA 2: EJECUCIÓN (Runtime)
 # ==========================================
 # Utilizamos una imagen ultra ligera que SOLO contiene el JRE (sin Maven, sin compiladores)
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 
 WORKDIR /app
 
