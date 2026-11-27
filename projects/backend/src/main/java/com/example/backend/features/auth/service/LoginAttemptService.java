@@ -29,7 +29,9 @@ public class LoginAttemptService {
 
     private static final String PREFIJO = "auth:login:fail:";
 
-    // * KEYS: origen, cuenta. ARGV: máximo por origen, máximo por cuenta, TTL en ms.
+    // * KEYS: origen, cuenta, orígenes de la cuenta. ARGV: máximo por origen, máximo por cuenta, TTL en ms.
+    // * El conjunto anota las claves de origen para poder borrarlas al restablecer la
+    // * contraseña (llevan el hash de la IP, que no se puede adivinar).
     private static final RedisScript<Long> RESERVAR = new DefaultRedisScript<>("""
             if tonumber(redis.call('GET', KEYS[2]) or '0') >= tonumber(ARGV[2]) then return 2 end
             if tonumber(redis.call('GET', KEYS[1]) or '0') >= tonumber(ARGV[1]) then return 1 end
@@ -37,6 +39,18 @@ public class LoginAttemptService {
               redis.call('INCR', KEYS[i])
               redis.call('PEXPIRE', KEYS[i], ARGV[3])
             end
+            redis.call('SADD', KEYS[3], KEYS[1])
+            redis.call('PEXPIRE', KEYS[3], ARGV[3])
+            return 0
+            """, Long.class);
+
+    // * KEYS: cuenta, orígenes de la cuenta. Sin SCAN ni KEYS.
+    // ! Borra claves que no van en KEYS: válido con un solo Redis, no con Redis Cluster.
+    private static final RedisScript<Long> REINICIAR = new DefaultRedisScript<>("""
+            for _, origen in ipairs(redis.call('SMEMBERS', KEYS[2])) do
+              redis.call('DEL', origen)
+            end
+            redis.call('DEL', KEYS[1], KEYS[2])
             return 0
             """, Long.class);
 
@@ -77,7 +91,8 @@ public class LoginAttemptService {
 
     /** Pide permiso para comprobar una contraseña. Si se permite, ya cuenta como intento. */
     public Reserva reservar(String email, String ip) {
-        Long resultado = redis.execute(RESERVAR, List.of(claveOrigen(email, ip), claveCuenta(email)),
+        Long resultado = redis.execute(RESERVAR,
+                List.of(claveOrigen(email, ip), claveCuenta(email), claveOrigenes(email)),
                 String.valueOf(maxPorOrigen), String.valueOf(maxPorCuenta),
                 String.valueOf(duracionBloqueo.toMillis()));
         if (resultado == null) {
@@ -95,6 +110,15 @@ public class LoginAttemptService {
     /** El intento no fue un fallo de credenciales (ej. contraseña correcta de una cuenta inactiva). */
     public void liberar(String email, String ip) {
         redis.execute(DEVOLVER, List.of(claveOrigen(email, ip), claveCuenta(email)));
+    }
+
+    /** Levanta el bloqueo de la cuenta desde cualquier origen (contraseña restablecida). */
+    public void reiniciar(String email) {
+        redis.execute(REINICIAR, List.of(claveCuenta(email), claveOrigenes(email)));
+    }
+
+    private static String claveOrigenes(String email) {
+        return claveCuenta(email) + ":origenes";
     }
 
     private static String claveCuenta(String email) {

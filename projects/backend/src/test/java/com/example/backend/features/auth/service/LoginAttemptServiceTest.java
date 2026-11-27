@@ -75,13 +75,30 @@ class LoginAttemptServiceTest extends PostgresRuntimeIntegrationTest {
     }
 
     @Test
+    void reiniciar_levantaElBloqueoDeTodosLosOrigenesYNoDejaClaves() {
+        String email = correo();
+        redis.delete(redis.keys("auth:login:fail:*"));
+        reservar(email, IP, 5);
+        reservar(email, "198.51.100.2", 5);
+
+        service.reiniciar(" " + email.toUpperCase() + " ");
+
+        assertThat(redis.keys("auth:login:fail:*")).isEmpty();
+        reservar(email, IP, 5);
+        reservar(email, "198.51.100.2", 5);
+    }
+
+    @Test
     void lasClavesTienenTtlYNoContienenElCorreoNiLaIp() {
         String email = correo();
         redis.delete(redis.keys("auth:login:fail:*"));
         service.reservar(email, IP);
 
         Set<String> claves = redis.keys("auth:login:fail:*");
-        assertThat(claves).hasSize(2).noneMatch(k -> k.contains(email) || k.contains(IP));
+        // Contador por origen, contador por cuenta y conjunto de orígenes.
+        assertThat(claves).hasSize(3).noneMatch(k -> k.contains(email) || k.contains(IP));
+        assertThat(redis.opsForSet().members(claves.stream().filter(k -> k.endsWith(":origenes")).findFirst()
+                .orElseThrow())).noneMatch(m -> m.contains(email) || m.contains(IP));
         claves.forEach(k -> assertThat(redis.getExpire(k)).isPositive()
                 .isLessThanOrEqualTo(Duration.ofMinutes(15).toSeconds()));
     }

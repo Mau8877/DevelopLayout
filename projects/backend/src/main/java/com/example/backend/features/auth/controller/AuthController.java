@@ -12,14 +12,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.backend.common.bitacora.OrigenSolicitud;
 import com.example.backend.common.response.ApiResponse;
 import com.example.backend.features.auth.AuthCookies;
+import com.example.backend.features.auth.dto.ForgotPasswordRequest;
 import com.example.backend.features.auth.dto.LoginRequest;
 import com.example.backend.features.auth.dto.LoginResponse;
 import com.example.backend.features.auth.dto.RefreshRequest;
+import com.example.backend.features.auth.dto.ResetPasswordRequest;
 import com.example.backend.features.auth.dto.UsuarioSesionResponse;
 import com.example.backend.features.auth.enums.TipoCliente;
 import com.example.backend.features.auth.service.AuthService;
+import com.example.backend.features.auth.service.RecuperacionService;
 import com.example.backend.security.CurrentUserId;
 
 import io.swagger.v3.oas.annotations.Parameter;
@@ -33,6 +37,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final AuthCookies authCookies;
+    private final RecuperacionService recuperacion;
 
     /** Entrega la cookie `XSRF-TOKEN` (double-submit) al cliente web. */
     @GetMapping("/csrf")
@@ -97,6 +102,22 @@ public class AuthController {
         authCookies.agregarTokens(headers, result.accessToken(), result.refreshToken());
         return ResponseEntity.ok().headers(headers).body(ApiResponse.success(
                 new LoginResponse(result.usuario(), null, null), mensaje));
+    }
+
+    /** Responde igual exista o no la cuenta, y antes de saberlo. */
+    @PostMapping("/password/forgot")
+    public ResponseEntity<ApiResponse<Void>> olvidePassword(@Valid @RequestBody ForgotPasswordRequest request,
+            HttpServletRequest http) {
+        recuperacion.solicitar(request.email(),
+                new OrigenSolicitud(http.getRemoteAddr(), http.getHeader("User-Agent")));
+        return ResponseEntity.ok(ApiResponse.success(null,
+                "Si hay una cuenta con ese correo, te enviamos un enlace para restablecer la contraseña"));
+    }
+
+    @PostMapping("/password/reset")
+    public ResponseEntity<ApiResponse<Void>> restablecerPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        recuperacion.restablecer(request.token(), request.password());
+        return ResponseEntity.ok(ApiResponse.success(null, "Contraseña actualizada. Ya podés iniciar sesión"));
     }
 
     @GetMapping("/me")
