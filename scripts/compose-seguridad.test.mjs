@@ -69,3 +69,24 @@ describe('imágenes de nginx en producción', () => {
     assert.equal(minimo('infrastructure/nginx/Dockerfile'), web);
   });
 });
+
+describe('minio-init (cliente que crea el bucket)', () => {
+  const imagen = (archivo) => /^ {4}image: (\S+)$/m.exec(servicio(archivo, 'minio-init'))?.[1];
+
+  for (const archivo of ['docker-compose.yml', 'docker-compose.prod.yml']) {
+    it(`${archivo}: imagen mantenida y fijada por digest`, () => {
+      assert.match(imagen(archivo), /^cgr\.dev\/chainguard\/minio-client:[\w.-]+@sha256:[0-9a-f]{64}$/);
+    });
+
+    it(`${archivo}: sin capabilities ni escalada de privilegios, y no se reinicia`, () => {
+      const init = servicio(archivo, 'minio-init');
+      assert.match(init, /cap_drop:\s*\n\s*- ALL/);
+      assert.match(init, /no-new-privileges:true/);
+      assert.doesNotMatch(init, /unless-stopped|<<: \*hardening|user:\s*['"]?(0|root)\b/);
+    });
+  }
+
+  it('desarrollo y producción usan la misma imagen', () => {
+    assert.equal(imagen('docker-compose.yml'), imagen('docker-compose.prod.yml'));
+  });
+});
