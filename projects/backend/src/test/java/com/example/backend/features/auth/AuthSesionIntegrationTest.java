@@ -28,7 +28,8 @@ import jakarta.servlet.http.Cookie;
 @AutoConfigureMockMvc
 abstract class AuthSesionIntegrationTest extends PostgresRuntimeIntegrationTest {
 
-    protected static final String PASSWORD = "ClaveSegura123";
+    // * Contraseña inventada: el usuario solo existe en la base descartable del test.
+    protected static final String PASSWORD = "ClaveSegura123"; // gitleaks:allow
 
     @Autowired
     protected MockMvc mvc;
