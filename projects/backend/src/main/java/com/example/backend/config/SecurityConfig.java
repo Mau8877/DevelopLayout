@@ -2,6 +2,8 @@ package com.example.backend.config;
 
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,6 +35,7 @@ import com.example.backend.security.SesionRevocadaRegistry;
 @EnableWebSecurity
 // ! Sin esto, todo @PreAuthorize de los services se ignora en silencio.
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     @Value("${app.cors.allowed-origins}")
@@ -43,18 +46,6 @@ public class SecurityConfig {
     private final RestAccessDeniedHandler accessDeniedHandler;
     private final JwtService jwtService;
     private final SesionRevocadaRegistry sesionRevocadaRegistry;
-
-    public SecurityConfig(RateLimitFilter rateLimitFilter,
-            RestAuthenticationEntryPoint authenticationEntryPoint,
-            RestAccessDeniedHandler accessDeniedHandler,
-            JwtService jwtService,
-            SesionRevocadaRegistry sesionRevocadaRegistry) {
-        this.jwtService = jwtService;
-        this.sesionRevocadaRegistry = sesionRevocadaRegistry;
-        this.rateLimitFilter = rateLimitFilter;
-        this.authenticationEntryPoint = authenticationEntryPoint;
-        this.accessDeniedHandler = accessDeniedHandler;
-    }
 
     // * CSRF solo aplica a clientes web (cookies). Un request con Bearer o con
     // * el header propio de mobile no depende de cookies del browser, y un

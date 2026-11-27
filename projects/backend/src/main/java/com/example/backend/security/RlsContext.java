@@ -2,6 +2,8 @@ package com.example.backend.security;
 
 import java.util.UUID;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -16,13 +18,10 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * ! y el código fallaría cerrado de forma confusa, así que se falla fuerte.
  */
 @Component
+@RequiredArgsConstructor
 public class RlsContext {
 
     private final JdbcTemplate jdbc;
-
-    public RlsContext(JdbcTemplate jdbc) {
-        this.jdbc = jdbc;
-    }
 
     public void usarCorreoDeLogin(String email) {
         fijar("app.login_email", email);

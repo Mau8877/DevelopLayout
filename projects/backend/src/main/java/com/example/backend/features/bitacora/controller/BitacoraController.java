@@ -4,6 +4,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,13 +24,10 @@ import com.example.backend.features.bitacora.service.BitacoraQueryService;
 /** Consulta de la bitácora. Solo lectura; la autorización la hace el service. */
 @RestController
 @RequestMapping("/api/v1/bitacora")
+@RequiredArgsConstructor
 public class BitacoraController {
 
     private final BitacoraQueryService bitacora;
-
-    public BitacoraController(BitacoraQueryService bitacora) {
-        this.bitacora = bitacora;
-    }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<BitacoraResponse>>> listar(

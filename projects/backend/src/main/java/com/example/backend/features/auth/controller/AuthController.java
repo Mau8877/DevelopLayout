@@ -1,5 +1,7 @@
 package com.example.backend.features.auth.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -26,15 +28,11 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
     private final AuthCookies authCookies;
-
-    public AuthController(AuthService authService, AuthCookies authCookies) {
-        this.authService = authService;
-        this.authCookies = authCookies;
-    }
 
     /** Entrega la cookie `XSRF-TOKEN` (double-submit) al cliente web. */
     @GetMapping("/csrf")

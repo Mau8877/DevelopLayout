@@ -2,6 +2,8 @@ package com.example.backend.security;
 
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -23,18 +25,12 @@ import com.example.backend.features.usuarios.repository.UsuarioRolRepository;
  * * encontrado, `app.current_user` (para ver sus roles).
  */
 @Service
+@RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UsuarioRepository usuarioRepository;
     private final UsuarioRolRepository usuarioRolRepository;
     private final RlsContext rlsContext;
-
-    public UserDetailsServiceImpl(UsuarioRepository usuarioRepository,
-            UsuarioRolRepository usuarioRolRepository, RlsContext rlsContext) {
-        this.usuarioRepository = usuarioRepository;
-        this.usuarioRolRepository = usuarioRolRepository;
-        this.rlsContext = rlsContext;
-    }
 
     @Override
     @Transactional(readOnly = true)

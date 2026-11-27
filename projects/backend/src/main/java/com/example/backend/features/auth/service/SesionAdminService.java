@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import lombok.RequiredArgsConstructor;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -37,6 +39,7 @@ import com.example.backend.security.RlsContext;
  * ! administrador de RLS.
  */
 @Service
+@RequiredArgsConstructor
 public class SesionAdminService {
 
     private static final Logger LOG = LoggerFactory.getLogger(SesionAdminService.class);
@@ -47,15 +50,6 @@ public class SesionAdminService {
     private final UsuarioConsultaService usuarios;
     private final RlsContext rlsContext;
     private final BitacoraService bitacora;
-
-    public SesionAdminService(SesionRepository sesionRepository, SesionService sesionService,
-            UsuarioConsultaService usuarios, RlsContext rlsContext, BitacoraService bitacora) {
-        this.sesionRepository = sesionRepository;
-        this.sesionService = sesionService;
-        this.usuarios = usuarios;
-        this.rlsContext = rlsContext;
-        this.bitacora = bitacora;
-    }
 
     /** Sesiones vigentes del usuario con ese correo, la más reciente primero. */
     @PreAuthorize(ES_ADMIN)

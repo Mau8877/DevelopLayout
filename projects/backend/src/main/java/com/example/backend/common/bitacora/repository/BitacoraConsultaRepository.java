@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -26,13 +28,10 @@ import jakarta.persistence.criteria.Root;
  * ! RLS solo deja leer con el contexto de administrador de la transacción.
  */
 @Repository
+@RequiredArgsConstructor
 public class BitacoraConsultaRepository {
 
     private final EntityManager entityManager;
-
-    public BitacoraConsultaRepository(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }
 
     /** Filtros opcionales; `desde` y `hasta` incluyen sus extremos. */
     public record Filtro(String accion, String modulo, ResultadoBitacora resultado, UUID usuarioCodigo,

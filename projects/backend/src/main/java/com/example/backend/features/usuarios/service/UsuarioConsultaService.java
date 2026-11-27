@@ -3,6 +3,8 @@ package com.example.backend.features.usuarios.service;
 import java.util.Optional;
 import java.util.UUID;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,13 +19,10 @@ import com.example.backend.features.usuarios.repository.UsuarioRepository;
  * ! propia transacción (por eso `MANDATORY`).
  */
 @Service
+@RequiredArgsConstructor
 public class UsuarioConsultaService {
 
     private final UsuarioRepository usuarioRepository;
-
-    public UsuarioConsultaService(UsuarioRepository usuarioRepository) {
-        this.usuarioRepository = usuarioRepository;
-    }
 
     /** Búsqueda por correo exacto (sin distinguir mayúsculas). */
     @Transactional(propagation = Propagation.MANDATORY)
