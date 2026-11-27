@@ -48,6 +48,16 @@ describe('UsuariosScreen: acciones', () => {
     expect(boton(tabla, 'Reenviar invitación')).not.toBeInTheDocument()
   })
 
+  it('«Cambiar roles» abre la ventana con los roles de esa cuenta', async () => {
+    const { user, tabla } = await enLaTabla([usuario({ estado: 'INACTIVO' })])
+
+    await user.click(boton(tabla, 'Cambiar roles')!)
+
+    const ventana = await screen.findByRole('dialog')
+    expect(ventana).toHaveTextContent('ana@test.local')
+    expect(within(ventana).getByRole('checkbox', { name: 'Usuario' })).toBeChecked()
+  })
+
   it('la cuenta propia no ofrece desactivar', async () => {
     const { tabla } = await enLaTabla([usuario({ codigo: 'yo' })])
 
