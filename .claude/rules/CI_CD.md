@@ -28,8 +28,11 @@ proyecto).
   filesystem (dependencias vulnerables de `pom.xml`, `pnpm-lock.yaml` y
   `pubspec.lock`, más misconfiguraciones de los `Dockerfile`), con
   `HIGH,CRITICAL` y `ignore-unfixed`.
-- **Job `docker`**: construye las imágenes de producción y valida
-  `docker-compose.prod.yml` con `docker compose config`. No publica nada.
+- **Job `docker`**: construye las imágenes de producción (backend, web y proxy),
+  las escanea con Trivy y valida `docker-compose.prod.yml` con
+  `docker compose config`. Corre si cambian el backend, el frontend,
+  `infrastructure/`, el compose de producción, `.env.example` o `ci.yml`. No
+  publica nada ni **levanta** el stack: eso solo se probó en local.
 - **`permissions: contents: read`** a nivel de workflow: ningún job
   escribe en el repo.
 - **Dependabot** (`.github/dependabot.yml`): una PR semanal por ecosistema
@@ -45,12 +48,12 @@ proyecto).
 ## CVEs en las imágenes base
 
 Si Trivy marca paquetes del sistema con arreglo disponible, se actualizan en el
-`Dockerfile`; no se ignoran ni se baja la severidad. La imagen web usa
-`nginx-unprivileged:stable-alpine-slim`, corre `apk upgrade` y exige un mínimo
+`Dockerfile`; no se ignoran ni se baja la severidad. La imagen web y la del proxy
+de producción (`infrastructure/nginx/Dockerfile`) usan
+`nginx-unprivileged:stable-alpine-slim`, corren `apk upgrade` y exigen un mínimo
 de nginx (`nginx>=X.Y.Z`), porque la base fija su versión y `apk upgrade` solo
-no la sube. Ante un CVE nuevo de nginx se sube ese mínimo. **Pendiente:** el
-`proxy` de `docker-compose.prod.yml` usa la imagen pública sin parchear y CI no
-la escanea.
+no la sube. Ante un CVE nuevo de nginx se sube ese mínimo **en las dos** (un test
+de `scripts/` exige que coincidan).
 
 ## Versión de Flutter fija
 
@@ -84,7 +87,8 @@ detecta qué carpetas cambiaron en el PR/push, y cada job de proyecto
 (`backend`, `frontend`, `mobile`, `scripts`) solo corre si `changes` marcó
 que sus rutas tuvieron cambios (`backend` también con `infrastructure/redis/**`,
 porque un test verifica `redis.conf`; `scripts` también con
-`docker-compose*.yml`, que `compose-seguridad.test.mjs` revisa). Esto es deliberado por dos razones:
+`docker-compose*.yml` y los `Dockerfile` de nginx, que
+`compose-seguridad.test.mjs` revisa). Esto es deliberado por dos razones:
 
 - **Este es un monorepo con 3 proyectos independientes** (ver
   [`README.md`](../../README.md)) que no comparten build ni runtime — no
