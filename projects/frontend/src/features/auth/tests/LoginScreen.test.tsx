@@ -77,7 +77,7 @@ describe('LoginScreen', () => {
     await user.tab()
     await user.keyboard('ClaveSegura123{Enter}')
 
-    await waitFor(() => expect(post).toHaveBeenCalledWith('/auth/login', { email: 'a@b.co', password: 'ClaveSegura123' }))
+    await waitFor(() => expect(post).toHaveBeenCalledWith('/auth/login', { email: 'a@b.co', password: 'ClaveSegura123' })) // gitleaks:allow
   })
 
   it('enlaza a la recuperación de contraseña', () => {
