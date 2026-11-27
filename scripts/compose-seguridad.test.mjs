@@ -53,3 +53,19 @@ describe('endurecimiento de MinIO', () => {
     assert.match(desarrollo, /no-new-privileges:true/);
   });
 });
+
+describe('imágenes de nginx en producción', () => {
+  const minimo = (ruta) => /'nginx>=([\d.]+)'/.exec(readFileSync(join(raiz, ruta), 'utf8'))?.[1];
+
+  it('el proxy se construye con la imagen parcheada, no usa la pública tal cual', () => {
+    const proxy = servicio('docker-compose.prod.yml', 'proxy');
+    assert.match(proxy, /context: infrastructure\/nginx/);
+    assert.doesNotMatch(proxy, /image: nginx/);
+  });
+
+  it('el proxy y la web exigen el mismo mínimo de nginx', () => {
+    const web = minimo('projects/frontend/Dockerfile');
+    assert.ok(web, 'la imagen web debe exigir un mínimo de nginx');
+    assert.equal(minimo('infrastructure/nginx/Dockerfile'), web);
+  });
+});
