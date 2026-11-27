@@ -1,5 +1,7 @@
 package com.example.backend.features.bitacora.service;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,15 +16,11 @@ import com.example.backend.features.bitacora.dto.BitacoraResponse;
 import com.example.backend.security.RlsContext;
 
 @Service
+@RequiredArgsConstructor
 public class BitacoraQueryService {
 
     private final BitacoraConsultaRepository repositorio;
     private final RlsContext rlsContext;
-
-    public BitacoraQueryService(BitacoraConsultaRepository repositorio, RlsContext rlsContext) {
-        this.repositorio = repositorio;
-        this.rlsContext = rlsContext;
-    }
 
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Transactional(readOnly = true)

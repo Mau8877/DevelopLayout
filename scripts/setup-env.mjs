@@ -10,7 +10,8 @@
 //
 // Uso (desde la raíz del repo):
 //   pnpm setup:env          crea/completa los .env
-//   pnpm setup:env:check    no escribe nada; falla si falta algo o queda un CAMBIAME
+//   pnpm setup:env:check    no escribe nada; falla si falta algo, queda un CAMBIAME o el
+//                           .env del backend no coincide con el de la raíz
 
 import { randomBytes, randomInt } from 'node:crypto';
 import { chmodSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -27,6 +28,21 @@ const ALIAS_BACKEND = {
   SPRING_DATASOURCE_PASSWORD: 'APP_RUNTIME_PASSWORD',
   SPRING_FLYWAY_PASSWORD: 'POSTGRES_PASSWORD',
   SPRING_DATA_REDIS_PASSWORD: 'REDIS_PASSWORD',
+};
+
+// * Claves del backend que TIENEN que valer lo mismo que en la raíz. Lista explícita:
+// * compartir el nombre no alcanza (CORS_ALLOWED_ORIGINS es el de producción en la
+// * raíz y el de desarrollo en el backend).
+const DEBEN_COINCIDIR = {
+  ...ALIAS_BACKEND,
+  SPRING_FLYWAY_USER: 'POSTGRES_USER',
+  APP_RUNTIME_PASSWORD: 'APP_RUNTIME_PASSWORD',
+  INITIAL_ADMIN_EMAIL: 'INITIAL_ADMIN_EMAIL',
+  INITIAL_ADMIN_PASSWORD: 'INITIAL_ADMIN_PASSWORD',
+  MINIO_ROOT_USER: 'MINIO_ROOT_USER',
+  MINIO_ROOT_PASSWORD: 'MINIO_ROOT_PASSWORD',
+  JWT_SECRET: 'JWT_SECRET',
+  REFRESH_TOKEN_SECRET: 'REFRESH_TOKEN_SECRET',
 };
 
 // Valores del example que son de ejemplo y conviene personalizar (solo se avisa).
@@ -98,6 +114,37 @@ export function completar(existente, ejemplo, resolver) {
 }
 
 /**
+ * Claves de DEBEN_COINCIDIR que valen distinto. Solo nombres:
+ * los valores nunca salen de acá. Los CAMBIAME y las claves ausentes se informan aparte.
+ */
+function diferencias(raiz, backend) {
+  return [...backend].flatMap(([clave, valor]) => {
+    if (!Object.hasOwn(DEBEN_COINCIDIR, clave)) return [];
+    const claveRaiz = DEBEN_COINCIDIR[clave];
+    const original = raiz.get(claveRaiz);
+    if (original === undefined || esPlaceholder(original) || esPlaceholder(valor)) return [];
+    return original === valor ? [] : [`${clave} (raíz: ${claveRaiz})`];
+  });
+}
+
+/** Solo avisa: una URL local distinta puede ser a propósito (otro Postgres de la máquina). */
+function avisosDeConexion(raiz, backend) {
+  const url = /^jdbc:postgresql:\/\/(?:localhost|127\.0\.0\.1)(?::(\d+))?\/([^?]+)/.exec(
+    backend.get('SPRING_DATASOURCE_URL') ?? '',
+  );
+  if (!url) return [];
+  const [, puerto = '5432', base] = url;
+  const avisos = [];
+  if (raiz.has('POSTGRES_DB') && base !== raiz.get('POSTGRES_DB')) {
+    avisos.push('SPRING_DATASOURCE_URL apunta a una base distinta de POSTGRES_DB');
+  }
+  if (puerto !== (raiz.get('POSTGRES_HOST_PORT') || '5432')) {
+    avisos.push('SPRING_DATASOURCE_URL usa un puerto distinto del que publica Docker (POSTGRES_HOST_PORT, o 5432)');
+  }
+  return avisos;
+}
+
+/**
  * Crea/completa los .env bajo `root`. Con `soloVerificar` no escribe nada.
  * Devuelve un reporte sin valores secretos.
  */
@@ -109,7 +156,7 @@ export function prepararEntornos({ root, soloVerificar = false }) {
     const rutaEnv = join(root, dir, '.env');
     const rutaEjemplo = join(root, dir, '.env.example');
     if (!existsSync(rutaEjemplo)) {
-      reporte.push({ archivo: nombre, estado: 'sin-example', secretos: 0, agregadas: 0, avisos: [] });
+      reporte.push({ archivo: nombre, estado: 'sin-example', secretos: 0, agregadas: 0, distintas: [], avisos: [] });
       continue;
     }
     const ejemplo = readFileSync(rutaEjemplo, 'utf8');
@@ -125,10 +172,14 @@ export function prepararEntornos({ root, soloVerificar = false }) {
 
     if (soloVerificar) {
       const claves = leerClaves(existente ?? '');
+      if (tipo === 'raiz') valoresRaiz = claves;
+      const distintas = tipo === 'backend' ? diferencias(valoresRaiz, claves) : [];
       const pendientes = [...claves].filter(([, v]) => esPlaceholder(v)).map(([k]) => k);
       const faltan = [...leerClaves(ejemplo).keys()].filter((k) => !claves.has(k));
-      const estado = existente === null ? 'falta' : pendientes.length || faltan.length ? 'pendiente' : 'ok';
-      reporte.push({ archivo: nombre, estado, secretos: pendientes.length, agregadas: faltan.length, avisos: [] });
+      const incompleto = pendientes.length || faltan.length;
+      const estado = existente === null ? 'falta' : incompleto ? 'pendiente' : distintas.length ? 'distinto' : 'ok';
+      const avisos = tipo === 'backend' ? avisosDeConexion(valoresRaiz, claves) : [];
+      reporte.push({ archivo: nombre, estado, secretos: pendientes.length, agregadas: faltan.length, distintas, avisos });
       continue;
     }
 
@@ -151,7 +202,12 @@ export function prepararEntornos({ root, soloVerificar = false }) {
     const avisos = Object.entries(AVISOS)
       .filter(([k, v]) => finales.get(k) === v)
       .map(([k]) => `${k} conserva el valor de ejemplo: cambialo por uno real`);
-    reporte.push({ archivo: nombre, estado, secretos: secretos.length, agregadas: agregadas.length, avisos });
+    let distintas = [];
+    if (tipo === 'backend') {
+      distintas = diferencias(valoresRaiz, finales);
+      avisos.push(...avisosDeConexion(valoresRaiz, finales));
+    }
+    reporte.push({ archivo: nombre, estado, secretos: secretos.length, agregadas: agregadas.length, distintas, avisos });
   }
   return reporte;
 }
@@ -164,6 +220,7 @@ const ETIQUETA = {
   ok: '✔ ok',
   falta: '✖ no existe',
   pendiente: '✖ incompleto',
+  distinto: '✖ no coincide con la raíz',
 };
 
 function main() {
@@ -179,15 +236,18 @@ function main() {
     if (r.secretos) detalle.push(`${r.secretos} ${soloVerificar ? 'con CAMBIAME' : 'secretos generados'}`);
     if (r.agregadas) detalle.push(`${r.agregadas} claves ${soloVerificar ? 'faltan' : 'agregadas'}`);
     console.log(`${ETIQUETA[r.estado]}  ${r.archivo}${detalle.length ? ` (${detalle.join(', ')})` : ''}`);
+    for (const k of r.distintas) console.log(`    ≠ ${k}`);
     for (const a of r.avisos) console.log(`    ! ${a}`);
   }
 
   if (soloVerificar) {
-    const mal = reporte.some((r) => r.estado === 'falta' || r.estado === 'pendiente');
-    if (mal) {
-      console.error('\nFaltan variables de entorno. Corré: pnpm setup:env');
-      process.exit(1);
+    const falta = reporte.some((r) => r.estado === 'falta' || r.estado === 'pendiente');
+    const distinto = reporte.some((r) => r.distintas.length > 0);
+    if (falta) console.error('\nFaltan variables de entorno. Corré: pnpm setup:env');
+    if (distinto) {
+      console.error('\nHay valores distintos entre los .env. setup:env no pisa valores: igualalos a mano.');
     }
+    if (falta || distinto) process.exit(1);
     return;
   }
   console.log('\nListo. Los secretos no se muestran: están en cada .env (ignorado por git).');

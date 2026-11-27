@@ -3,6 +3,8 @@ package com.example.backend.features.auth.controller;
 import java.util.List;
 import java.util.UUID;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,13 +26,10 @@ import jakarta.validation.Valid;
 /** Administración de sesiones. La autorización la hace el service. */
 @RestController
 @RequestMapping("/api/v1/admin")
+@RequiredArgsConstructor
 public class SesionAdminController {
 
     private final SesionAdminService sesiones;
-
-    public SesionAdminController(SesionAdminService sesiones) {
-        this.sesiones = sesiones;
-    }
 
     @PostMapping("/sesiones/buscar")
     public ResponseEntity<ApiResponse<List<SesionResponse>>> buscar(@Valid @RequestBody BuscarSesionesRequest request) {

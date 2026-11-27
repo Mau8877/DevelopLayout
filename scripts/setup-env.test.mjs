@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, it } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import { completar, esPlaceholder, generarSecreto, leerClaves, prepararEntornos } from './setup-env.mjs';
 
@@ -170,5 +172,80 @@ describe('archivos sin cambios de fondo', () => {
     const reporte = prepararEntornos({ root });
     assert.equal(reporte.find((r) => r.archivo === 'projects/frontend/.env').estado, 'sin-cambios');
     assert.equal(readFileSync(ruta, 'utf8'), sinSalto);
+  });
+});
+
+describe('valores que no coinciden entre la raíz y el backend', () => {
+  const cambiar = (ruta, clave, valor) =>
+    escribir(ruta, leer(ruta).replace(new RegExp(`^${clave}=.*$`, 'm'), () => `${clave}=${valor}`));
+  const verificar = () => {
+    const reporte = prepararEntornos({ root, soloVerificar: true });
+    return { reporte, backend: reporte.find((r) => r.archivo === 'projects/backend/.env') };
+  };
+  beforeEach(() => prepararEntornos({ root }));
+
+  it('recién preparados no hay diferencias ni avisos de conexión', () => {
+    const { backend } = verificar();
+    assert.equal(backend.estado, 'ok');
+    assert.deepEqual(backend.distintas, []);
+    assert.deepEqual(backend.avisos.filter((a) => a.includes('SPRING_DATASOURCE_URL')), []);
+  });
+
+  for (const [claveBackend, claveRaiz] of [
+    ['SPRING_DATASOURCE_PASSWORD', 'APP_RUNTIME_PASSWORD'],
+    ['SPRING_FLYWAY_PASSWORD', 'POSTGRES_PASSWORD'],
+    ['SPRING_DATA_REDIS_PASSWORD', 'REDIS_PASSWORD'],
+    ['SPRING_FLYWAY_USER', 'POSTGRES_USER'],
+    ['MINIO_ROOT_PASSWORD', 'MINIO_ROOT_PASSWORD'],
+    ['JWT_SECRET', 'JWT_SECRET'],
+  ]) {
+    it(`marca ${claveBackend} distinta de ${claveRaiz}, sin mostrar valores`, () => {
+      cambiar('projects/backend/.env', claveBackend, 'valorQueNoCoincide123');
+      const { reporte, backend } = verificar();
+      assert.equal(backend.estado, 'distinto');
+      assert.deepEqual(backend.distintas, [`${claveBackend} (raíz: ${claveRaiz})`]);
+      assert.doesNotMatch(JSON.stringify(reporte), /valorQueNoCoincide123/);
+    });
+  }
+
+  it('no compara claves que pueden diferir: CORS de la raíz es el de producción', () => {
+    escribir('.env', `${leer('.env')}CORS_ALLOWED_ORIGINS=https://app.midominio.com\n`);
+    escribir('projects/backend/.env', `${leer('projects/backend/.env')}CORS_ALLOWED_ORIGINS=http://localhost:5173\n`);
+    const { backend } = verificar();
+    assert.equal(backend.estado, 'ok');
+    assert.deepEqual(backend.distintas, []);
+  });
+
+  it('avisa, sin fallar, si el puerto local de la URL no es el que publica Docker', () => {
+    escribir('.env', `${leer('.env')}POSTGRES_HOST_PORT=5433\n`);
+    const { backend } = verificar();
+    assert.equal(backend.estado, 'ok');
+    assert.ok(backend.avisos.some((a) => a.includes('SPRING_DATASOURCE_URL') && a.includes('puerto')));
+  });
+
+  it('avisa si la base de la URL local no es POSTGRES_DB', () => {
+    cambiar('projects/backend/.env', 'SPRING_DATASOURCE_URL', 'jdbc:postgresql://127.0.0.1:5432/otra_base');
+    assert.ok(verificar().backend.avisos.some((a) => a.includes('base')));
+  });
+
+  it('no opina sobre una URL que apunta a otro servidor', () => {
+    cambiar('projects/backend/.env', 'SPRING_DATASOURCE_URL', 'jdbc:postgresql://db.interna:6000/otra_base');
+    assert.deepEqual(verificar().backend.avisos.filter((a) => a.includes('SPRING_DATASOURCE_URL')), []);
+  });
+
+  it('al preparar avisa de la diferencia y no pisa el valor', () => {
+    cambiar('projects/backend/.env', 'SPRING_FLYWAY_PASSWORD', 'valorPropio123');
+    const backend = prepararEntornos({ root }).find((r) => r.archivo === 'projects/backend/.env');
+    assert.deepEqual(backend.distintas, ['SPRING_FLYWAY_PASSWORD (raíz: POSTGRES_PASSWORD)']);
+    assert.match(leer('projects/backend/.env'), /^SPRING_FLYWAY_PASSWORD=valorPropio123$/m);
+  });
+
+  it('el comando --check sale con error y no imprime los valores', () => {
+    cambiar('projects/backend/.env', 'SPRING_DATA_REDIS_PASSWORD', 'valorQueNoCoincide123');
+    const script = fileURLToPath(new URL('./setup-env.mjs', import.meta.url));
+    const r = spawnSync(process.execPath, [script, '--check', '--root', root], { encoding: 'utf8' });
+    assert.equal(r.status, 1);
+    assert.match(r.stdout, /SPRING_DATA_REDIS_PASSWORD \(raíz: REDIS_PASSWORD\)/);
+    assert.doesNotMatch(r.stdout + r.stderr, /valorQueNoCoincide123/);
   });
 });

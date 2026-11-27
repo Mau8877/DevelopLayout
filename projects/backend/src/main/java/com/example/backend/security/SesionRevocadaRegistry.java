@@ -3,6 +3,8 @@ package com.example.backend.security;
 import java.time.Duration;
 import java.util.UUID;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -13,15 +15,12 @@ import org.springframework.stereotype.Component;
  * * permite cortar un access token vigente antes de que venza.
  */
 @Component
+@RequiredArgsConstructor
 public class SesionRevocadaRegistry {
 
     private static final String PREFIJO = "auth:revoked:";
 
     private final StringRedisTemplate redis;
-
-    public SesionRevocadaRegistry(StringRedisTemplate redis) {
-        this.redis = redis;
-    }
 
     /** El TTL basta con la vida del access token: después ya no hay nada que cortar. */
     public void revocar(UUID sid, Duration ttl) {

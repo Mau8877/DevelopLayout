@@ -121,7 +121,13 @@ dependencia existe para eliminar.
 | Dónde | Qué anotación | Por qué |
 | --- | --- | --- |
 | `model/` (Models JPA, incluido `BaseModel`) | `@Getter` a nivel de clase; `@Setter` **por campo**, solo en los campos que de verdad necesitan mutarse desde fuera (ej. `deletedAt` para soft delete) | Un Model normalmente no debería exponer setters de todos sus campos sin criterio — igual que `BaseModel` no expone `setCodigo()`/`setCreatedAt()` (son de solo lectura una vez persistidos), cada Model nuevo decide campo por campo qué setter tiene sentido, no `@Setter` a nivel de clase por defecto |
-| `service/`, `controller/` (constructor injection) | `@RequiredArgsConstructor` sobre la clase, con los campos `private final` | Reemplaza el constructor explícito que pedía la versión anterior de esta regla |
+| Beans con constructor injection (`service/`, `controller/`, `security/`, `config/`...) | `@RequiredArgsConstructor` sobre la clase, con los campos `private final` | Reemplaza el constructor explícito siempre que solo asigne campos |
+
+El constructor **se escribe a mano** solo cuando Lombok no puede generarlo:
+recibe configuración con `@Value` en sus parámetros, valida o calcula algo al
+construirse (ej. rechazar una clave corta y que la app no arranque), o la clase
+tiene más de un constructor. En esos casos no se mueve el `@Value` a un campo solo
+para poder usar Lombok.
 
 ### Qué NO se usa
 

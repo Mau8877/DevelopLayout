@@ -104,7 +104,8 @@
 			<artifactId>logstash-logback-encoder</artifactId>
 			<version>9.0</version>
 		</dependency>
-		<!-- Reportes (JasperReports 7). Ver .claude/rules/backend/REPORTES_JASPERREPORTS.md:
+		<!-- Se incluye a propósito aunque la plantilla todavía no tenga reportes.
+		     Reportes (JasperReports 7). Ver .claude/rules/backend/REPORTES_JASPERREPORTS.md:
 		     las plantillas se compilan en build, nunca en runtime a partir de
 		     archivos subidos por usuarios. -->
 		<dependency>

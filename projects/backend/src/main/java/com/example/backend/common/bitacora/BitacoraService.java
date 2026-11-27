@@ -5,6 +5,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
+import lombok.RequiredArgsConstructor;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -35,6 +37,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * ! UUID o listas de nombres de campos.
  */
 @Service
+@RequiredArgsConstructor
 public class BitacoraService {
 
     private static final Logger LOG = LoggerFactory.getLogger(BitacoraService.class);
@@ -45,10 +48,6 @@ public class BitacoraService {
             List.of("password", "token", "secret", "hash", "authorization", "card");
 
     private final BitacoraRepository bitacoraRepository;
-
-    public BitacoraService(BitacoraRepository bitacoraRepository) {
-        this.bitacoraRepository = bitacoraRepository;
-    }
 
     @Transactional
     public void registrar(String accion, String modulo, String entidad, UUID entidadCodigo,

@@ -9,6 +9,11 @@ Versión: **JasperReports 7.1.x** (`net.sf.jasperreports`: `jasperreports`,
 `jasperreports.version` del `pom.xml`; no los administra el BOM de Spring).
 Jasper 7 es la línea Jakarta; no mezclar con artefactos 6.x.
 
+> **Incluido aunque todavía no haya reportes**, a propósito: la plantilla deja
+> la dependencia lista. Cuesta unas 33 librerías (21 de los 102 MB del jar, medido
+> con 7.1.1) que Trivy y Dependabot también vigilan. Un proyecto que no vaya a
+> tener reportes quita las tres dependencias y `jasperreports.version` del `pom.xml`.
+
 ## Dónde vive
 
 `features/{modulo}/` como cualquier otra lógica: la generación del reporte

@@ -9,7 +9,7 @@ monta cada servicio:
 | `nginx/` | `nginx.conf` (proxy de desarrollo, HTTP + WebSockets para Vite) y `nginx.prod.conf` (producción: TLS, HSTS, CSP). `Dockerfile`: imagen parcheada del proxy de producción |
 | `postgres/init/` | Scripts de inicialización de Postgres (vacía por ahora) |
 | `redis/` | `redis.conf` (memoria sin desalojo y persistencia AOF; la contraseña viene del `.env`) |
-| `minio/` | `create-buckets.sh`: crea el bucket privado al levantar el stack |
+| `minio/` | `create-buckets.sh`: crea el bucket privado al levantar el stack (lo corre `minio-init`, con imagen fijada por digest) |
 | `prometheus/` | `prometheus.yml`: scrapea las métricas del backend |
 | `grafana/` | Provisioning del datasource de Prometheus |
 | `docker/` | Reservada para configuración Docker adicional (vacía por ahora) |
