@@ -21,6 +21,7 @@ pnpm setup:env:check    # no escribe nada; falla si falta algo o queda un CAMBIA
 - **Mantiene los archivos sincronizados:** el `.env` del backend toma de la raíz
   la misma contraseña de Postgres, del rol `app_runtime`, de Redis y de MinIO, y
   las mismas claves `JWT_SECRET` y `REFRESH_TOKEN_SECRET`.
+- `setup:env:check` falla si falta una clave, queda un `CAMBIAME` o un valor compartido (contraseñas, claves, usuarios) **difiere** entre el `.env` de la raíz y el del backend; muestra solo los nombres. Si la URL local de la base usa otro puerto u otro nombre, solo avisa. Ninguno de los dos comandos pisa un valor existente: se igualan a mano. Ojo: cambiar el `.env` no cambia la contraseña de un Postgres ya creado.
 - **Qué te toca a vos:** cambiar `INITIAL_ADMIN_EMAIL` (el script avisa si sigue
   con el valor de ejemplo), y los nombres de base y usuario si el proyecto usa
   otros. Los secretos que generó los podés leer del `.env` (ej. la contraseña

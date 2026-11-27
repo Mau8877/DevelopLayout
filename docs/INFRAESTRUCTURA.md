@@ -155,6 +155,10 @@ Todos esos puertos se publican **solo en `127.0.0.1`**: el stack de desarrollo n
 
 ### 2.6 `minio` + `minio-init` — almacenamiento de archivos (S3-compatible)
 
+**Hoy el backend no usa MinIO** (no incluye su cliente Java; las propiedades
+`app.minio.*` no las lee nadie). Se levanta siempre, a propósito: la plantilla deja
+el almacenamiento de archivos preparado para los proyectos que nazcan de ella.
+
 - **`minio`**: imagen `cgr.dev/chainguard/minio` (`minio/minio` ya no existe en Docker Hub; corre **sin root** (uid 65532, `MINIO_UID` si tu imagen usa otro) y sin capabilities; su healthcheck usa `/dev/tcp` de bash porque no trae curl), expone la API S3 en `9000` y la
   consola web de administración en `9001`. Credenciales de
   `${MINIO_ROOT_USER}`/`${MINIO_ROOT_PASSWORD}`. Volumen `minio_data:/data`
@@ -164,7 +168,12 @@ Todos esos puertos se publican **solo en `127.0.0.1`**: el stack de desarrollo n
   root: sin red y solo con las capabilities `CHOWN` y `DAC_OVERRIDE`. Migra
   solo los volúmenes creados cuando MinIO corría como root. **Volver a una
   configuración con root no necesita deshacerlo.**
-- **`minio-init`**: contenedor de **una sola corrida** (imagen `bitnamilegacy/minio-client`, porque `minio/mc` ya no se publica en Docker Hub y la de Chainguard no trae `sh`;
+- **`minio-init`**: contenedor de **una sola corrida** (imagen
+  `cgr.dev/chainguard/minio-client`, variante `latest-dev` porque el script
+  necesita shell; sin root y sin capabilities). Va **fijada por digest** y nada la
+  actualiza sola: para subirla, `docker buildx imagetools inspect
+  cgr.dev/chainguard/minio-client:latest-dev` y cambiar el digest en los dos
+  compose (un test de `scripts/` exige que coincidan). Es
   el cliente de línea de comandos de MinIO). Corre
   `infrastructure/minio/create-buckets.sh` una vez, crea el bucket, y
   termina (`Exited (0)` es su estado normal y esperado — **no** es un
