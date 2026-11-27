@@ -42,6 +42,32 @@ proyecto).
 > agrega a un `.trivyignore`, no se baja la severidad del escaneo.
 > `scripts/{linux,windows}/update-deps.*` hace la misma auditoría en local.
 
+## CVEs en las imágenes base
+
+Si Trivy marca paquetes del sistema con arreglo disponible, se actualizan en el
+`Dockerfile`; no se ignoran ni se baja la severidad. La imagen web usa
+`nginx-unprivileged:stable-alpine-slim`, corre `apk upgrade` y exige un mínimo
+de nginx (`nginx>=X.Y.Z`), porque la base fija su versión y `apk upgrade` solo
+no la sube. Ante un CVE nuevo de nginx se sube ese mínimo. **Pendiente:** el
+`proxy` de `docker-compose.prod.yml` usa la imagen pública sin parchear y CI no
+la escanea.
+
+## Versión de Flutter fija
+
+El job `mobile` fija `flutter-version` (la misma del desarrollo local). Con
+`channel: stable` a secas, una versión nueva marcó como obsoleto
+`package:flutter/material.dart` y rompió el CI sin cambios en el código.
+Dependabot no la actualiza: al subir de Flutter se cambia en `ci.yml` en el
+mismo cambio. **Pendiente:** a partir de la 3.47 hay que migrar a `material_ui`.
+
+## Falsos positivos de gitleaks
+
+Se anotan uno por uno: `gitleaks:allow` en la línea y, si el hallazgo está en un
+commit ya hecho, su fingerprint en `.gitleaksignore` con el motivo. Nunca se
+desactiva una regla ni se excluye una carpeta. gitleaks revisa cada commit del
+PR, así que rebasear cambia los hashes anotados. **Un secreto real no se ignora:
+se rota.**
+
 ## Pendiente: fijar las acciones de terceros por SHA
 
 Las acciones de `ci.yml` están fijadas por tag (`@v4`), que es mutable: el
