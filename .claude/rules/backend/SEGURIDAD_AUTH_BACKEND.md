@@ -15,7 +15,7 @@ globs: projects/backend/**/*
 | Administrar sesiones y consultar la bitácora | Implementado, solo `SUPER_ADMIN` (HU SesionesAdmin, Bitacora) |
 | Mis sesiones (cada usuario las suyas) | Backend y web probados; falta la validación mobile en emulador (HU Sesiones) |
 | Administrar usuarios e invitaciones, solo `SUPER_ADMIN` (HU Usuarios) | Implementado (backend y web) |
-| Cambiar los roles de un usuario existente (HU Roles) | **No implementado**. Falta además el permiso para modificar asignaciones |
+| Cambiar los roles de un usuario, solo `SUPER_ADMIN` (HU Roles) | Implementado (backend y web) |
 
 El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
 
@@ -157,6 +157,11 @@ El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
 - **Desactivar** revoca las sesiones y anula los enlaces de invitación y de
   recuperación. Reactivar los vuelve a anular y no revive nada. Los usuarios no se
   eliminan y el correo no se cambia (lo impide la base).
+- **Cambiar roles** (`PUT /{codigo}/roles`) reemplaza el conjunto completo, deja al
+  menos uno y **revoca todas las sesiones** de la cuenta (también la actual si es
+  la propia): ningún permiso retirado sobrevive. El mismo conjunto no hace nada.
+  Nadie se quita su propio `SUPER_ADMIN`. Quitar un rol desactiva la asignación y
+  volver a darlo reactiva la misma fila.
 
 ## Recuperación de contraseña
 
