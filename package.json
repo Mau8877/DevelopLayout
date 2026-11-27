@@ -10,6 +10,7 @@
 		"setup:env:check": "node scripts/setup-env.mjs --check",
 		"db:backup": "node scripts/db-backup.mjs backup",
 		"db:verify": "node scripts/db-backup.mjs verify",
+		"db:restore": "node scripts/db-backup.mjs restore",
 		"openapi:sync": "node scripts/openapi-sync.mjs",
 		"openapi:types": "pnpm --filter ./projects/frontend run openapi:types",
 		"test:scripts": "node --test \"scripts/**/*.test.mjs\""

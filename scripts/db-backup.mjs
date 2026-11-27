@@ -5,6 +5,9 @@
 //   pnpm db:backup -- --keep 7   igual, y conserva solo los 7 más recientes
 //   pnpm db:verify               restaura el último respaldo en una base TEMPORAL, comprueba
 //                                que quedó usable y la borra (tu base real no se toca)
+//   pnpm db:restore <archivo> --confirmar
+//                                REEMPLAZA la base real con el respaldo (backend detenido);
+//                                sirve también sobre un servidor vacío
 //   agregá --prod para usar docker-compose.prod.yml
 //
 // * Se hace desde Node y no con `docker compose exec ... > archivo` en PowerShell: la
@@ -90,6 +93,12 @@ export async function hacerBackup(db, { usuario, base, dir, ahora = new Date(), 
   }
 }
 
+/** El volcado trae los permisos de app_runtime, pero no el rol: esto confirma que quedaron aplicados. */
+async function runtimeConPermisos(db, usuario, base) {
+  const sql = "SELECT has_table_privilege('app_runtime', 'authentication.usuario', 'SELECT')";
+  return (await db.consulta(usuario, base, sql)).trim() === 't';
+}
+
 /**
  * Restaura un respaldo en una base temporal y comprueba que quedó usable. Siempre borra la
  * temporal al terminar, haya salido bien o mal. No toca la base real.
@@ -112,19 +121,62 @@ export async function verificarBackup(db, { usuario, base, dir, archivo, ahora =
     const usuarios = await numero('SELECT count(*) FROM authentication.usuario');
     if (!(migraciones > 0)) throw new Error('la base restaurada no tiene historial de migraciones');
     if (!(tablas > 1)) throw new Error('la base restaurada casi no tiene tablas');
+    if (!(await runtimeConPermisos(db, usuario, temporal))) {
+      throw new Error('el respaldo no trae los permisos de app_runtime: la app no podría usar la base restaurada');
+    }
     return { archivo: origen, migraciones, tablas, usuarios };
   } finally {
     await db.borrarBase(usuario, temporal);
   }
 }
 
+// * Mismos atributos que la migración que lo crea (V20261125063100). Si ya existe, no se toca.
+const sqlRolRuntime = (password) => `DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'app_runtime') THEN
+        CREATE ROLE app_runtime LOGIN PASSWORD '${password}' NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE;
+    END IF;
+END
+$$;`;
+
+// * El respaldo "revive" las sesiones cerradas después de hacerlo: se revocan todas.
+const SQL_REVOCAR_SESIONES = `UPDATE authentication.sesion
+   SET estado = 'REVOCADA', revocada_en = now(), motivo_revocacion = 'ADMIN', updated_at = now()
+ WHERE estado = 'ACTIVA';`;
+
+/**
+ * Reemplaza la base real con un respaldo. El volcado no incluye roles y su historial de Flyway
+ * impide que la migración vuelva a crear `app_runtime`: hay que crearlo ANTES de restaurar.
+ * La restauración es una sola transacción: o queda completa o la base no cambia.
+ */
+export async function restaurarBackup(db, { usuario, base, archivo, passwordRuntime, confirmado }) {
+  validar('POSTGRES_USER', usuario);
+  validar('POSTGRES_DB', base);
+  if (!archivo || !existsSync(archivo)) throw new Error('indicá un archivo de respaldo que exista');
+  if (!/^[A-Za-z0-9]+$/.test(passwordRuntime ?? '') || passwordRuntime === 'CAMBIAME') {
+    throw new Error('APP_RUNTIME_PASSWORD falta o no es válida en .env (solo letras y números)');
+  }
+  if (!confirmado) throw new Error(`esto REEMPLAZA la base "${base}". Si es lo que querés, repetí con --confirmar`);
+  if (await db.backendActivo()) throw new Error('el backend está en marcha: detenelo antes de restaurar');
+
+  await db.ejecutarSql(usuario, base, sqlRolRuntime(passwordRuntime));
+  await db.restaurar(usuario, base, archivo, { limpiar: true });
+  await db.ejecutarSql(usuario, base, SQL_REVOCAR_SESIONES);
+  if (!(await runtimeConPermisos(db, usuario, base))) {
+    throw new Error('se restauró, pero app_runtime quedó sin permisos: no arranques la app');
+  }
+  return { archivo };
+}
+
 /** Adaptador real: ejecuta pg_dump/pg_restore/psql dentro del servicio `postgres` de Compose. */
 export function crearDocker({ root, prod }) {
-  const compose = ['compose', ...(prod ? ['-f', 'docker-compose.prod.yml'] : []), 'exec', '-T', 'postgres'];
+  const compose = ['compose', ...(prod ? ['-f', 'docker-compose.prod.yml'] : [])];
+  const enPostgres = [...compose, 'exec', '-T', 'postgres'];
 
-  const ejecutar = (args, { entrada, salida } = {}) =>
+  const lanzar = (nombre, argumentos, { entrada, texto, salida } = {}) =>
     new Promise((resolver, rechazar) => {
-      const proceso = spawn('docker', [...compose, ...args], { cwd: root, stdio: [entrada ? 'pipe' : 'ignore', 'pipe', 'pipe'] });
+      const conEntrada = Boolean(entrada) || texto !== undefined;
+      const proceso = spawn('docker', argumentos, { cwd: root, stdio: [conEntrada ? 'pipe' : 'ignore', 'pipe', 'pipe'] });
       let stdout = '';
       let stderr = '';
       const pendientes = [];
@@ -142,6 +194,9 @@ export function crearDocker({ root, prod }) {
         origen.on('error', rechazar);
         proceso.stdin.on('error', () => {}); // EPIPE si pg_restore corta antes de leer todo
         origen.pipe(proceso.stdin);
+      } else if (texto !== undefined) {
+        proceso.stdin.on('error', () => {});
+        proceso.stdin.end(texto);
       }
       proceso.on('error', (e) =>
         rechazar(e.code === 'ENOENT' ? new Error('no encontré `docker` en el PATH') : e),
@@ -153,17 +208,30 @@ export function crearDocker({ root, prod }) {
           return rechazar(e);
         }
         if (codigo !== 0) {
-          return rechazar(new Error(`docker ${args[0]} terminó con código ${codigo}: ${stderr.trim().split('\n').slice(-5).join(' | ')}`));
+          return rechazar(new Error(`docker ${nombre} terminó con código ${codigo}: ${stderr.trim().split('\n').slice(-5).join(' | ')}`));
         }
         resolver(stdout);
       });
     });
 
+  const ejecutar = (args, opciones) => lanzar(args[0], [...enPostgres, ...args], opciones);
+
   return {
+    backendActivo: async () =>
+      (await lanzar('compose ps', [...compose, 'ps', '--status', 'running', '-q', 'backend'])).trim() !== '',
+    // * El SQL va por stdin: así una contraseña no aparece en la lista de procesos.
+    ejecutarSql: (usuario, nombre, sql) =>
+      ejecutar(['psql', '-U', usuario, '-d', nombre, '-v', 'ON_ERROR_STOP=1', '-q', '-f', '-'], { texto: sql }),
     pgDump: (usuario, base, salida) => ejecutar(['pg_dump', '-U', usuario, '-d', base, '-Fc'], { salida }),
     crearBase: (usuario, nombre) => ejecutar(['createdb', '-U', usuario, nombre]),
-    restaurar: (usuario, nombre, entrada) =>
-      ejecutar(['pg_restore', '-U', usuario, '-d', nombre, '--no-owner', '--no-privileges', '--exit-on-error'], { entrada }),
+    restaurar: (usuario, nombre, entrada, { limpiar = false } = {}) =>
+      ejecutar(
+        [
+          'pg_restore', '-U', usuario, '-d', nombre, '--no-owner', '--exit-on-error', '--single-transaction',
+          ...(limpiar ? ['--clean', '--if-exists'] : []),
+        ],
+        { entrada },
+      ),
     consulta: (usuario, nombre, sql) => ejecutar(['psql', '-U', usuario, '-d', nombre, '-tA', '-c', sql]),
     borrarBase: (usuario, nombre) => ejecutar(['dropdb', '-U', usuario, '--if-exists', nombre]),
   };
@@ -179,7 +247,7 @@ function leerOpciones(args) {
     throw new Error('--keep necesita un número entero mayor o igual a 1');
   }
   const posicional = args.slice(1).find((a, i, todos) => !a.startsWith('--') && todos[i - 1] !== '--keep');
-  return { prod: args.includes('--prod'), conservar: keep === undefined ? undefined : Number(keep), archivo: posicional };
+  return { prod: args.includes('--prod'), confirmado: args.includes('--confirmar'), conservar: keep === undefined ? undefined : Number(keep), archivo: posicional };
 }
 
 async function main() {
@@ -188,11 +256,11 @@ async function main() {
   const root = resolve(aqui, '..');
   const dir = join(root, 'backups');
 
-  if (comando !== 'backup' && comando !== 'verify') {
-    console.error('Uso: node scripts/db-backup.mjs <backup|verify> [archivo] [--keep N] [--prod]');
+  if (!['backup', 'verify', 'restore'].includes(comando)) {
+    console.error('Uso: node scripts/db-backup.mjs <backup|verify|restore> [archivo] [--keep N] [--prod] [--confirmar]');
     process.exit(2);
   }
-  const { prod, conservar, archivo } = leerOpciones([comando, ...resto]);
+  const { prod, confirmado, conservar, archivo } = leerOpciones([comando, ...resto]);
 
   const rutaEnv = join(root, '.env');
   if (!existsSync(rutaEnv)) throw new Error('no existe .env en la raíz. Corré: pnpm setup:env');
@@ -206,6 +274,18 @@ async function main() {
     console.log(`✔ respaldo creado: ${r.archivo} (${(r.bytes / 1024).toFixed(1)} KB)`);
     for (const b of r.borrados) console.log(`  · borrado respaldo viejo: ${b}`);
     console.log('  Contiene datos reales: guardalo cifrado y fuera de esta máquina.');
+    return;
+  }
+  if (comando === 'restore') {
+    const r = await restaurarBackup(db, {
+      usuario,
+      base,
+      archivo: archivo ? resolve(archivo) : undefined,
+      passwordRuntime: env.get('APP_RUNTIME_PASSWORD'),
+      confirmado,
+    });
+    console.log(`✔ base restaurada desde ${r.archivo}`);
+    console.log('  Se revocaron todas las sesiones. Ya podés levantar la app.');
     return;
   }
   const r = await verificarBackup(db, { usuario, base, dir, archivo: archivo ? resolve(archivo) : undefined });

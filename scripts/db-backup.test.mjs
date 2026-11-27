@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, it } from 'node:test';
 
-import { hacerBackup, listarRespaldos, marcaDeTiempo, verificarBackup } from './db-backup.mjs';
+import { hacerBackup, listarRespaldos, marcaDeTiempo, restaurarBackup, verificarBackup } from './db-backup.mjs';
 
 let dir;
 beforeEach(() => {
@@ -13,7 +13,7 @@ beforeEach(() => {
 afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
 /** Base falsa que registra qué se le pidió, en orden. */
-function dbFalsa({ contenido = 'PGDMP-datos', consultas = {}, falla } = {}) {
+function dbFalsa({ contenido = 'PGDMP-datos', consultas = {}, falla, backendActivo = false } = {}) {
   const llamadas = [];
   return {
     llamadas,
@@ -23,8 +23,10 @@ function dbFalsa({ contenido = 'PGDMP-datos', consultas = {}, falla } = {}) {
       writeFileSync(salida, contenido);
     },
     crearBase: async (u, n) => llamadas.push(['crearBase', n]),
-    restaurar: async (u, n, entrada) => {
-      llamadas.push(['restaurar', n]);
+    backendActivo: async () => backendActivo,
+    ejecutarSql: async (u, n, sql) => llamadas.push(['ejecutarSql', n, sql]),
+    restaurar: async (u, n, entrada, opciones) => {
+      llamadas.push(['restaurar', n, opciones]);
       if (falla === 'restaurar') throw new Error('restore roto');
     },
     consulta: async (u, n, sql) => {
@@ -91,7 +93,12 @@ describe('hacerBackup', () => {
 });
 
 describe('verificarBackup', () => {
-  const consultasOk = { flyway_schema_history: 3, information_schema: 12, 'authentication.usuario': 1 };
+  const consultasOk = {
+    has_table_privilege: 't',
+    flyway_schema_history: 3,
+    information_schema: 12,
+    'authentication.usuario': 1,
+  };
 
   beforeEach(() => mkdirSync(dir, { recursive: true }));
 
@@ -127,9 +134,73 @@ describe('verificarBackup', () => {
     assert.equal(db.llamadas.at(-1)[0], 'borrarBase');
   });
 
+  it('falla si el respaldo no trae los permisos de app_runtime', async () => {
+    writeFileSync(join(dir, 'app_db-20261125-000000.dump'), 'x');
+    const db = dbFalsa({ consultas: { ...consultasOk, has_table_privilege: 'f' } });
+    await assert.rejects(verificarBackup(db, { usuario: 'admin', base: 'app_db', dir }), /app_runtime/);
+    assert.equal(db.llamadas.at(-1)[0], 'borrarBase');
+  });
+
   it('sin respaldos da un mensaje claro y no crea nada', async () => {
     const db = dbFalsa();
     await assert.rejects(verificarBackup(db, { usuario: 'admin', base: 'app_db', dir }), /pnpm db:backup/);
     assert.deepEqual(db.llamadas, []);
+  });
+});
+
+describe('restaurarBackup', () => {
+  const permisosOk = { has_table_privilege: 't' };
+  let archivo;
+  beforeEach(() => {
+    archivo = join(dir, 'app_db-20261125-000000.dump');
+    writeFileSync(archivo, 'x');
+  });
+  const opciones = (extra = {}) => ({
+    usuario: 'admin',
+    base: 'app_db',
+    archivo,
+    passwordRuntime: 'ClaveRuntime123',
+    confirmado: true,
+    ...extra,
+  });
+
+  it('crea el rol antes de restaurar, restaura limpiando y revoca las sesiones', async () => {
+    const db = dbFalsa({ consultas: permisosOk });
+    await restaurarBackup(db, opciones());
+    assert.deepEqual(db.llamadas.map((l) => l[0]), ['ejecutarSql', 'restaurar', 'ejecutarSql', 'consulta']);
+    assert.match(db.llamadas[0][2], /CREATE ROLE app_runtime LOGIN PASSWORD 'ClaveRuntime123'[^;]*NOSUPERUSER NOBYPASSRLS/);
+    assert.deepEqual(db.llamadas[1][2], { limpiar: true });
+    assert.match(db.llamadas[2][2], /UPDATE authentication\.sesion[\s\S]*REVOCADA[\s\S]*WHERE estado = 'ACTIVA'/);
+  });
+
+  for (const [caso, extra, mensaje] of [
+    ['sin --confirmar', { confirmado: false }, /--confirmar/],
+    ['sin indicar el archivo', { archivo: undefined }, /archivo/],
+    ['con un archivo que no existe', { archivo: 'no-existe.dump' }, /archivo/],
+    ['sin contraseña de app_runtime', { passwordRuntime: undefined }, /APP_RUNTIME_PASSWORD/],
+    ['con una contraseña que rompería el SQL', { passwordRuntime: "x'; DROP ROLE admin; --" }, /APP_RUNTIME_PASSWORD/],
+    ['con el valor de ejemplo', { passwordRuntime: 'CAMBIAME' }, /APP_RUNTIME_PASSWORD/],
+  ]) {
+    it(`${caso} no toca la base`, async () => {
+      const db = dbFalsa({ consultas: permisosOk });
+      await assert.rejects(restaurarBackup(db, opciones(extra)), mensaje);
+      assert.deepEqual(db.llamadas, []);
+    });
+  }
+
+  it('con el backend en marcha no toca la base', async () => {
+    const db = dbFalsa({ consultas: permisosOk, backendActivo: true });
+    await assert.rejects(restaurarBackup(db, opciones()), /backend/);
+    assert.deepEqual(db.llamadas, []);
+  });
+
+  it('si la restauración falla no sigue', async () => {
+    const db = dbFalsa({ consultas: permisosOk, falla: 'restaurar' });
+    await assert.rejects(restaurarBackup(db, opciones()), /restore roto/);
+    assert.equal(db.llamadas.at(-1)[0], 'restaurar');
+  });
+
+  it('avisa si app_runtime quedó sin permisos', async () => {
+    await assert.rejects(restaurarBackup(dbFalsa({ consultas: { has_table_privilege: 'f' } }), opciones()), /permisos/);
   });
 });
