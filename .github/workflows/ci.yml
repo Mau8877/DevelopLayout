@@ -32,15 +32,19 @@ jobs:
         with:
           filters: |
             backend:
+              - '.github/workflows/ci.yml'
               - 'projects/backend/**'
               - 'infrastructure/redis/**'
             frontend:
+              - '.github/workflows/ci.yml'
               - 'projects/frontend/**'
               - 'pnpm-lock.yaml'
               - 'pnpm-workspace.yaml'
             mobile:
+              - '.github/workflows/ci.yml'
               - 'projects/mobile/**'
             scripts:
+              - '.github/workflows/ci.yml'
               - 'scripts/**'
               - 'docker-compose*.yml'
               - 'infrastructure/nginx/Dockerfile'
@@ -99,17 +103,39 @@ jobs:
       # de quedar SKIPPED como en el setup local de Windows.
       - name: Dar permiso de ejecución a mvnw
         run: chmod +x ./mvnw
+      # mvnw baja Maven de Maven Central. Se guarda entre corridas, y si la descarga
+      # falla se usa el Maven que trae el runner en vez de dejar el CI caído.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.m2/wrapper/dists
+          key: maven-wrapper-${{ runner.os }}-${{ hashFiles('projects/backend/.mvn/wrapper/maven-wrapper.properties') }}
+      - name: Preparar Maven
+        env:
+          # Sin esto mvnw llama a wget en silencio y no se ve por qué falló.
+          MVNW_VERBOSE: 'true'
+        run: |
+          for intento in 1 2 3; do
+            if ./mvnw -B --version; then
+              echo "MVN=./mvnw" >> "$GITHUB_ENV"
+              exit 0
+            fi
+            echo "Intento $intento fallido"
+            if [ "$intento" -lt 3 ]; then sleep $((intento * 15)); fi
+          done
+          echo "::warning::mvnw no pudo descargar Maven (ver el log de este paso). Se usa el Maven del runner."
+          mvn -B --version
+          echo "MVN=mvn" >> "$GITHUB_ENV"
       - name: Checkstyle
-        run: ./mvnw -B checkstyle:check
+        run: $MVN -B checkstyle:check
       - name: Tests
-        run: ./mvnw -B test
+        run: $MVN -B test
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/app_db
           SPRING_DATASOURCE_USERNAME: postgres
           SPRING_DATASOURCE_PASSWORD: postgres
           SPRING_DATA_REDIS_HOST: localhost
       - name: Build
-        run: ./mvnw -B clean package -DskipTests
+        run: $MVN -B clean package -DskipTests
 
   frontend:
     needs: changes

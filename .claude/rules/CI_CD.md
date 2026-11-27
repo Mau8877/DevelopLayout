@@ -45,6 +45,13 @@ proyecto).
 > agrega a un `.trivyignore`, no se baja la severidad del escaneo.
 > `scripts/{linux,windows}/update-deps.*` hace la misma auditoría en local.
 
+## Descarga de Maven
+
+`mvnw` baja Maven de Maven Central y esa descarga puede fallar en el runner. El
+job `backend` guarda `~/.m2/wrapper/dists`, reintenta mostrando el error y, si no
+hay caso, usa el Maven preinstalado del runner y deja una advertencia. Con esa
+advertencia, la versión de Maven puede no ser la de `maven-wrapper.properties`.
+
 ## CVEs en las imágenes base
 
 Si Trivy marca paquetes del sistema con arreglo disponible, se actualizan en el
@@ -85,7 +92,8 @@ si el tag es anotado, usar el commit al que apunta `vX^{}`), no copiado de memor
 El pipeline usa un job `changes` (con la acción `dorny/paths-filter`) que
 detecta qué carpetas cambiaron en el PR/push, y cada job de proyecto
 (`backend`, `frontend`, `mobile`, `scripts`) solo corre si `changes` marcó
-que sus rutas tuvieron cambios (`backend` también con `infrastructure/redis/**`,
+que sus rutas tuvieron cambios (un cambio en `ci.yml` los corre todos, para que
+el workflow no se fusione sin haberse probado; `backend` también con `infrastructure/redis/**`,
 porque un test verifica `redis.conf`; `scripts` también con
 `docker-compose*.yml` y los `Dockerfile` de nginx, que
 `compose-seguridad.test.mjs` revisa). Esto es deliberado por dos razones:
