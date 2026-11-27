@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AcceptInvitationRouteImport } from './routes/accept-invitation'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -19,6 +20,7 @@ import { Route as AuthenticatedMisSesionesRouteImport } from './routes/_authenti
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
 import { Route as AuthenticatedAdminBitacoraRouteImport } from './routes/_authenticated/_admin/bitacora'
 import { Route as AuthenticatedAdminSesionesUsuariosRouteImport } from './routes/_authenticated/_admin/sesiones-usuarios'
+import { Route as AuthenticatedAdminUsuariosRouteImport } from './routes/_authenticated/_admin/usuarios'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -27,6 +29,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcceptInvitationRoute = AcceptInvitationRouteImport.update({
+  id: '/accept-invitation',
+  path: '/accept-invitation',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -71,9 +78,16 @@ const AuthenticatedAdminSesionesUsuariosRoute =
     path: '/sesiones-usuarios',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminUsuariosRoute =
+  AuthenticatedAdminUsuariosRouteImport.update({
+    id: '/usuarios',
+    path: '/usuarios',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/accept-invitation': typeof AcceptInvitationRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -81,9 +95,11 @@ export interface FileRoutesByFullPath {
   '/panel': typeof AuthenticatedPanelRoute
   '/bitacora': typeof AuthenticatedAdminBitacoraRoute
   '/sesiones-usuarios': typeof AuthenticatedAdminSesionesUsuariosRoute
+  '/usuarios': typeof AuthenticatedAdminUsuariosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/accept-invitation': typeof AcceptInvitationRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -91,11 +107,13 @@ export interface FileRoutesByTo {
   '/panel': typeof AuthenticatedPanelRoute
   '/bitacora': typeof AuthenticatedAdminBitacoraRoute
   '/sesiones-usuarios': typeof AuthenticatedAdminSesionesUsuariosRoute
+  '/usuarios': typeof AuthenticatedAdminUsuariosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/accept-invitation': typeof AcceptInvitationRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -104,11 +122,13 @@ export interface FileRoutesById {
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/_admin/bitacora': typeof AuthenticatedAdminBitacoraRoute
   '/_authenticated/_admin/sesiones-usuarios': typeof AuthenticatedAdminSesionesUsuariosRoute
+  '/_authenticated/_admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/accept-invitation'
     | '/forgot-password'
     | '/login'
     | '/reset-password'
@@ -116,9 +136,11 @@ export interface FileRouteTypes {
     | '/panel'
     | '/bitacora'
     | '/sesiones-usuarios'
+    | '/usuarios'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/accept-invitation'
     | '/forgot-password'
     | '/login'
     | '/reset-password'
@@ -126,10 +148,12 @@ export interface FileRouteTypes {
     | '/panel'
     | '/bitacora'
     | '/sesiones-usuarios'
+    | '/usuarios'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/accept-invitation'
     | '/forgot-password'
     | '/login'
     | '/reset-password'
@@ -138,11 +162,13 @@ export interface FileRouteTypes {
     | '/_authenticated/panel'
     | '/_authenticated/_admin/bitacora'
     | '/_authenticated/_admin/sesiones-usuarios'
+    | '/_authenticated/_admin/usuarios'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AcceptInvitationRoute: typeof AcceptInvitationRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -162,6 +188,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/accept-invitation': {
+      id: '/accept-invitation'
+      path: '/accept-invitation'
+      fullPath: '/accept-invitation'
+      preLoaderRoute: typeof AcceptInvitationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -220,18 +253,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminSesionesUsuariosRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/_admin/usuarios': {
+      id: '/_authenticated/_admin/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof AuthenticatedAdminUsuariosRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminBitacoraRoute: typeof AuthenticatedAdminBitacoraRoute
   AuthenticatedAdminSesionesUsuariosRoute: typeof AuthenticatedAdminSesionesUsuariosRoute
+  AuthenticatedAdminUsuariosRoute: typeof AuthenticatedAdminUsuariosRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminBitacoraRoute: AuthenticatedAdminBitacoraRoute,
   AuthenticatedAdminSesionesUsuariosRoute:
     AuthenticatedAdminSesionesUsuariosRoute,
+  AuthenticatedAdminUsuariosRoute: AuthenticatedAdminUsuariosRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
@@ -256,6 +298,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AcceptInvitationRoute: AcceptInvitationRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
