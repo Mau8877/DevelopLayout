@@ -21,6 +21,10 @@ public interface UsuarioRolRepository extends JpaRepository<UsuarioRol, Long> {
             + "where ur.usuario = :usuario and ur.isActive = true and ur.rol.isActive = true")
     List<Rol> findActivosByUsuario(@Param("usuario") Usuario usuario);
 
+    /** Todas las asignaciones del usuario, también las que se le quitaron. */
+    @Query("select ur from UsuarioRol ur join fetch ur.rol where ur.usuario = :usuario")
+    List<UsuarioRol> findTodasConRol(@Param("usuario") Usuario usuario);
+
     /** Las asignaciones activas de varios usuarios, con su rol, en una sola consulta. */
     @Query("select ur from UsuarioRol ur join fetch ur.rol r "
             + "where ur.usuario in :usuarios and ur.isActive = true and r.isActive = true")

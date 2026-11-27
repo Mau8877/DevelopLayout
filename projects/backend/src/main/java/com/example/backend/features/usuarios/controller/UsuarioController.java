@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,6 +19,7 @@ import com.example.backend.common.response.ApiResponse;
 import com.example.backend.common.response.PageMeta;
 import com.example.backend.common.util.Paginacion;
 import com.example.backend.features.usuarios.dto.BuscarUsuariosRequest;
+import com.example.backend.features.usuarios.dto.CambiarRolesRequest;
 import com.example.backend.features.usuarios.dto.CrearUsuarioRequest;
 import com.example.backend.features.usuarios.dto.ReenvioInvitacionResponse;
 import com.example.backend.features.usuarios.dto.UsuarioCreadoResponse;
@@ -84,6 +86,15 @@ public class UsuarioController {
             @Parameter(hidden = true) @CurrentSessionId UUID sesion) {
         return ResponseEntity.ok(ApiResponse.success(
                 usuarios.reactivar(new UsuarioAdminService.Actor(actor, sesion), codigo), "Usuario reactivado"));
+    }
+
+    @PutMapping("/{codigo}/roles")
+    public ResponseEntity<ApiResponse<UsuarioResponse>> cambiarRolesUsuario(@PathVariable UUID codigo,
+            @Valid @RequestBody CambiarRolesRequest request,
+            @Parameter(hidden = true) @CurrentUserId UUID actor,
+            @Parameter(hidden = true) @CurrentSessionId UUID sesion) {
+        return ResponseEntity.ok(ApiResponse.success(usuarios.cambiarRoles(
+                new UsuarioAdminService.Actor(actor, sesion), codigo, request.roles()), "Roles actualizados"));
     }
 
     // * Vacío o solo espacios es «sin filtrar».

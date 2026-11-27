@@ -14,6 +14,7 @@ public final class UsuarioErrorCodes {
     public static final String ERR_US_04 = "ERR_US_04";
     public static final String ERR_US_05 = "ERR_US_05";
     public static final String ERR_US_06 = "ERR_US_06";
+    public static final String ERR_US_07 = "ERR_US_07";
 
     private UsuarioErrorCodes() {
     }
