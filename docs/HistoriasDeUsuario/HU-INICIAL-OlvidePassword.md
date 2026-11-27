@@ -2,7 +2,7 @@
 
 | Id | Nombre corto de HU | Prioridad | PHU | Estado |
 | --- | --- | --- | --- | --- |
-| HU-INICIAL-OLVIDEPASSWORD | Olvidé mi contraseña | Media |  | En progreso |
+| HU-INICIAL-OLVIDEPASSWORD | Olvidé mi contraseña | Media |  | En progreso (solo falta la prueba mobile) |
 
 **Como:** usuario que no recuerda su contraseña
 **Quiero:** restablecerla mediante un enlace enviado a mi correo
@@ -68,10 +68,14 @@ Depende de [HU-INICIAL-Base](HU-INICIAL-Base.md), de [HU-INICIAL-Login](HU-INICI
 
 ## Estado de la validación
 
-Backend y web: tests automáticos y flujo completo en el navegador con Mailpit.
-Producción: `pnpm test:prod` con el correo caído. **Mobile: solo tests
-automáticos; falta probarlo en un emulador** (UT MOB-02), que es lo que impide
-marcarla como hecha. No se probó la entrega con un servidor SMTP real.
+**Lo único pendiente es la prueba mobile en un emulador** (UT MOB-02). Backend y
+web: tests automáticos y flujo completo en el navegador con Mailpit; producción:
+`pnpm test:prod` con el correo caído; mobile: implementado y con tests
+automáticos. La prueba en emulador se hará al final, junto con el resto de las
+pruebas mobile; al pasarla, la historia queda `Hecha`.
+
+La entrega con un servidor SMTP real no se probó y **no bloquea** la historia:
+depende del proveedor que elija cada proyecto, y se comprueba al desplegarlo.
 
 ## Desarrollador
 
