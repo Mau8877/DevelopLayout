@@ -6,7 +6,7 @@ monta cada servicio:
 
 | Carpeta | Contenido |
 | --- | --- |
-| `nginx/` | `nginx.conf` (proxy de desarrollo, HTTP + WebSockets para Vite) y `nginx.prod.conf` (producción: TLS, HSTS, CSP) |
+| `nginx/` | `nginx.conf` (proxy de desarrollo, HTTP + WebSockets para Vite) y `nginx.prod.conf` (producción: TLS, HSTS, CSP). `Dockerfile`: imagen parcheada del proxy de producción |
 | `postgres/init/` | Scripts de inicialización de Postgres (vacía por ahora) |
 | `redis/` | `redis.conf` (memoria sin desalojo y persistencia AOF; la contraseña viene del `.env`) |
 | `minio/` | `create-buckets.sh`: crea el bucket privado al levantar el stack |

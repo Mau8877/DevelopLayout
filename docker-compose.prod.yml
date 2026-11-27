@@ -23,7 +23,9 @@ x-hardening: &hardening
 services:
   proxy:
     <<: *hardening
-    image: nginxinc/nginx-unprivileged:stable-alpine
+    build:
+      context: infrastructure/nginx
+    image: app-proxy:${APP_VERSION:-latest}
     container_name: app-proxy
     ports:
       - '80:8080'
