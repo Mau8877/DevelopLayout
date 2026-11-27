@@ -13,6 +13,7 @@ globs: projects/backend/**/*
 | Recuperación de contraseña y envío de correo | Backend y web probados; falta la validación mobile en emulador (HU OlvidePassword) |
 | Cambio de contraseña con sesión iniciada | **No implementado** (sin HU) |
 | Administrar sesiones y consultar la bitácora | Implementado, solo `SUPER_ADMIN` (HU SesionesAdmin, Bitacora) |
+| Mis sesiones (cada usuario las suyas) | Backend y web probados; falta la validación mobile en emulador (HU Sesiones) |
 | Gestión de usuarios y roles | **No implementada** (sin HU). El administrador solo puede **leer** `usuario`; falta la política para `usuario_rol` y las de escritura |
 
 El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
@@ -120,6 +121,19 @@ El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
   contraseñas. Un login correcto devuelve su reserva.
 - Límites conocidos: con 20 o más IP todavía se puede bloquear una cuenta; quien
   comparte IP comparte el límite de una misma cuenta.
+
+## Mis sesiones
+
+`MisSesionesService` en `/api/v1/auth/sesiones`. Reglas que **no se relajan**:
+
+- El usuario sale del token y la sesión actual de su `sid`. **Nunca** usa el
+  contexto de administrador, tampoco para un `SUPER_ADMIN`.
+- Sesión ajena o inexistente: el mismo 404.
+- **Solo una sesión que sigue activa cierra otras:** se bloquean todas las
+  `ACTIVA` del usuario y la actual debe estar entre ellas; si no, 401 sin cambiar
+  nada. Bloquear solo la que se cierra permitiría que dos sesiones se cierren una
+  a otra y queden las dos fuera. Un flujo nuevo en el que una sesión actúe sobre
+  otras sigue el mismo patrón.
 
 ## Recuperación de contraseña
 

@@ -117,8 +117,9 @@ para el esquema de roles del lado del backend — el frontend usa el mismo
   manda a `/panel` a quien no es `SUPER_ADMIN` y monta `AdminLayout`. El título
   de cada pantalla es el `staticData.breadcrumb` de su ruta. Toda pantalla de
   administrador va dentro de `_authenticated/_admin/`.
-- **Excepción:** `/panel`, común a todos los roles, elige el layout en runtime.
-  No es el patrón a copiar.
+- **Pantallas comunes a todos los roles** (`/panel`, `/mis-sesiones`): usan
+  `layouts/LayoutPorRol.tsx`, que elige el layout según el usuario. Es solo para
+  ellas; una pantalla de un solo rol se agrupa bajo el layout de ese rol.
 - El menú lateral navega con `Link` (sin recargar la app).
 - Los layouts de rol conectan "Cerrar sesión" (`useLogout`) y se lo pasan a
   `AppShell` como `onLogout`.
