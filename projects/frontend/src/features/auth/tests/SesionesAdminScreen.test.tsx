@@ -52,7 +52,8 @@ describe('SesionesAdminScreen', () => {
 
     await buscar(user, 'ana@test.local')
 
-    expect(await screen.findByText('Navegador de prueba')).toBeInTheDocument()
+    // * Se muestra el resumen del dispositivo y el user agent completo queda en el `title`.
+    expect(await screen.findByTitle('Navegador de prueba')).toHaveTextContent('Dispositivo desconocido')
     expect(post).toHaveBeenCalledWith('/admin/sesiones/buscar', { email: 'ana@test.local', page: 1, pageSize: 20 })
     const claves = JSON.stringify(queryClient.getQueryCache().getAll().map((q) => q.queryKey))
     expect(claves).not.toContain('ana@test.local')
