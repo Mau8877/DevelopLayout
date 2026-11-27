@@ -30,6 +30,7 @@ Existe `ForgotPasswordScreen` con enlace desde el login y ruta en el router.
 - `projects/mobile/lib/features/auth/screens/forgot_password_screen.dart`
 - `projects/mobile/lib/features/auth/screens/login_screen.dart`
 - `projects/mobile/lib/core/routing/app_router.dart`
+- `projects/mobile/lib/shared/widgets/error_snack_bar.dart` (aviso de error compartido con el login)
 
 ## Fuera de alcance (no tocar)
 

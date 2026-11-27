@@ -32,6 +32,9 @@ Existe `ForgotPasswordScreen` y el enlace desde `LoginScreen`.
 - `projects/frontend/src/features/auth/screens/LoginScreen.tsx`
 - `projects/frontend/src/routes/forgot-password.tsx`
 - `projects/frontend/src/routeTree.gen.ts` (generado)
+- `projects/frontend/src/utils/primerError.ts` y su test (se extrae: lo repetían dos pantallas)
+- `projects/frontend/src/utils/validarAlSalir.ts` (errores al salir de un campo sin bloquear el envío con Enter; ver la regla de formularios)
+- `projects/frontend/src/features/bitacora/screens/BitacoraScreen.tsx` (usa `primerError`)
 
 ## Fuera de alcance (no tocar)
 

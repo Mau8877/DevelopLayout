@@ -2,7 +2,7 @@
 
 | Id | Nombre corto de HU | Prioridad | PHU | Estado |
 | --- | --- | --- | --- | --- |
-| HU-INICIAL-OLVIDEPASSWORD | Olvidé mi contraseña | Media |  | Pendiente |
+| HU-INICIAL-OLVIDEPASSWORD | Olvidé mi contraseña | Media |  | En progreso |
 
 **Como:** usuario que no recuerda su contraseña
 **Quiero:** restablecerla mediante un enlace enviado a mi correo
@@ -65,6 +65,13 @@ Depende de [HU-INICIAL-Base](HU-INICIAL-Base.md), de [HU-INICIAL-Login](HU-INICI
 - **Quién puede hacerlo:** cualquiera puede pedir un enlace (sin sesión); solo quien tiene el token vigente cambia la contraseña, y solo la de su cuenta (RLS) (OWASP A01).
 - **Abuso previsible:** enumerar cuentas (CA02, CA09), inundar un buzón (CA06, CA12), adivinar o reutilizar tokens (CA04, CA07, CA18), conservar un acceso robado durante el cambio (CA03, CA13) y envenenar el enlace con cabeceras de la petición (la dirección sale de la configuración). Quien conozca un correo puede consumir su cupo de envíos durante una hora; se acepta.
 - Sin tokens ni contraseñas en logs ni en la URL de ninguna API (el token va en el fragmento del enlace y se envía por body al restablecer) (OWASP A07, A09).
+
+## Estado de la validación
+
+Backend y web: tests automáticos y flujo completo en el navegador con Mailpit.
+Producción: `pnpm test:prod` con el correo caído. **Mobile: solo tests
+automáticos; falta probarlo en un emulador** (UT MOB-02), que es lo que impide
+marcarla como hecha. No se probó la entrega con un servidor SMTP real.
 
 ## Desarrollador
 

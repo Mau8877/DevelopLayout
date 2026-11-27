@@ -28,6 +28,20 @@
 - **Significado:** el refresh token no sirve para renovar: falta, no tiene una firma válida, ya fue usado (la sesión se revoca), su sesión está cerrada o vencida, o el usuario ya no está activo o no tiene roles.
 - **Dónde se lanza:** `SesionService.rotar()` y `AuthService.refresh()`
 
+## `ERR_AUTH_05`
+
+- **HTTP:** 400
+- **Excepción:** `ValidationException`
+- **Significado:** el enlace para restablecer la contraseña no sirve: no existe, venció, ya se usó, se pidió otro después, la cuenta dejó de estar activa o la contraseña cambió mientras tanto.
+- **Dónde se lanza:** `RecuperacionService.restablecer()`
+
+## `ERR_AUTH_06`
+
+- **HTTP:** 400
+- **Excepción:** `ValidationException`
+- **Significado:** la contraseña nueva es igual a la actual. El enlace sigue sirviendo.
+- **Dónde se lanza:** `RecuperacionService.restablecer()`
+
 ## `ERR_AUTH_07`
 
 - **HTTP:** 401

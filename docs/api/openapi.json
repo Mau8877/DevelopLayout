@@ -191,6 +191,20 @@
         ],
         "type": "object"
       },
+      "ForgotPasswordRequest": {
+        "properties": {
+          "email": {
+            "format": "email",
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "type": "object"
+      },
       "LoginRequest": {
         "properties": {
           "email": {
@@ -252,6 +266,25 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "ResetPasswordRequest": {
+        "properties": {
+          "password": {
+            "maxLength": 72,
+            "minLength": 8,
+            "type": "string"
+          },
+          "token": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "password",
+          "token"
+        ],
         "type": "object"
       },
       "SesionResponse": {
@@ -491,6 +524,66 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseUsuarioSesionResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "auth-controller"
+        ]
+      }
+    },
+    "/api/v1/auth/password/forgot": {
+      "post": {
+        "operationId": "olvidePassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "auth-controller"
+        ]
+      }
+    },
+    "/api/v1/auth/password/reset": {
+      "post": {
+        "operationId": "restablecerPassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
                 }
               }
             },

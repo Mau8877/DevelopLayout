@@ -31,6 +31,7 @@ Existe `ResetPasswordScreen` que lee el token, lo quita de la URL y restablece.
 - `projects/frontend/src/routes/reset-password.tsx`
 - `projects/frontend/src/routeTree.gen.ts` (generado)
 - `projects/frontend/src/features/auth/screens/ResetPasswordScreen.tsx`
+- `projects/frontend/src/features/auth/screens/ResetPasswordPage.tsx` (toma el token y limpia la URL)
 - `projects/frontend/src/features/auth/index.ts`
 - `infrastructure/nginx/nginx.prod.conf`
 - `infrastructure/nginx/nginx.conf`
