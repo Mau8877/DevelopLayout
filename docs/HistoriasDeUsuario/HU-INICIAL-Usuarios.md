@@ -2,7 +2,7 @@
 
 | Id | Nombre corto de HU | Prioridad | PHU | Estado |
 | --- | --- | --- | --- | --- |
-| HU-INICIAL-USUARIOS | Administrar usuarios | Alta |  | Pendiente |
+| HU-INICIAL-USUARIOS | Administrar usuarios | Alta |  | Hecha |
 
 **Como:** administrador
 **Quiero:** ver, invitar, desactivar y reactivar usuarios

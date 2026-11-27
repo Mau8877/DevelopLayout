@@ -6,9 +6,10 @@ erDiagram
 
     usuario {
         BaseModel base "id, codigo_usuario, created_at, updated_at, deleted_at"
-        varchar email "unico parcial, minusculas"
+        varchar email "unico parcial, minusculas, no se actualiza"
         varchar password_hash "BCrypt"
         varchar estado "ACTIVO | INACTIVO"
+        boolean invitacion_pendiente "aun no eligio su contrasena"
     }
     rol {
         BaseModel base "id, codigo_rol, created_at, updated_at, deleted_at"

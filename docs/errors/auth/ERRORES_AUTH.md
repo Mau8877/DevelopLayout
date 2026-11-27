@@ -69,3 +69,10 @@
 - **Excepción:** `ValidationException`
 - **Significado:** se intentó cerrar desde «Mis sesiones» la sesión desde la que se hace la petición; para eso está «Cerrar sesión».
 - **Dónde se lanza:** `MisSesionesService.cerrar()`
+
+## `ERR_AUTH_11`
+
+- **HTTP:** 400
+- **Excepción:** `ValidationException`
+- **Significado:** la invitación no sirve: venció, ya se usó, fue reemplazada o anulada, o la cuenta está inactiva.
+- **Dónde se lanza:** `InvitacionService.aceptar()`

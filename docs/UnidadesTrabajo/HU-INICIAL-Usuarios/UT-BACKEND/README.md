@@ -81,7 +81,7 @@ Solo `SUPER_ADMIN` (`@PreAuthorize`, guardia y RLS), salvo la aceptación, que e
 
 ## Follow-ups (no se implementan en estas UT)
 
-- Con un dueño de base **sin** superusuario, `AdminInicialInitializer` cuenta los administradores sin contexto de RLS y vería cero: en un segundo arranque intentaría crearlo otra vez. No afecta a la instalación actual (dueño superusuario). Se deduce de las políticas; no está reproducido.
+- Resuelto fuera de estas UT: con un dueño de base **sin** superusuario, `AdminInicialInitializer` contaba cero administradores y el segundo arranque fallaba. Lo corrige la política `usuario_rol_lectura_alta_inicial` (`V20261127090000`), que la UT 01 debe conservar.
 - Una sesión que pasó a `EXPIRADA` con un access token aún vigente (como máximo 15 minutos, solo justo al vencer) no entra en la revocación.
 - Envío de correo con cola persistente y reintentos.
 
