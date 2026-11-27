@@ -285,6 +285,9 @@ jobs:
         env:
           TLS_CERT_DIR: /tmp
           CORS_ALLOWED_ORIGINS: https://ci.example.com
+          SPRING_MAIL_HOST: smtp.invalid
+          MAIL_FROM: no-reply@ci.example.com
+          APP_FRONTEND_BASE_URL: https://ci.example.com
           MINIO_IMAGE: cgr.dev/chainguard/minio:latest
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
