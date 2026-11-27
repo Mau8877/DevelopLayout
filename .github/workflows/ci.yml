@@ -26,8 +26,8 @@ jobs:
       scripts: ${{ steps.filter.outputs.scripts }}
       produccion: ${{ steps.filter.outputs.produccion }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
         with:
           filters: |
@@ -91,8 +91,8 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin
           java-version: '21'
@@ -103,12 +103,8 @@ jobs:
       # de quedar SKIPPED como en el setup local de Windows.
       - name: Dar permiso de ejecución a mvnw
         run: chmod +x ./mvnw
-      # mvnw baja Maven de Maven Central. Se guarda entre corridas, y si la descarga
-      # falla se usa el Maven que trae el runner en vez de dejar el CI caído.
-      - uses: actions/cache@v4
-        with:
-          path: ~/.m2/wrapper/dists
-          key: maven-wrapper-${{ runner.os }}-${{ hashFiles('projects/backend/.mvn/wrapper/maven-wrapper.properties') }}
+      # mvnw baja Maven de Maven Central (`cache: maven` de setup-java lo guarda
+      # entre corridas). Si la descarga falla, se usa el Maven que trae el runner.
       - name: Preparar Maven
         env:
           # Sin esto mvnw llama a wget en silencio y no se ve por qué falló.
@@ -142,13 +138,13 @@ jobs:
     if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
         with:
           # Misma major que el desarrollo local: el `overrides` de
           # pnpm-workspace.yaml (fix de minimatch) lo lee pnpm >= 10.
           version: 11
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: pnpm
@@ -167,8 +163,8 @@ jobs:
     if: needs.changes.outputs.scripts == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
       - run: node --test "scripts/**/*.test.mjs"
@@ -181,8 +177,8 @@ jobs:
       run:
         working-directory: projects/mobile
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
           # Versión fija, la misma del desarrollo local: con "stable" a secas, una
@@ -208,13 +204,13 @@ jobs:
   security:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # Historial completo: gitleaks revisa los commits del PR, no solo
           # el árbol final.
           fetch-depth: 0
       - name: Detección de secretos (gitleaks)
-        uses: gitleaks/gitleaks-action@v3
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # El workflow solo tiene permiso de lectura: sin esto intenta comentar el
@@ -228,7 +224,7 @@ jobs:
         # v0.36.0: las etiquetas anteriores a 0.35.0 fueron borradas tras el
         # compromiso de marzo de 2026 (GHSA-69fq-xp46-6x23); 0.35.0 y v0.36.0
         # son releases inmutables.
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -244,7 +240,7 @@ jobs:
     if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.produccion == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Build imagen backend
         run: docker build -t app-backend:ci projects/backend
       - name: Build imagen frontend
@@ -255,7 +251,7 @@ jobs:
       # sistema base y el runtime (JRE, nginx), que el escaneo del repo no ve.
       # ignore-unfixed: solo falla por lo que ya tiene arreglo disponible.
       - name: Vulnerabilidades en la imagen backend (Trivy)
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: app-backend:ci
           scanners: vuln
@@ -263,7 +259,7 @@ jobs:
           ignore-unfixed: true
           exit-code: '1'
       - name: Vulnerabilidades en la imagen frontend (Trivy)
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: app-frontend:ci
           scanners: vuln
@@ -271,7 +267,7 @@ jobs:
           ignore-unfixed: true
           exit-code: '1'
       - name: Vulnerabilidades en la imagen proxy (Trivy)
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: app-proxy:ci
           scanners: vuln
