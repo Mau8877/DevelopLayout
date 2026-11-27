@@ -5,3 +5,7 @@
 # La línea actual lleva `gitleaks:allow`; esto cubre el commit anterior a esa marca.
 # ! Si la rama se rebasea, el hash cambia y hay que actualizar la entrada.
 1a3acc332d4bfcaca44e4623174a7da79637028a:projects/backend/src/test/java/com/example/backend/features/auth/AuthSesionIntegrationTest.java:generic-api-key:31
+
+# Contraseña inventada en un test de la web que simula la API (sin servidor ni cuenta
+# real). La línea actual lleva `gitleaks:allow`; esto cubre el commit anterior.
+3095438573c3621e86f55768f4514ce446a53797:projects/frontend/src/features/auth/tests/LoginScreen.test.tsx:generic-api-key:80
