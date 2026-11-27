@@ -1,11 +1,13 @@
 import { useForm } from '@tanstack/react-form'
-import { useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form-field'
 import { Input } from '@/components/ui/input'
 import { CenteredCardLayout } from '@/components/layout'
 import { ApiError } from '@/store'
+import { primerError } from '@/utils/primerError'
+import { validarAlSalir } from '@/utils/validarAlSalir'
 import { useLogin } from '../api/useLogin'
 import { loginSchema } from '../schemas/loginSchema'
 
@@ -15,22 +17,13 @@ function mensajeDelError(error: unknown): string {
   return error instanceof ApiError ? error.message : MENSAJE_GENERICO
 }
 
-// * Los errores de validación llegan como strings o como objetos con `message`
-// * (Standard Schema); se normalizan al primer mensaje.
-function primerError(errors: unknown[]): string | undefined {
-  const first = errors[0]
-  if (typeof first === 'string') return first
-  if (first && typeof first === 'object' && 'message' in first) return String((first as { message: unknown }).message)
-  return undefined
-}
-
 export function LoginScreen() {
   const navigate = useNavigate()
   const login = useLogin()
 
   const form = useForm({
     defaultValues: { email: '', password: '' },
-    validators: { onChange: loginSchema, onBlur: loginSchema },
+    validators: { onChange: loginSchema },
     onSubmit: async ({ value }) => {
       try {
         await login.mutateAsync(value)
@@ -72,7 +65,7 @@ export function LoginScreen() {
                   type="email"
                   autoComplete="username"
                   value={field.state.value}
-                  onBlur={field.handleBlur}
+                  onBlur={validarAlSalir(field)}
                   onChange={(event) => field.handleChange(event.target.value)}
                 />
               )}
@@ -94,7 +87,7 @@ export function LoginScreen() {
                   type="password"
                   autoComplete="current-password"
                   value={field.state.value}
-                  onBlur={field.handleBlur}
+                  onBlur={validarAlSalir(field)}
                   onChange={(event) => field.handleChange(event.target.value)}
                 />
               )}
@@ -106,6 +99,12 @@ export function LoginScreen() {
         <Button type="submit" disabled={login.isPending}>
           {login.isPending ? 'Ingresando…' : 'Ingresar'}
         </Button>
+
+        <p className="text-center text-sm">
+          <Link to="/forgot-password" className="text-primary underline underline-offset-4">
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </p>
       </form>
     </CenteredCardLayout>
   )
