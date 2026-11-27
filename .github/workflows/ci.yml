@@ -151,6 +151,10 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          # Versión fija, la misma del desarrollo local: con "stable" a secas, una
+          # versión nueva de Flutter puede romper el CI sin que cambie el código.
+          # Se sube a propósito (Dependabot no la actualiza).
+          flutter-version: '3.44.8'
       - run: flutter pub get
       # pubspec.yaml declara `.env` como asset (ver CONSUMO_API_MOBILE.md) --
       # el archivo real no se commitea (.gitignore), así que sin este paso
@@ -179,6 +183,10 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # El workflow solo tiene permiso de lectura: sin esto intenta comentar el
+          # PR y falla con "Resource not accessible by integration". El detalle queda
+          # en el resumen del job.
+          GITLEAKS_ENABLE_COMMENTS: 'false'
       # Trivy en modo filesystem: lee pom.xml, pnpm-lock.yaml y pubspec.lock
       # (dependencias vulnerables, también transitivas), y revisa los
       # Dockerfile y el compose de producción (misconfiguraciones).
