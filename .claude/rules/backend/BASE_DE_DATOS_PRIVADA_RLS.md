@@ -78,13 +78,17 @@ alta del administrador inicial, que usa la conexión dueña (ver
 
 - `usarAdmin()` solo se llama desde un service cuyo método exige el rol con
   `@PreAuthorize`, **antes** de tocar datos.
-- Con él se ven y revocan sesiones, se lee la bitácora y se **leen** usuarios
-  (política `usuario_lectura_admin`, solo `FOR SELECT`).
+- Con él se ven y revocan sesiones, se lee la bitácora y se administran usuarios:
+  leerlos, darlos de alta, cambiar su estado y asignar roles al crearlos.
 - **Dale al administrador la política más estrecha posible** (`FOR SELECT` si
-  solo lee). No reutilices `app.login_email` para buscar usuarios: también
-  permite modificar la fila.
-- **Pendiente:** `usuario_rol` no tiene política de administrador y no hay
-  escritura de administrador sobre usuarios (llegará con su gestión).
+  solo lee, y `GRANT` por columnas si no debe cambiar todo).
+- Sin contexto de administrador, cada usuario **lee** su fila y sus roles; solo
+  puede actualizar su propia fila y no puede insertarse roles. `app.login_email`
+  es **de solo lectura**.
+- `app_runtime` no borra usuarios ni asignaciones, no cambia correos y, por un
+  trigger, solo el propio usuario cambia su contraseña.
+- **Pendiente:** el administrador no modifica asignaciones ya creadas (llegará
+  con el cambio de roles).
 
 ## 5. Excepciones (`RLS-OPT-OUT`)
 

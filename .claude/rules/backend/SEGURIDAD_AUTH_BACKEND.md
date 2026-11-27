@@ -14,7 +14,8 @@ globs: projects/backend/**/*
 | Cambio de contraseña con sesión iniciada | **No implementado** (sin HU) |
 | Administrar sesiones y consultar la bitácora | Implementado, solo `SUPER_ADMIN` (HU SesionesAdmin, Bitacora) |
 | Mis sesiones (cada usuario las suyas) | Backend y web probados; falta la validación mobile en emulador (HU Sesiones) |
-| Gestión de usuarios y roles | **No implementada** (sin HU). El administrador solo puede **leer** `usuario`; falta la política para `usuario_rol` y las de escritura |
+| Administrar usuarios e invitaciones, solo `SUPER_ADMIN` (HU Usuarios) | Implementado (backend y web) |
+| Cambiar los roles de un usuario existente (HU Roles) | **No implementado**. Falta además el permiso para modificar asignaciones |
 
 El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
 
@@ -135,6 +136,28 @@ El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
   a otra y queden las dos fuera. Un flujo nuevo en el que una sesión actúe sobre
   otras sigue el mismo patrón.
 
+## Administración de usuarios
+
+`UsuarioAdminService` (`/api/v1/usuarios`). Reglas que **no se relajan**:
+
+- **Todo cambio pasa por `GuardiaAdministradores.exigirVigente`**, dentro de la
+  transacción y antes de leer entidades: toma un bloqueo que pone los cambios en
+  fila y vuelve a comprobar que quien pide sigue activo, es `SUPER_ADMIN` y tiene
+  la sesión `ACTIVA`. Con eso, y sin que nadie pueda quitarse el poder a sí mismo,
+  siempre queda un administrador que puede entrar. Un cambio nuevo sobre usuarios
+  o roles usa la misma guardia.
+- **La cuenta nace sin contraseña utilizable:** el hash de 32 bytes aleatorios que
+  se descartan, y `invitacion_pendiente`. El login no necesita un caso especial.
+- **Invitación** (`InvitacionTokenService`): como el token de recuperación, con
+  prefijo propio y 24 horas. La autoridad es `invitacion_pendiente`. Aceptar
+  (`InvitacionService`) y restablecer la contraseña la marcan como aceptada.
+- **El correo se envía después de confirmar** y sin conexión tomada
+  (`InvitacionEnvio`). Un fallo no deshace la cuenta: se informa al administrador.
+  Máximo 3 reenvíos por cuenta y hora.
+- **Desactivar** revoca las sesiones y anula los enlaces de invitación y de
+  recuperación. Reactivar los vuelve a anular y no revive nada. Los usuarios no se
+  eliminan y el correo no se cambia (lo impide la base).
+
 ## Recuperación de contraseña
 
 `RecuperacionService`; endpoints `POST /auth/password/forgot` y `/reset`. Reglas
@@ -157,7 +180,7 @@ que **no se relajan**:
   usuario (exclusivo) y el login la relee con bloqueo compartido **y exige que el
   hash sea el que verificó**. Todo flujo futuro que cambie la contraseña usa el
   mismo bloqueo, revoca las sesiones y llama a `LoginAttemptService.reiniciar`.
-- **Correo:** `CorreoRecuperacionService` valida servidor, remitente y URL (HTTPS
+- **Correo:** `CorreoCuentaService` valida servidor, remitente y URL (HTTPS
   salvo localhost) al arrancar. `management.health.mail.enabled=false`: un SMTP
   caído no marca la app como no sana. Los fallos se registran **sin el mensaje de
   la excepción** (puede traer el correo).
@@ -282,7 +305,8 @@ intentar de más).
   versión). Un bucket por IP (caché de Caffeine), refill
   "greedy" (los tokens se regeneran continuo, no en ráfagas cada N segundos).
 - **Límites propios por IP**, además del global: solicitar recuperación (ráfaga
-  de 5, 1/min) y restablecer (ráfaga de 10, 5/min); login 10/min
+  de 5, 1/min) y restablecer o aceptar una invitación (ráfaga de 10, 5/min,
+  compartida); login 10/min
   (`app.ratelimit.login-*`) y refresh 30/min (`app.ratelimit.refresh-*`).
 - **Config** (`application.properties`, sobreescribible por env var):
   `app.ratelimit.capacity` (default `100`) y
@@ -327,5 +351,6 @@ Sin autenticación solo quedan los declarados en `SecurityConfig`: `/health`,
 `GET /api/v1/auth/csrf` y `POST /api/v1/auth/login`, `/refresh` y `/logout`
 (en los dos últimos la credencial es el refresh token y en web el CSRF sigue
 activo). También son públicos `POST /api/v1/auth/password/forgot` y
-`/password/reset` (en el segundo la credencial es el token del enlace). No hay registro público. Cualquier otro endpoint nuevo es privado por
+`/password/reset` y `/invitation/accept` (en los dos últimos la credencial es el
+token del enlace). No hay registro público. Cualquier otro endpoint nuevo es privado por
 default: hacerlo público es una decisión explícita.
