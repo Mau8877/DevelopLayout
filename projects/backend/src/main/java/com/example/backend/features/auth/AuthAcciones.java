@@ -14,6 +14,8 @@ public final class AuthAcciones {
     public static final String AUTH_RECUPERACION_SOLICITADA = "AUTH_RECUPERACION_SOLICITADA";
     public static final String AUTH_PASSWORD_RESTABLECIDA = "AUTH_PASSWORD_RESTABLECIDA";
 
+    public static final String AUTH_SESION_CERRADA = "AUTH_SESION_CERRADA";
+
     private AuthAcciones() {
     }
 }

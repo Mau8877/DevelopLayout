@@ -31,6 +31,15 @@ public interface SesionRepository extends JpaRepository<Sesion, Long> {
     Page<Sesion> findByUsuarioCodigoAndEstadoAndExpiraEnAfter(UUID usuarioCodigo, EstadoSesion estado,
             Instant despuesDe, Pageable pageable);
 
+    /** Sesiones utilizables del usuario, con la actual primero y después las más recientes. */
+    @Query(value = "select s from Sesion s where s.usuarioCodigo = :usuario and s.estado = :estado "
+            + "and s.expiraEn > :ahora "
+            + "order by case when s.codigo = :actual then 0 else 1 end, s.createdAt desc, s.id desc",
+            countQuery = "select count(s) from Sesion s where s.usuarioCodigo = :usuario and s.estado = :estado "
+                    + "and s.expiraEn > :ahora")
+    Page<Sesion> listarVigentesConActualPrimero(@Param("usuario") UUID usuario, @Param("estado") EstadoSesion estado,
+            @Param("ahora") Instant ahora, @Param("actual") UUID actual, Pageable pageable);
+
     /** Lee la sesión bloqueando la fila hasta el fin de la transacción. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select s from Sesion s where s.codigo = :codigo")
