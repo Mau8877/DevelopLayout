@@ -53,6 +53,7 @@ docs/errors/
 - [`ERR_AUTH_07`](auth/ERRORES_AUTH.md#err_auth_07) — No autenticado (401)
 - [`ERR_AUTH_08`](auth/ERRORES_AUTH.md#err_auth_08) — Acceso denegado o CSRF inválido (403)
 - [`ERR_AUTH_09`](auth/ERRORES_AUTH.md#err_auth_09) — La sesión a cerrar no existe (404)
+- [`ERR_AUTH_10`](auth/ERRORES_AUTH.md#err_auth_10) — La sesión actual no se cierra desde «Mis sesiones» (400)
 
 ### Bitácora (`BIT`)
 

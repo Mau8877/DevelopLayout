@@ -60,5 +60,12 @@
 
 - **HTTP:** 404
 - **Excepción:** `NotFoundException`
-- **Significado:** un administrador pidió cerrar una sesión que no existe.
-- **Dónde se lanza:** `SesionAdminService.cerrar()`
+- **Significado:** la sesión que se quiere cerrar no existe. En «Mis sesiones» incluye la de otro usuario: no se distingue de una inexistente.
+- **Dónde se lanza:** `SesionAdminService.cerrar()` y `MisSesionesService.cerrar()`
+
+## `ERR_AUTH_10`
+
+- **HTTP:** 400
+- **Excepción:** `ValidationException`
+- **Significado:** se intentó cerrar desde «Mis sesiones» la sesión desde la que se hace la petición; para eso está «Cerrar sesión».
+- **Dónde se lanza:** `MisSesionesService.cerrar()`

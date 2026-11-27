@@ -2,7 +2,7 @@
 
 | Id | Nombre corto de HU | Prioridad | PHU | Estado |
 | --- | --- | --- | --- | --- |
-| HU-INICIAL-SESIONES | Gestionar mis sesiones | Media |  | Pendiente |
+| HU-INICIAL-SESIONES | Gestionar mis sesiones | Media |  | En progreso (solo falta la prueba mobile) |
 
 **Como:** usuario con sesión iniciada (web o mobile)
 **Quiero:** ver mis sesiones activas y cerrar una o todas las demás
@@ -60,6 +60,14 @@ Depende de [HU-INICIAL-Login](HU-INICIAL-Login.md), [HU-INICIAL-Refresh](HU-INIC
 - **Datos sensibles:** IP, user agent y fechas de las sesiones propias.
 - **Quién puede hacerlo:** cualquier usuario con sesión, solo sobre sus sesiones. Cada operación comprueba que la sesión es suya y RLS lo refuerza; la función **nunca** usa el contexto de administrador, tampoco si quien la usa es administrador (API1, API5).
 - **Abuso previsible:** adivinar el `codigo` de sesiones ajenas (404 uniforme, CA03) y usar una sesión robada y ya revocada para cerrar la legítima (CA08, CA09). Una sesión robada **todavía activa** sí puede cerrar las demás: se resuelve cambiando la contraseña (ver [Olvidé mi contraseña](HU-INICIAL-OlvidePassword.md)).
+
+## Estado de la validación
+
+**Lo único pendiente es la prueba mobile en un emulador** (UT MOB). Backend y web:
+tests automáticos y flujo completo en el navegador (listar, cerrar una y cerrar
+todas las demás, con la sesión cerrada rechazada al instante); mobile:
+implementado y con tests automáticos. La prueba en emulador se hará al final,
+junto con el resto de las pruebas mobile; al pasarla, la historia queda `Hecha`.
 
 ## Desarrollador
 

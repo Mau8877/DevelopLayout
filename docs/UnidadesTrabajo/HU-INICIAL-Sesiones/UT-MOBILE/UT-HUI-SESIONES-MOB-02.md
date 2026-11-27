@@ -30,6 +30,7 @@ La app tiene la pantalla «Mis sesiones», accesible desde ambos shells.
 
 - `projects/mobile/lib/features/auth/providers/mis_sesiones_provider.dart`
 - `projects/mobile/lib/features/auth/screens/mis_sesiones_screen.dart`
+- `projects/mobile/lib/features/auth/widgets/sesion_tile.dart` (fila de sesión: conoce el dominio)
 - `projects/mobile/lib/shared/widgets/estado_error.dart`
 - `projects/mobile/lib/shared/widgets/dialogo_confirmacion.dart`
 - `projects/mobile/lib/core/routing/app_router.dart`
