@@ -523,6 +523,9 @@ unos 26 s); hasta entonces el proxy responde `502` en `/api/`. No uses
 contenedor de una sola corrida que termina, y puede volver con el backend todavía
 arrancando. Mirá el estado de salud de `app-backend`.
 
+**Prueba automática:** `pnpm test:prod` (y el job `docker` de CI) levanta este
+compose con datos descartables y comprueba lo descrito abajo.
+
 **Probado** (2026-11, en una máquina local, certificado autofirmado y volúmenes
 vacíos): todos los servicios arrancan; HTTP redirige a HTTPS; login web y mobile,
 refresh y logout funcionan; solo el proxy publica puertos; y respaldo +
