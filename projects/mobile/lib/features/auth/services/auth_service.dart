@@ -23,6 +23,11 @@ class AuthService {
     return login.usuario;
   }
 
+  /// `POST /auth/password/forgot`. El backend responde igual exista o no la cuenta.
+  Future<void> solicitarRecuperacion(String email) async {
+    await _dio.post<dynamic>('/auth/password/forgot', data: {'email': email});
+  }
+
   /// `GET /auth/me`: el usuario de la sesión actual según el backend.
   Future<UsuarioSesion> me() async {
     final response = await _dio.get<Map<String, dynamic>>('/auth/me');

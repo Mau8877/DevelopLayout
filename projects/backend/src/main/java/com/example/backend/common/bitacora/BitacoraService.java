@@ -73,13 +73,27 @@ public class BitacoraService {
         insertar(actor, accion, modulo, entidad, entidadCodigo, resultado, detalle);
     }
 
+    /** Como la anterior, para hilos sin petición en curso: el origen se captura antes. */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void registrarEnTransaccionPropia(UUID actor, String accion, String modulo, String entidad,
+            UUID entidadCodigo, ResultadoBitacora resultado, Map<String, Object> detalle, OrigenSolicitud origen) {
+        insertar(actor, accion, modulo, entidad, entidadCodigo, resultado, detalle, origen);
+    }
+
     private void insertar(UUID actor, String accion, String modulo, String entidad, UUID entidadCodigo,
             ResultadoBitacora resultado, Map<String, Object> detalle) {
+        HttpServletRequest request = requestActual();
+        insertar(actor, accion, modulo, entidad, entidadCodigo, resultado, detalle, request == null
+                ? new OrigenSolicitud(null, null)
+                : new OrigenSolicitud(request.getRemoteAddr(), request.getHeader("User-Agent")));
+    }
+
+    private void insertar(UUID actor, String accion, String modulo, String entidad, UUID entidadCodigo,
+            ResultadoBitacora resultado, Map<String, Object> detalle, OrigenSolicitud origen) {
         // Se valida antes de tocar la base: un detalle inválido no inserta nada.
         String detalleJson = serializarDetalle(sanitizar(detalle));
-        HttpServletRequest request = requestActual();
-        String ip = request == null ? null : truncar(request.getRemoteAddr(), MAX_IP);
-        String userAgent = request == null ? null : truncar(request.getHeader("User-Agent"), MAX_USER_AGENT);
+        String ip = truncar(origen.ip(), MAX_IP);
+        String userAgent = truncar(origen.userAgent(), MAX_USER_AGENT);
 
         bitacoraRepository.insertar(UUID.randomUUID(), actor, accion, modulo, entidad, entidadCodigo,
                 resultado.name(), ip, userAgent, detalleJson);

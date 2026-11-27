@@ -26,7 +26,7 @@ lib/
 ├── layouts/
 │   └── {rol}/       # Shell por rol (AdminShell, UsuarioShell), con "Cerrar sesión"
 ├── shared/
-│   └── widgets/     # Widgets genéricos, sin dominio (AppButton, AppTextField)
+│   └── widgets/     # Widgets genéricos, sin dominio (AppButton, EstadoError, pedirConfirmacion...)
 ├── features/
 │   ├── auth/        # Referencia real: models, providers, screens, services
 │   ├── health/      # Feature de diagnóstico contra el backend real

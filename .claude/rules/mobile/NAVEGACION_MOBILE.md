@@ -17,8 +17,9 @@ String? redirectSegunSesion({
 });
 ```
 
-Cargando la sesión → pantalla de carga; sin sesión → `/login`; con sesión en
-login o carga → inicio. El router escucha `authProvider`
+Cargando la sesión → pantalla de carga; sin sesión → `/login`, salvo en las
+rutas sin sesión (`/login`, `/forgot-password`; una nueva se agrega a ese
+conjunto); con sesión en una de ellas o en carga → inicio. El router escucha `authProvider`
 (`refreshListenable`), así que al cerrar sesión o al expirar redirige solo:
 ninguna pantalla navega a `/login` a mano.
 

@@ -6,7 +6,10 @@ import { apiClient, ApiError } from '@/store'
 import { LoginScreen } from '../screens/LoginScreen'
 
 const navigate = vi.fn()
-vi.mock('@tanstack/react-router', () => ({ useNavigate: () => navigate }))
+vi.mock('@tanstack/react-router', () => ({
+  useNavigate: () => navigate,
+  Link: ({ to, children }: { to: string; children: React.ReactNode }) => <a href={to}>{children}</a>,
+}))
 
 function renderScreen() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -60,6 +63,30 @@ describe('LoginScreen', () => {
 
     expect(await screen.findByText('Correo o contraseña incorrectos')).toBeInTheDocument()
     expect(navigate).not.toHaveBeenCalled()
+  })
+
+  // * El caso de todos los días: correo, Tab, contraseña, Enter, sin salir del último campo.
+  it('envía con Enter sin haber salido del campo de contraseña', async () => {
+    const post = vi
+      .spyOn(apiClient, 'post')
+      .mockResolvedValue({ data: { usuario: { codigo: 'u', email: 'a@b.co', roles: ['USUARIO'] } } })
+    const user = userEvent.setup()
+    renderScreen()
+
+    await user.type(screen.getByLabelText('Correo'), 'a@b.co')
+    await user.tab()
+    await user.keyboard('ClaveSegura123{Enter}')
+
+    await waitFor(() => expect(post).toHaveBeenCalledWith('/auth/login', { email: 'a@b.co', password: 'ClaveSegura123' }))
+  })
+
+  it('enlaza a la recuperación de contraseña', () => {
+    renderScreen()
+
+    expect(screen.getByRole('link', { name: '¿Olvidaste tu contraseña?' })).toHaveAttribute(
+      'href',
+      '/forgot-password',
+    )
   })
 
   it('usa los autocomplete correctos y oculta la contraseña', () => {

@@ -21,14 +21,20 @@ Existe `ForgotPasswordScreen` y el enlace desde `LoginScreen`.
 
 ## Alcance
 
-- `screens/ForgotPasswordScreen.tsx` y `routes/forgot-password.tsx` (pública); muestra siempre el mismo mensaje de confirmación; maneja 429 con aviso.
-- Editar `LoginScreen` agregando el enlace "¿Olvidaste tu contraseña?".
+- `screens/ForgotPasswordScreen.tsx` y `routes/forgot-password.tsx` (pública). Tras un 200 muestra siempre el mismo mensaje («si la cuenta existe, te enviamos un enlace»), sin afirmar que se envió. Un 429 muestra el aviso de espera; un error de red, el de `ApiError`.
+- Botón deshabilitado mientras se envía.
+- Editar `LoginScreen` agregando el enlace «¿Olvidaste tu contraseña?» (con `Link`).
 
 **Archivos esperados (crear/tocar):**
 
 - `projects/frontend/src/features/auth/screens/ForgotPasswordScreen.tsx`
-- `projects/frontend/src/routes/forgot-password.tsx`
+- `projects/frontend/src/features/auth/index.ts`
 - `projects/frontend/src/features/auth/screens/LoginScreen.tsx`
+- `projects/frontend/src/routes/forgot-password.tsx`
+- `projects/frontend/src/routeTree.gen.ts` (generado)
+- `projects/frontend/src/utils/primerError.ts` y su test (se extrae: lo repetían dos pantallas)
+- `projects/frontend/src/utils/validarAlSalir.ts` (errores al salir de un campo sin bloquear el envío con Enter; ver la regla de formularios)
+- `projects/frontend/src/features/bitacora/screens/BitacoraScreen.tsx` (usa `primerError`)
 
 ## Fuera de alcance (no tocar)
 

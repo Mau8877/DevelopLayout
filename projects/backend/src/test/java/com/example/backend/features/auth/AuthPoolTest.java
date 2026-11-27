@@ -6,13 +6,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.RequestBuilder;
+
+import com.example.backend.features.auth.service.PasswordResetTokenService;
 
 /**
  * Con un pool mucho más chico que la concurrencia, ningún flujo puede quedarse
@@ -24,6 +30,12 @@ import org.springframework.test.web.servlet.RequestBuilder;
 class AuthPoolTest extends AuthSesionIntegrationTest {
 
     private static final int SIMULTANEAS = 24;
+
+    @MockitoBean
+    private JavaMailSender mail;
+
+    @Autowired
+    private PasswordResetTokenService tokens;
 
     private List<Integer> aLaVez(List<RequestBuilder> requests) throws Exception {
         List<Callable<Integer>> llamadas = new ArrayList<>();
@@ -63,5 +75,27 @@ class AuthPoolTest extends AuthSesionIntegrationTest {
         }
 
         assertThat(aLaVez(reusos)).containsOnly(401);
+    }
+
+    @Test
+    void recuperacionesSimultaneas_noAgotanElPool() throws Exception {
+        List<RequestBuilder> requests = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            prepararUsuario();
+            UUID usuario = UUID.fromString(dueno().queryForObject(
+                    "SELECT codigo_usuario::text FROM authentication.usuario WHERE email = ?", String.class, email));
+            requests.add(publico("password/reset",
+                    "{\"token\":\"" + tokens.emitir(usuario) + "\",\"password\":\"OtraClaveNueva456\"}")); // gitleaks:allow
+            requests.add(publico("password/forgot", "{\"email\":\"" + email + "\"}"));
+            requests.add(login(email, PASSWORD));
+        }
+
+        // * Un enlace pedido a la vez puede reemplazar al del restablecimiento (400) y
+        // * un login puede llegar después del cambio (401). Lo que no puede haber es un 500.
+        assertThat(aLaVez(requests)).hasSize(requests.size()).isSubsetOf(200, 400, 401);
+    }
+
+    private static RequestBuilder publico(String ruta, String cuerpo) {
+        return post("/api/v1/auth/" + ruta).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(cuerpo);
     }
 }

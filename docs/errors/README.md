@@ -48,9 +48,12 @@ docs/errors/
 - [`ERR_AUTH_02`](auth/ERRORES_AUTH.md#err_auth_02) — Cuenta bloqueada temporalmente por intentos fallidos (423)
 - [`ERR_AUTH_03`](auth/ERRORES_AUTH.md#err_auth_03) — Usuario no activo (403)
 - [`ERR_AUTH_04`](auth/ERRORES_AUTH.md#err_auth_04) — El refresh token ya no es válido (401)
+- [`ERR_AUTH_05`](auth/ERRORES_AUTH.md#err_auth_05) — El enlace de recuperación no es válido (400)
+- [`ERR_AUTH_06`](auth/ERRORES_AUTH.md#err_auth_06) — La contraseña nueva es igual a la actual (400)
 - [`ERR_AUTH_07`](auth/ERRORES_AUTH.md#err_auth_07) — No autenticado (401)
 - [`ERR_AUTH_08`](auth/ERRORES_AUTH.md#err_auth_08) — Acceso denegado o CSRF inválido (403)
 - [`ERR_AUTH_09`](auth/ERRORES_AUTH.md#err_auth_09) — La sesión a cerrar no existe (404)
+- [`ERR_AUTH_10`](auth/ERRORES_AUTH.md#err_auth_10) — La sesión actual no se cierra desde «Mis sesiones» (400)
 
 ### Bitácora (`BIT`)
 

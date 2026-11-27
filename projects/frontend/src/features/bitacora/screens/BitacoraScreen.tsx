@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/tanstack-table'
 import { ApiError } from '@/store'
 import { formatDateTime } from '@/utils/formatDateTime'
+import { primerError } from '@/utils/primerError'
 import { useBitacora } from '../api/useBitacora'
 import { bitacoraFiltrosSchema, SIN_FILTROS, type BitacoraFiltros } from '../schemas/bitacoraFiltrosSchema'
 import type { EventoBitacora } from '../types/bitacora'
@@ -58,11 +59,6 @@ const CAMPOS_TEXTO = [
   { name: 'desde', label: 'Desde', type: 'date' },
   { name: 'hasta', label: 'Hasta', type: 'date' },
 ] as const
-
-function primerError(errores: unknown[]): string | undefined {
-  const primero = errores[0]
-  return primero && typeof primero === 'object' && 'message' in primero ? String(primero.message) : undefined
-}
 
 function Dato({ nombre, valor }: { nombre: string; valor: string | undefined }) {
   return (

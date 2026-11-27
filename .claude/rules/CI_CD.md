@@ -52,7 +52,9 @@ proyecto).
 ## Prueba de producción de punta a punta
 
 `scripts/prod-smoke.mjs` comprueba arranque, puertos publicados, redirección y
-cabeceras, rutas internas, sesiones web y mobile, bucket de MinIO privado, y
+cabeceras (incluido `no-referrer` en `/reset-password`), rutas internas, sesiones
+web y mobile, la recuperación de contraseña con el correo caído (la app sigue
+sana), bucket de MinIO privado, y
 respaldo restaurado en un servidor vacío (incluido que una sesión anterior no
 reviva). **Todo cambio que altere ese comportamiento actualiza la prueba.**
 

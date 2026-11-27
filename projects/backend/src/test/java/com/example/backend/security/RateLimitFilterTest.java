@@ -14,7 +14,7 @@ class RateLimitFilterTest {
 
     @Test
     void doFilterInternal_dentroDelLimite_dejaPasarTodasLasRequests() throws Exception {
-        RateLimitFilter filter = new RateLimitFilter(3, 60, 1000, 1000, 1000, 1000, 100000);
+        RateLimitFilter filter = new RateLimitFilter(3, 60, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 100000);
         AtomicInteger vecesQueLlegoAlChain = new AtomicInteger();
 
         for (int i = 0; i < 3; i++) {
@@ -32,7 +32,7 @@ class RateLimitFilterTest {
 
     @Test
     void doFilterInternal_superandoElLimite_devuelve429ConElSobreDeError() throws Exception {
-        RateLimitFilter filter = new RateLimitFilter(2, 60, 1000, 1000, 1000, 1000, 100000);
+        RateLimitFilter filter = new RateLimitFilter(2, 60, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 100000);
         AtomicInteger vecesQueLlegoAlChain = new AtomicInteger();
 
         // Agota el cupo (2 requests permitidas)
@@ -59,7 +59,7 @@ class RateLimitFilterTest {
 
     @Test
     void doFilterInternal_distintasIps_tienenCuposIndependientes() throws Exception {
-        RateLimitFilter filter = new RateLimitFilter(1, 60, 1000, 1000, 1000, 1000, 100000);
+        RateLimitFilter filter = new RateLimitFilter(1, 60, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 100000);
         AtomicInteger vecesQueLlegoAlChain = new AtomicInteger();
 
         filter.doFilterInternal(
@@ -80,7 +80,7 @@ class RateLimitFilterTest {
 
     @Test
     void doFilterInternal_loginConLimitePropio_rechazaAntesQueElGlobal() throws Exception {
-        RateLimitFilter filter = new RateLimitFilter(100, 100, 2, 60, 1000, 1000, 100000);
+        RateLimitFilter filter = new RateLimitFilter(100, 100, 2, 60, 1000, 1000, 1000, 1000, 1000, 1000, 100000);
         AtomicInteger llegaron = new AtomicInteger();
         MockHttpServletResponse ultima = new MockHttpServletResponse();
 
@@ -104,7 +104,7 @@ class RateLimitFilterTest {
 
     @Test
     void doFilterInternal_refreshConLimitePropio_rechazaAlSuperarlo() throws Exception {
-        RateLimitFilter filter = new RateLimitFilter(100, 100, 100, 100, 2, 60, 100000);
+        RateLimitFilter filter = new RateLimitFilter(100, 100, 100, 100, 2, 60, 1000, 1000, 1000, 1000, 100000);
         AtomicInteger llegaron = new AtomicInteger();
         MockHttpServletResponse ultima = new MockHttpServletResponse();
 
@@ -123,7 +123,7 @@ class RateLimitFilterTest {
     @Test
     void entradasSinUso_seLiberan() throws Exception {
         AtomicLong nanos = new AtomicLong();
-        RateLimitFilter filter = new RateLimitFilter(100, 100, 10, 10, 30, 30, 100000, nanos::get);
+        RateLimitFilter filter = new RateLimitFilter(100, 100, 10, 10, 30, 30, 1000, 1000, 1000, 1000, 100000, nanos::get);
         for (int i = 0; i < 500; i++) {
             MockHttpServletRequest login = requestTo("/api/v1/auth/login");
             login.setMethod("POST");
@@ -142,7 +142,7 @@ class RateLimitFilterTest {
 
     @Test
     void conMasClientesQueElMaximo_laMemoriaTieneTecho() throws Exception {
-        RateLimitFilter filter = new RateLimitFilter(100, 100, 10, 10, 30, 30, 200);
+        RateLimitFilter filter = new RateLimitFilter(100, 100, 10, 10, 30, 30, 1000, 1000, 1000, 1000, 200);
         for (int i = 0; i < 5000; i++) {
             filter.doFilterInternal(apiRequest("2001:db8::" + Integer.toHexString(i)),
                     new MockHttpServletResponse(), (req, res) -> {
@@ -160,7 +160,7 @@ class RateLimitFilterTest {
 
     @Test
     void shouldNotFilter_rutasFueraDeApiV1_quedanExcluidas() {
-        RateLimitFilter filter = new RateLimitFilter(100, 100, 1000, 1000, 1000, 1000, 100000);
+        RateLimitFilter filter = new RateLimitFilter(100, 100, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 100000);
 
         assertThat(filter.shouldNotFilter(requestTo("/health"))).isTrue();
         assertThat(filter.shouldNotFilter(requestTo("/prometheus"))).isTrue();
@@ -178,5 +178,27 @@ class RateLimitFilterTest {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRequestURI(uri);
         return request;
+    }
+
+    @Test
+    void recuperacion_cadaRutaTieneSuLimitePorIp() throws Exception {
+        RateLimitFilter filter = new RateLimitFilter(100, 100, 100, 100, 100, 100, 2, 1, 3, 1, 100000);
+
+        assertThat(estadosDePost(filter, "/api/v1/auth/password/forgot", 3)).containsExactly(200, 200, 429);
+        assertThat(estadosDePost(filter, "/api/v1/auth/password/reset", 4)).containsExactly(200, 200, 200, 429);
+        assertThat(estadosDePost(filter, "/api/v1/auth/login", 1)).containsExactly(200);
+    }
+
+    private static java.util.List<Integer> estadosDePost(RateLimitFilter filter, String ruta, int veces)
+            throws Exception {
+        java.util.List<Integer> estados = new java.util.ArrayList<>();
+        for (int i = 0; i < veces; i++) {
+            MockHttpServletRequest request = new MockHttpServletRequest("POST", ruta);
+            request.setRemoteAddr("203.0.113.90");
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            filter.doFilterInternal(request, response, (req, res) -> { });
+            estados.add(response.getStatus());
+        }
+        return estados;
     }
 }

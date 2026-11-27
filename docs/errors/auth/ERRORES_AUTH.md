@@ -28,6 +28,20 @@
 - **Significado:** el refresh token no sirve para renovar: falta, no tiene una firma válida, ya fue usado (la sesión se revoca), su sesión está cerrada o vencida, o el usuario ya no está activo o no tiene roles.
 - **Dónde se lanza:** `SesionService.rotar()` y `AuthService.refresh()`
 
+## `ERR_AUTH_05`
+
+- **HTTP:** 400
+- **Excepción:** `ValidationException`
+- **Significado:** el enlace para restablecer la contraseña no sirve: no existe, venció, ya se usó, se pidió otro después, la cuenta dejó de estar activa o la contraseña cambió mientras tanto.
+- **Dónde se lanza:** `RecuperacionService.restablecer()`
+
+## `ERR_AUTH_06`
+
+- **HTTP:** 400
+- **Excepción:** `ValidationException`
+- **Significado:** la contraseña nueva es igual a la actual. El enlace sigue sirviendo.
+- **Dónde se lanza:** `RecuperacionService.restablecer()`
+
 ## `ERR_AUTH_07`
 
 - **HTTP:** 401
@@ -46,5 +60,12 @@
 
 - **HTTP:** 404
 - **Excepción:** `NotFoundException`
-- **Significado:** un administrador pidió cerrar una sesión que no existe.
-- **Dónde se lanza:** `SesionAdminService.cerrar()`
+- **Significado:** la sesión que se quiere cerrar no existe. En «Mis sesiones» incluye la de otro usuario: no se distingue de una inexistente.
+- **Dónde se lanza:** `SesionAdminService.cerrar()` y `MisSesionesService.cerrar()`
+
+## `ERR_AUTH_10`
+
+- **HTTP:** 400
+- **Excepción:** `ValidationException`
+- **Significado:** se intentó cerrar desde «Mis sesiones» la sesión desde la que se hace la petición; para eso está «Cerrar sesión».
+- **Dónde se lanza:** `MisSesionesService.cerrar()`

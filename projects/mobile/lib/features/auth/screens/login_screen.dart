@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/network/error_message.dart';
+import '../../../core/routing/app_router.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_text_field.dart';
+import '../../../shared/widgets/error_snack_bar.dart';
 import '../providers/auth_provider.dart';
 
 /// Validadores con las mismas reglas que el login web (loginSchema).
@@ -51,10 +54,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .login(_emailController.text.trim(), _passwordController.text);
       // * El router redirige solo al cambiar la sesión.
     } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(mensajeDeError(error))));
+      if (mounted) mostrarError(context, mensajeDeError(error));
     } finally {
       if (mounted) setState(() => _enviando = false);
     }
@@ -104,6 +104,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       const SizedBox(height: 24),
                       AppButton(texto: 'Ingresar', cargando: _enviando, onPressed: _enviar),
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: _enviando ? null : () => context.go(rutaOlvidePassword),
+                        child: const Text('¿Olvidaste tu contraseña?'),
+                      ),
                     ],
                   ),
                 ),

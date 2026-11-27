@@ -153,6 +153,13 @@ Todos esos puertos se publican **solo en `127.0.0.1`**: el stack de desarrollo n
 - **Estado de uso real**: el backend lo usa para el bloqueo por intentos de
   login y para consultar las sesiones revocadas.
 
+### `mailpit` — correo de desarrollo
+
+`axllent/mailpit` atrapa todo lo que envía el backend de desarrollo; no entrega
+nada afuera. Bandeja en `http://127.0.0.1:8025`, SMTP en `127.0.0.1:1025` (para
+correr el backend sin Docker). Sin root y sin capabilities. No existe en el compose
+de producción.
+
 ### 2.6 `minio` + `minio-init` — almacenamiento de archivos (S3-compatible)
 
 **Hoy el backend no usa MinIO** (no incluye su cliente Java; las propiedades
@@ -511,6 +518,16 @@ sudo chown root:101 privkey.pem && sudo chmod 640 privkey.pem
 (con una clave de Let's Encrypt, que `/etc/letsencrypt/live` y `archive`
 también dejen atravesar el directorio a ese grupo). No uses `chmod 644`
 con una clave real, solo con el certificado de prueba local.
+
+**Correo (recuperar contraseña).** `SPRING_MAIL_HOST`, `MAIL_FROM` y
+`APP_FRONTEND_BASE_URL` (HTTPS) son obligatorias: sin ellas el compose falla.
+`SPRING_MAIL_PORT` (587), `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD`,
+`SPRING_MAIL_SMTP_AUTH` y `SPRING_MAIL_SMTP_STARTTLS` (ambas `true`) dependen
+del servidor SMTP que elija cada proyecto. Para que los correos no caigan en spam,
+el dominio del remitente necesita SPF y DKIM. Un SMTP caído **no** afecta a
+`/health` ni al resto de la aplicación: se registra en el log y en la bitácora. El
+envío no está garantizado (no hay cola persistente): quien no reciba el enlace
+pide otro.
 
 **El proxy y la web se construyen** (`infrastructure/nginx/Dockerfile` y
 `projects/frontend/Dockerfile`) para parchear la imagen base. Para recibir parches

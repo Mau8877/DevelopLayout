@@ -17,11 +17,11 @@ Lógica crítica de recuperación.
 
 ## Objetivo
 
-Tests del service y del validador.
+Tests del service, del validador y de la redirección.
 
 ## Alcance
 
-- `test/features/auth/forgot_password_test.dart`.
+- `test/features/auth/forgot_password_test.dart`: servicio (éxito y 429), validación del correo y `redirectSegunSesion` con `/forgot-password` en los tres estados (sin sesión se queda; con sesión va a inicio; cargando va a la carga).
 
 **Archivos esperados (crear/tocar):**
 

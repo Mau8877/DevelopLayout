@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../core/routing/app_router.dart';
 import '../../features/auth/providers/auth_provider.dart';
 
 /// Shell del rol Usuario -- AppBar + `NavigationBar` (Material 3) inferior,
@@ -39,6 +41,11 @@ class _UsuarioShellState extends ConsumerState<UsuarioShell> {
       appBar: AppBar(
         title: const Text('App'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.devices_outlined),
+            tooltip: 'Mis sesiones',
+            onPressed: () => context.push(rutaMisSesiones),
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Cerrar sesión',

@@ -41,7 +41,8 @@ necesite (ver
 [TANSTACK_QUERY_FRONTEND.md](frontend/TANSTACK_QUERY_FRONTEND.md#endpoints-usados-por-más-de-una-feature)).
 
 `utils/` tiene `debounce.ts`, `dayjsEs.ts`, `formatRelativeDate.ts`,
-`logger.ts` y `runThemeTransition.ts`. `layouts/` tiene un layout por rol
+`logger.ts`, `primerError.ts`, `resumirDispositivo.ts`, `runThemeTransition.ts` y
+`validarAlSalir.ts`. `layouts/` tiene un layout por rol
 (`admin/`, `usuario/`) — ver
 [Layouts por rol](frontend/RUTAS_NAVEGACION_FRONTEND.md#layouts-por-rol).
 

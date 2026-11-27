@@ -116,6 +116,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/password/forgot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["olvidePassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/password/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["restablecerPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/refresh": {
         parameters: {
             query?: never;
@@ -127,6 +159,54 @@ export interface paths {
         put?: never;
         post: operations["refresh"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/sesiones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listarMisSesiones"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/sesiones/cerrar-otras": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["cerrarMisOtrasSesiones"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/sesiones/{codigo}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["cerrarMiSesion"];
         options?: never;
         head?: never;
         patch?: never;
@@ -154,6 +234,15 @@ export interface components {
     schemas: {
         ApiResponseListBitacoraResponse: {
             data?: components["schemas"]["BitacoraResponse"][];
+            error?: string;
+            message?: string;
+            meta?: components["schemas"]["PageMeta"];
+            status?: string;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseListMiSesionResponse: {
+            data?: components["schemas"]["MiSesionResponse"][];
             error?: string;
             message?: string;
             meta?: components["schemas"]["PageMeta"];
@@ -224,6 +313,10 @@ export interface components {
             /** Format: int32 */
             pageSize?: number;
         };
+        ForgotPasswordRequest: {
+            /** Format: email */
+            email: string;
+        };
         LoginRequest: {
             /** Format: email */
             email: string;
@@ -233,6 +326,21 @@ export interface components {
             accessToken?: string;
             refreshToken?: string;
             usuario?: components["schemas"]["UsuarioSesionResponse"];
+        };
+        MiSesionResponse: {
+            actual?: boolean;
+            /** Format: uuid */
+            codigo?: string;
+            /** Format: date-time */
+            creadaEn?: string;
+            /** Format: date-time */
+            expiraEn?: string;
+            ip?: string;
+            /** @enum {string} */
+            tipoCliente?: "WEB" | "MOBILE";
+            /** Format: date-time */
+            ultimoUsoEn?: string;
+            userAgent?: string;
         };
         PageMeta: {
             /** Format: int32 */
@@ -246,6 +354,10 @@ export interface components {
         };
         RefreshRequest: {
             refreshToken?: string;
+        };
+        ResetPasswordRequest: {
+            password: string;
+            token: string;
         };
         SesionResponse: {
             /** Format: uuid */
@@ -432,6 +544,54 @@ export interface operations {
             };
         };
     };
+    olvidePassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForgotPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
+    restablecerPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResetPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
     refresh: {
         parameters: {
             query?: never;
@@ -452,6 +612,71 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseLoginResponse"];
+                };
+            };
+        };
+    };
+    listarMisSesiones: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListMiSesionResponse"];
+                };
+            };
+        };
+    };
+    cerrarMisOtrasSesiones: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
+                };
+            };
+        };
+    };
+    cerrarMiSesion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                codigo: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
                 };
             };
         };

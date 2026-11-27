@@ -99,6 +99,13 @@ services:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
       - MINIO_URL=http://app-minio:9000
+      # Correo: en desarrollo todo queda en Mailpit (http://127.0.0.1:8025).
+      - SPRING_MAIL_HOST=app-mailpit
+      - SPRING_MAIL_PORT=1025
+      - SPRING_MAIL_SMTP_AUTH=false
+      - SPRING_MAIL_SMTP_STARTTLS=false
+      - MAIL_FROM=no-reply@localhost
+      - APP_FRONTEND_BASE_URL=http://localhost:5173
     depends_on:
       postgres:
         condition: service_healthy
@@ -240,6 +247,25 @@ services:
     volumes:
       - ./infrastructure/minio/create-buckets.sh:/create-buckets.sh:ro
     entrypoint: ['/bin/sh', '/create-buckets.sh']
+    networks:
+      - app-network
+
+  # ---------------------------------------
+  # CORREO (solo desarrollo)
+  # ---------------------------------------
+  # Atrapa los correos que envía el backend; no entrega nada a nadie. En
+  # producción se configura un SMTP real (ver docker-compose.prod.yml).
+  mailpit:
+    image: axllent/mailpit:v1.33.0
+    container_name: app-mailpit
+    user: '65534:65534'
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    ports:
+      - '127.0.0.1:1025:1025'
+      - '127.0.0.1:8025:8025'
     networks:
       - app-network
 

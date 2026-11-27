@@ -48,6 +48,14 @@ public class RateLimitFilter extends OncePerRequestFilter {
     // * /refresh no exige access token: lleva su propio límite por IP.
     private final Cache<String, Bucket> refreshBuckets;
 
+    // * Recuperación de contraseña: sin sesión, cada paso con su límite por IP.
+    private final Cache<String, Bucket> forgotBuckets;
+    private final Cache<String, Bucket> resetBuckets;
+
+    private final int forgotCapacity;
+    private final int forgotRefillPerMinute;
+    private final int resetCapacity;
+    private final int resetRefillPerMinute;
     private final int capacity;
     private final int refillPerMinute;
     private final int loginCapacity;
@@ -63,19 +71,31 @@ public class RateLimitFilter extends OncePerRequestFilter {
             @Value("${app.ratelimit.login-refill-per-minute:10}") int loginRefillPerMinute,
             @Value("${app.ratelimit.refresh-capacity:30}") int refreshCapacity,
             @Value("${app.ratelimit.refresh-refill-per-minute:30}") int refreshRefillPerMinute,
+            @Value("${app.ratelimit.forgot-capacity:5}") int forgotCapacity,
+            @Value("${app.ratelimit.forgot-refill-per-minute:1}") int forgotRefillPerMinute,
+            @Value("${app.ratelimit.reset-capacity:10}") int resetCapacity,
+            @Value("${app.ratelimit.reset-refill-per-minute:5}") int resetRefillPerMinute,
             @Value("${app.ratelimit.max-clients:100000}") int maxClientes) {
         this(capacity, refillPerMinute, loginCapacity, loginRefillPerMinute, refreshCapacity,
-                refreshRefillPerMinute, maxClientes, Ticker.systemTicker());
+                refreshRefillPerMinute, forgotCapacity, forgotRefillPerMinute, resetCapacity,
+                resetRefillPerMinute, maxClientes, Ticker.systemTicker());
     }
 
     RateLimitFilter(int capacity, int refillPerMinute, int loginCapacity, int loginRefillPerMinute,
-            int refreshCapacity, int refreshRefillPerMinute, int maxClientes, Ticker reloj) {
+            int refreshCapacity, int refreshRefillPerMinute, int forgotCapacity, int forgotRefillPerMinute,
+            int resetCapacity, int resetRefillPerMinute, int maxClientes, Ticker reloj) {
         if (maxClientes < 1) {
             throw new IllegalStateException("app.ratelimit.max-clients debe ser 1 o más");
         }
         this.buckets = nuevaCache(inactividad(capacity, refillPerMinute), maxClientes, reloj);
         this.loginBuckets = nuevaCache(inactividad(loginCapacity, loginRefillPerMinute), maxClientes, reloj);
         this.refreshBuckets = nuevaCache(inactividad(refreshCapacity, refreshRefillPerMinute), maxClientes, reloj);
+        this.forgotBuckets = nuevaCache(inactividad(forgotCapacity, forgotRefillPerMinute), maxClientes, reloj);
+        this.resetBuckets = nuevaCache(inactividad(resetCapacity, resetRefillPerMinute), maxClientes, reloj);
+        this.forgotCapacity = forgotCapacity;
+        this.forgotRefillPerMinute = forgotRefillPerMinute;
+        this.resetCapacity = resetCapacity;
+        this.resetRefillPerMinute = resetRefillPerMinute;
         this.refreshCapacity = refreshCapacity;
         this.refreshRefillPerMinute = refreshRefillPerMinute;
         this.capacity = capacity;
@@ -107,6 +127,15 @@ public class RateLimitFilter extends OncePerRequestFilter {
                     .tryConsume(1);
         }
 
+        if (permitido && esPost(request, "/api/v1/auth/password/forgot")) {
+            permitido = forgotBuckets.get(ip, k -> newBucket(forgotCapacity, forgotRefillPerMinute))
+                    .tryConsume(1);
+        }
+        if (permitido && esPost(request, "/api/v1/auth/password/reset")) {
+            permitido = resetBuckets.get(ip, k -> newBucket(resetCapacity, resetRefillPerMinute))
+                    .tryConsume(1);
+        }
+
         if (permitido) {
             filterChain.doFilter(request, response);
             return;
@@ -131,12 +160,15 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 .build();
     }
 
-    /** Entradas retenidas entre las tres cachés, tras aplicar expiración y máximo. */
+    /** Entradas retenidas entre todas las cachés, tras aplicar expiración y máximo. */
     long entradasEnMemoria() {
         buckets.cleanUp();
         loginBuckets.cleanUp();
         refreshBuckets.cleanUp();
-        return buckets.estimatedSize() + loginBuckets.estimatedSize() + refreshBuckets.estimatedSize();
+        forgotBuckets.cleanUp();
+        resetBuckets.cleanUp();
+        return buckets.estimatedSize() + loginBuckets.estimatedSize() + refreshBuckets.estimatedSize()
+                + forgotBuckets.estimatedSize() + resetBuckets.estimatedSize();
     }
 
     private static boolean esPost(HttpServletRequest request, String uri) {

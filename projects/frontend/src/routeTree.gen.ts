@@ -11,8 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/_admin'
+import { Route as AuthenticatedMisSesionesRouteImport } from './routes/_authenticated/mis-sesiones'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
 import { Route as AuthenticatedAdminBitacoraRouteImport } from './routes/_authenticated/_admin/bitacora'
 import { Route as AuthenticatedAdminSesionesUsuariosRouteImport } from './routes/_authenticated/_admin/sesiones-usuarios'
@@ -26,15 +29,31 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/_admin',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedMisSesionesRoute =
+  AuthenticatedMisSesionesRouteImport.update({
+    id: '/mis-sesiones',
+    path: '/mis-sesiones',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
   id: '/panel',
   path: '/panel',
@@ -55,14 +74,20 @@ const AuthenticatedAdminSesionesUsuariosRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/mis-sesiones': typeof AuthenticatedMisSesionesRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/bitacora': typeof AuthenticatedAdminBitacoraRoute
   '/sesiones-usuarios': typeof AuthenticatedAdminSesionesUsuariosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/mis-sesiones': typeof AuthenticatedMisSesionesRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/bitacora': typeof AuthenticatedAdminBitacoraRoute
   '/sesiones-usuarios': typeof AuthenticatedAdminSesionesUsuariosRoute
@@ -71,23 +96,45 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/_admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/mis-sesiones': typeof AuthenticatedMisSesionesRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/_admin/bitacora': typeof AuthenticatedAdminBitacoraRoute
   '/_authenticated/_admin/sesiones-usuarios': typeof AuthenticatedAdminSesionesUsuariosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/panel' | '/bitacora' | '/sesiones-usuarios'
+  fullPaths:
+    | '/'
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/mis-sesiones'
+    | '/panel'
+    | '/bitacora'
+    | '/sesiones-usuarios'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/panel' | '/bitacora' | '/sesiones-usuarios'
+  to:
+    | '/'
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/mis-sesiones'
+    | '/panel'
+    | '/bitacora'
+    | '/sesiones-usuarios'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/forgot-password'
     | '/login'
+    | '/reset-password'
     | '/_authenticated/_admin'
+    | '/_authenticated/mis-sesiones'
     | '/_authenticated/panel'
     | '/_authenticated/_admin/bitacora'
     | '/_authenticated/_admin/sesiones-usuarios'
@@ -96,7 +143,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -115,6 +164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -122,11 +178,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/_admin': {
       id: '/_authenticated/_admin'
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/mis-sesiones': {
+      id: '/_authenticated/mis-sesiones'
+      path: '/mis-sesiones'
+      fullPath: '/mis-sesiones'
+      preLoaderRoute: typeof AuthenticatedMisSesionesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/panel': {
@@ -169,11 +239,13 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedMisSesionesRoute: typeof AuthenticatedMisSesionesRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedMisSesionesRoute: AuthenticatedMisSesionesRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
 }
 
@@ -184,7 +256,9 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

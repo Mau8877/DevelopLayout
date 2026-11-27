@@ -136,7 +136,8 @@ public class AuthService {
                 throw new ForbiddenException(AuthErrorCodes.ERR_AUTH_03, "La cuenta no está activa");
             }
 
-            LoginResult resultado = escritura.execute(estado -> abrirSesion(usuario.getCodigo(), cmd));
+            LoginResult resultado =
+                    escritura.execute(estado -> abrirSesion(usuario.getCodigo(), usuario.getPasswordHash(), cmd));
             loginAttempts.confirmarExito(email, cmd.ip());
             LOG.info("Login exitoso usuarioCodigo={} tipoCliente={}", usuario.getCodigo(), cmd.tipoCliente());
             return resultado;
@@ -145,10 +146,12 @@ public class AuthService {
 
     // * Se relee el usuario dentro de la transacción que escribe: pudo cambiar
     // * mientras se comparaba la contraseña.
-    private LoginResult abrirSesion(UUID codigoUsuario, LoginCommand cmd) {
+    // ! El bloqueo compartido y la comparación del hash impiden que un login con la
+    // ! contraseña anterior cree una sesión después de un restablecimiento.
+    private LoginResult abrirSesion(UUID codigoUsuario, String hashVerificado, LoginCommand cmd) {
         rlsContext.usarUsuario(codigoUsuario);
-        Usuario usuario = usuarioRepository.findByCodigo(codigoUsuario)
-                .filter(u -> u.getEstado() == EstadoUsuario.ACTIVO)
+        Usuario usuario = usuarioRepository.bloquearParaLogin(codigoUsuario)
+                .filter(u -> u.getEstado() == EstadoUsuario.ACTIVO && u.getPasswordHash().equals(hashVerificado))
                 .orElseThrow(() -> new UnauthorizedException(AuthErrorCodes.ERR_AUTH_01, MSG_CREDENCIALES));
         List<String> roles = rolesActivos(usuario);
         SesionService.SesionCreada creada =

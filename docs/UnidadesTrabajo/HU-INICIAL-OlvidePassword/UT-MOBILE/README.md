@@ -12,6 +12,11 @@ Leer las rules de [`mobile/`](../../../../.claude/rules/mobile/) y [`SEGURIDAD_O
 
 - Sin deep links: el enlace se abre en el navegador, que tiene la pantalla de restablecer.
 
+## Seguridad
+
+- Solo se pide el correo; la app no recibe ni maneja el token.
+- Mensaje uniforme y sin datos personales en logs (MASVS-PRIVACY). Sin deep links (MASVS-PLATFORM).
+
 ## Orden de ejecución
 
 | Código | Nombre | Depende de |

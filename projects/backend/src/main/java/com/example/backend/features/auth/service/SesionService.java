@@ -133,6 +133,15 @@ public class SesionService {
     }
 
     /**
+     * Revoca todas las sesiones `ACTIVA` del usuario. Debe correr dentro de una
+     * transacción con `app.current_user` fijado.
+     */
+    public void revocarTodas(UUID usuario, MotivoRevocacion motivo) {
+        sesionRepository.bloquearPorUsuarioYEstado(usuario, EstadoSesion.ACTIVA)
+                .forEach(sesion -> revocar(sesion, motivo));
+    }
+
+    /**
      * Cierra la sesión dueña de este refresh token. Idempotente: un token
      * desconocido o de una sesión ya cerrada no hace nada.
      *

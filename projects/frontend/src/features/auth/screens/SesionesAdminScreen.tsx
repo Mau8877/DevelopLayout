@@ -11,40 +11,18 @@ import {
   DataTablePagination,
   RowActionButton,
   useDataTable,
-  type DataTableColumnDef,
 } from '@/components/ui/tanstack-table'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import { ApiError } from '@/store'
 import { copiarAlPortapapeles } from '@/utils/copiarAlPortapapeles'
-import { formatDateTime } from '@/utils/formatDateTime'
 import { useCerrarSesionAdmin } from '../api/useCerrarSesionAdmin'
 import { useCerrarTodasAdmin } from '../api/useCerrarTodasAdmin'
 import { nuevaBusqueda, useSesionesAdmin, type Busqueda } from '../api/useSesionesAdmin'
+import { columnasSesion } from '../components/columnasSesion'
 import { buscarSesionesSchema } from '../schemas/buscarSesionesSchema'
 import type { Sesion } from '../types/sesion'
 
-const columnas: DataTableColumnDef<Sesion>[] = [
-  { accessorKey: 'tipoCliente', header: 'Cliente', meta: { width: 'w-24' } },
-  {
-    accessorKey: 'userAgent',
-    header: 'Dispositivo',
-    meta: { grow: true },
-    cell: ({ row }) => <span title={row.original.userAgent}>{row.original.userAgent ?? '—'}</span>,
-  },
-  { accessorKey: 'ip', header: 'IP', meta: { width: 'w-32' }, cell: ({ row }) => row.original.ip ?? '—' },
-  {
-    accessorKey: 'creadaEn',
-    header: 'Iniciada',
-    meta: { width: 'w-40' },
-    cell: ({ row }) => formatDateTime(row.original.creadaEn),
-  },
-  {
-    accessorKey: 'ultimoUsoEn',
-    header: 'Último uso',
-    meta: { width: 'w-40' },
-    cell: ({ row }) => formatDateTime(row.original.ultimoUsoEn),
-  },
-]
+const columnas = columnasSesion<Sesion>()
 
 type Confirmacion = { tipo: 'una'; sesion: Sesion } | { tipo: 'todas'; usuarioCodigo: string }
 

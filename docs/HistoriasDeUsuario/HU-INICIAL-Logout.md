@@ -2,7 +2,7 @@
 
 | Id | Nombre corto de HU | Prioridad | PHU | Estado |
 | --- | --- | --- | --- | --- |
-| HU-INICIAL-LOGOUT | Cerrar sesión | Alta |  | En progreso |
+| HU-INICIAL-LOGOUT | Cerrar sesión | Alta |  | En progreso (solo falta la prueba mobile) |
 
 **Como:** usuario con sesión iniciada
 **Quiero:** cerrar mi sesión
@@ -28,6 +28,13 @@ Depende de [HU-INICIAL-Login](HU-INICIAL-Login.md).
 ## Seguridad
 
 - El access token de una sesión revocada se rechaza al instante gracias a la lista de revocadas en Redis (si Redis falla, se deniega).
+
+## Estado de la validación
+
+**Lo único pendiente es la prueba mobile en un emulador** (UT MOB). Backend y web
+están implementados y probados; mobile está implementado y con tests
+automáticos. La prueba en emulador se hará al final, junto con el resto de las
+pruebas mobile; al pasarla, la historia queda `Hecha`.
 
 ## Desarrollador
 

@@ -16,9 +16,8 @@ import lombok.NoArgsConstructor;
 /**
  * Persona que puede iniciar sesión. Tabla authentication.usuario (RLS forzado).
  *
- * * Sin setters a propósito: ninguna HU actual modifica un usuario. Quien
- * * necesite cambiar `passwordHash` o `estado` (recuperación de contraseña,
- * * administración) agrega ese setter en su propia UT.
+ * * Sin setters a propósito: cada cambio tiene su método con nombre. Hoy solo
+ * * la contraseña; `estado` lo agregará quien lo necesite.
  * ! `passwordHash` nunca entra en un toString ni en un log: esta clase no
  * ! define toString.
  */
@@ -44,5 +43,10 @@ public class Usuario extends BaseModel {
         this.email = email;
         this.passwordHash = passwordHash;
         this.estado = estado;
+    }
+
+    /** Recibe el hash BCrypt, nunca la contraseña. */
+    public void cambiarPassword(String nuevoHash) {
+        this.passwordHash = nuevoHash;
     }
 }

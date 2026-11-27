@@ -133,6 +133,12 @@ function crearEntorno(carpetaCertificados) {
     REFRESH_TOKEN_SECRET: secreto('REFRESH_TOKEN_SECRET'),
     TLS_CERT_DIR: carpetaCertificados.replaceAll('\\', '/'),
     CORS_ALLOWED_ORIGINS: 'https://localhost',
+    // * SMTP inalcanzable a propósito: la app tiene que arrancar y seguir sana igual.
+    SPRING_MAIL_HOST: 'smtp.invalid',
+    SPRING_MAIL_USERNAME: '',
+    SPRING_MAIL_PASSWORD: '',
+    MAIL_FROM: 'no-reply@e2e.test',
+    APP_FRONTEND_BASE_URL: 'https://localhost',
     APP_VERSION: process.env.APP_VERSION || 'e2e-prod',
   };
 }
@@ -229,6 +235,18 @@ async function comprobarEntrada(pedir) {
       /default-src 'self'/.test(h['content-security-policy'] ?? ''),
     'la web responde con HSTS, nosniff, X-Frame-Options y CSP',
   );
+  const normal = h['referrer-policy'];
+  const restablecer = (await pedir('/reset-password')).headers;
+  comprobar(
+    normal === 'strict-origin-when-cross-origin' && restablecer['referrer-policy'] === 'no-referrer',
+    '/reset-password no manda Referer y el resto conserva su política',
+    `${normal} / ${restablecer['referrer-policy']}`,
+  );
+  comprobar(
+    ['strict-transport-security', 'content-security-policy', 'x-frame-options', 'x-content-type-options']
+      .every((cabecera) => restablecer[cabecera] === h[cabecera]),
+    '/reset-password conserva las demás cabeceras de seguridad',
+  );
   for (const ruta of ['/health', '/prometheus', '/actuator', '/v3/api-docs', '/swagger-ui/index.html']) {
     const r = await pedir(ruta);
     comprobar(!/jvm_|"openapi"|swagger-ui|"status"\s*:\s*"UP"/i.test(r.texto), `${ruta} no expone datos internos`);
@@ -269,6 +287,41 @@ async function comprobarSesiones(pedir, entorno) {
   const mobile = await login(pedir, entorno, comoMobile);
   comprobar(mobile.status === 200 && Boolean(mobile.json?.data?.refreshToken), 'login mobile');
   return mobile.json.data.refreshToken;
+}
+
+/** Con el correo caído: respuesta uniforme, fallo registrado y la app sigue sana. */
+async function comprobarRecuperacion(pedir, compose) {
+  const jarra = crearJarra();
+  await pedir('/api/v1/auth/csrf', { jarra });
+  const olvide = (email) =>
+    pedir('/api/v1/auth/password/forgot', {
+      method: 'POST', jarra, body: { email },
+      headers: { 'X-XSRF-TOKEN': jarra.valor('XSRF-TOKEN'), Origin: 'https://localhost' },
+    });
+  const sinFecha = (r) => r.texto.replace(/"timestamp":"[^"]+"/, '');
+  const existente = await olvide(ADMIN);
+  const inexistente = await olvide('nadie@e2e.test');
+  comprobar(
+    existente.status === 200 && inexistente.status === 200 && sinFecha(existente) === sinFecha(inexistente),
+    'pedir el enlace responde igual exista o no la cuenta',
+    `${existente.status}/${inexistente.status}`,
+  );
+  const invalido = await pedir('/api/v1/auth/password/reset', {
+    method: 'POST', jarra, body: { token: 'no-existe', password: 'ClaveCualquiera123' }, // gitleaks:allow
+    headers: { 'X-XSRF-TOKEN': jarra.valor('XSRF-TOKEN'), Origin: 'https://localhost' },
+  });
+  comprobar(invalido.status === 400 && invalido.json?.error === 'ERR_AUTH_05', 'un enlace inventado recibe ERR_AUTH_05');
+
+  const limite = Date.now() + 60_000;
+  let registrado = false;
+  while (!registrado && Date.now() < limite) {
+    registrado = compose(['logs', '--no-color', 'backend'], { capturar: true }).salida.includes('No se pudo enviar el enlace');
+    if (!registrado) await esperar(2000);
+  }
+  comprobar(registrado, 'el fallo de envío queda en el log');
+  const salud = docker('inspect', '-f', '{{.State.Health.Status}} {{.RestartCount}}', 'app-backend');
+  const health = compose(['exec', '-T', 'backend', 'wget', '-qO-', 'http://localhost:8080/health'], { capturar: true }).salida;
+  comprobar(salud === 'healthy 0' && /"status":"UP"/.test(health), 'con el SMTP caído el backend sigue sano', `${salud} ${health}`);
 }
 
 function comprobarBucket(compose) {
@@ -334,10 +387,13 @@ async function main() {
     console.log('3. Sesiones');
     const refreshAbierto = await comprobarSesiones(pedir, entorno);
 
-    console.log('4. Almacenamiento');
+    console.log('4. Recuperación de contraseña con el correo caído');
+    await comprobarRecuperacion(pedir, compose);
+
+    console.log('5. Almacenamiento');
     comprobarBucket(compose);
 
-    console.log('5. Respaldo');
+    console.log('6. Respaldo');
     const db = crearDocker({ root, prod: true });
     const datos = { usuario: entorno.POSTGRES_USER, base: entorno.POSTGRES_DB };
     const dir = join(carpeta, 'backups');
@@ -345,7 +401,7 @@ async function main() {
     const verificado = await verificarBackup(db, { ...datos, dir });
     comprobar(verificado.usuarios >= 1, 'respaldo creado y verificado');
 
-    console.log('6. Recuperación en un servidor vacío');
+    console.log('7. Recuperación en un servidor vacío');
     compose(['down', '-v']);
     compose(['up', '-d', '--wait', 'postgres']);
     // * Durante la inicialización Postgres ya responde por el socket pero va a reiniciarse:

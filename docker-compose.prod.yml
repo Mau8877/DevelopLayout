@@ -81,6 +81,16 @@ services:
       INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD}
       SPRING_DATA_REDIS_HOST: app-redis
       SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:?Definí REDIS_PASSWORD en .env}
+      # Correo (recuperación de contraseña). Servidor, remitente y dirección de la
+      # web son obligatorios; STARTTLS activado salvo que se diga lo contrario.
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:?Definí SPRING_MAIL_HOST en .env (servidor SMTP)}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-587}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
+      SPRING_MAIL_SMTP_AUTH: ${SPRING_MAIL_SMTP_AUTH:-true}
+      SPRING_MAIL_SMTP_STARTTLS: ${SPRING_MAIL_SMTP_STARTTLS:-true}
+      MAIL_FROM: ${MAIL_FROM:?Definí MAIL_FROM en .env (remitente de los correos)}
+      APP_FRONTEND_BASE_URL: ${APP_FRONTEND_BASE_URL:?Definí APP_FRONTEND_BASE_URL en .env (ej. https://app.midominio.com)}
       MINIO_URL: http://app-minio:9000
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Definí MINIO_ROOT_PASSWORD en .env}

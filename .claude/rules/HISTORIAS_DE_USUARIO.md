@@ -36,7 +36,7 @@ con la carpeta `docs/UnidadesTrabajo/HU-INICIAL-{Nombre}/`. El resto del
 formato de esta rule aplica igual.
 
 Orden de implementación: `Base` → `Login` → `Refresh` → `Logout` →
-`OlvidePassword` → `SesionesAdmin` (`Sesiones` pospuesta) → `Bitacora`. Cada una puede
+`OlvidePassword` → `SesionesAdmin` → `Bitacora` → `Sesiones`. Cada una puede
 suponer ya implementadas las anteriores.
 
 ## Granularidad: una HU, un flujo
