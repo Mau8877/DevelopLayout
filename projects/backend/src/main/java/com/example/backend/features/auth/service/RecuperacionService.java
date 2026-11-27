@@ -44,7 +44,8 @@ public class RecuperacionService {
 
     private final SolicitudesRecuperacion solicitudes;
     private final PasswordResetTokenService tokens;
-    private final CorreoRecuperacionService correo;
+    private final InvitacionTokenService invitaciones;
+    private final CorreoCuentaService correo;
     private final SesionService sesionService;
     private final LoginAttemptService loginAttempts;
     private final UsuarioRepository usuarioRepository;
@@ -56,13 +57,14 @@ public class RecuperacionService {
     private final TransactionTemplate escritura;
 
     public RecuperacionService(SolicitudesRecuperacion solicitudes, PasswordResetTokenService tokens,
-            CorreoRecuperacionService correo, SesionService sesionService, LoginAttemptService loginAttempts,
+            InvitacionTokenService invitaciones, CorreoCuentaService correo, SesionService sesionService, LoginAttemptService loginAttempts,
             UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, RlsContext rlsContext,
             BitacoraService bitacora,
             @Qualifier(RecuperacionEjecutorConfig.EJECUTOR) Executor ejecutor,
             PlatformTransactionManager transacciones) {
         this.solicitudes = solicitudes;
         this.tokens = tokens;
+        this.invitaciones = invitaciones;
         this.correo = correo;
         this.sesionService = sesionService;
         this.loginAttempts = loginAttempts;
@@ -107,7 +109,7 @@ public class RecuperacionService {
             }
             ResultadoBitacora resultado = ResultadoBitacora.EXITO;
             try {
-                correo.enviarEnlace(usuario.getEmail(), tokens.emitir(usuario.getCodigo()));
+                correo.enviarRecuperacion(usuario.getEmail(), tokens.emitir(usuario.getCodigo()));
                 LOG.info("Enlace de recuperación enviado usuarioCodigo={}", usuario.getCodigo());
             } catch (RuntimeException e) {
                 resultado = ResultadoBitacora.FALLO;
@@ -154,6 +156,12 @@ public class RecuperacionService {
                     .filter(u -> u.getEstado() == EstadoUsuario.ACTIVO && u.getPasswordHash().equals(hashActual))
                     .orElseThrow(RecuperacionService::enlaceInvalido);
             usuario.cambiarPassword(hashNuevo);
+            // * Quien llegó hasta acá controla el correo: la invitación queda aceptada.
+            if (usuario.isInvitacionPendiente()) {
+                usuario.aceptarInvitacion();
+                bitacora.registrar(codigo, AuthAcciones.AUTH_INVITACION_ACEPTADA, AuthAcciones.MODULO, "usuario",
+                        codigo, ResultadoBitacora.EXITO, null);
+            }
             sesionService.revocarTodas(codigo, MotivoRevocacion.RESET_PASSWORD);
             bitacora.registrar(codigo, AuthAcciones.AUTH_PASSWORD_RESTABLECIDA, AuthAcciones.MODULO, "usuario",
                     codigo, ResultadoBitacora.EXITO, null);
@@ -166,6 +174,8 @@ public class RecuperacionService {
 
         try (MDC.MDCCloseable ignored = MDC.putCloseable("module", "auth")) {
             try {
+                // * Si quedaba una invitación, ya no sirve: se borra para no dejarla suelta.
+                invitaciones.anular(codigo);
                 loginAttempts.reiniciar(email);
             } catch (RuntimeException e) {
                 // * La contraseña ya cambió: el bloqueo vence solo.

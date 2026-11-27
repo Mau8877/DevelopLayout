@@ -189,6 +189,15 @@ class RateLimitFilterTest {
         assertThat(estadosDePost(filter, "/api/v1/auth/login", 1)).containsExactly(200);
     }
 
+    @Test
+    void aceptarInvitacion_comparteElLimitePorIpDelRestablecimiento() throws Exception {
+        RateLimitFilter filter = new RateLimitFilter(100, 100, 100, 100, 100, 100, 100, 100, 3, 1, 100000);
+
+        assertThat(estadosDePost(filter, "/api/v1/auth/invitation/accept", 2)).containsExactly(200, 200);
+        assertThat(estadosDePost(filter, "/api/v1/auth/password/reset", 2)).containsExactly(200, 429);
+        assertThat(estadosDePost(filter, "/api/v1/auth/invitation/accept", 1)).containsExactly(429);
+    }
+
     private static java.util.List<Integer> estadosDePost(RateLimitFilter filter, String ruta, int veces)
             throws Exception {
         java.util.List<Integer> estados = new java.util.ArrayList<>();

@@ -10,7 +10,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 /**
- * Envía el correo con el enlace de restablecimiento (texto plano).
+ * Envía los correos de la cuenta (recuperación e invitación), en texto plano.
  *
  * * El token va en el FRAGMENTO del enlace: el navegador no lo manda al servidor
  * * ni en `Referer`.
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
  * ! excepción, que puede traer el correo del destinatario.
  */
 @Service
-public class CorreoRecuperacionService {
+public class CorreoCuentaService {
 
     private static final Set<String> HOSTS_LOCALES = Set.of("localhost", "127.0.0.1");
 
@@ -28,7 +28,7 @@ public class CorreoRecuperacionService {
     private final String remitente;
     private final String urlWeb;
 
-    public CorreoRecuperacionService(JavaMailSender mailSender,
+    public CorreoCuentaService(JavaMailSender mailSender,
             @Value("${spring.mail.host:}") String servidor,
             @Value("${app.mail.from:}") String remitente,
             @Value("${app.frontend-base-url:}") String urlWeb) {
@@ -40,12 +40,8 @@ public class CorreoRecuperacionService {
         this.urlWeb = validarUrl(urlWeb.trim());
     }
 
-    public void enviarEnlace(String destinatario, String token) {
-        SimpleMailMessage correo = new SimpleMailMessage();
-        correo.setFrom(remitente);
-        correo.setTo(destinatario);
-        correo.setSubject("Restablecé tu contraseña");
-        correo.setText("""
+    public void enviarRecuperacion(String destinatario, String token) {
+        enviar(destinatario, "Restablecé tu contraseña", """
                 Recibimos un pedido para restablecer la contraseña de tu cuenta.
 
                 Abrí este enlace para elegir una nueva. Sirve una sola vez y vence en 30 minutos:
@@ -54,6 +50,27 @@ public class CorreoRecuperacionService {
 
                 Si no fuiste vos, ignorá este correo: tu contraseña no cambió.
                 """.formatted(urlWeb, token));
+    }
+
+    public void enviarInvitacion(String destinatario, String token) {
+        enviar(destinatario, "Te invitaron a usar el sistema", """
+                Un administrador creó una cuenta para vos.
+
+                Abrí este enlace para elegir tu contraseña. Sirve una sola vez y vence en 24 horas:
+
+                %s/accept-invitation#token=%s
+
+                Si venció, pedile al administrador que te envíe otra invitación.
+                Si no esperabas este correo, ignoralo.
+                """.formatted(urlWeb, token));
+    }
+
+    private void enviar(String destinatario, String asunto, String texto) {
+        SimpleMailMessage correo = new SimpleMailMessage();
+        correo.setFrom(remitente);
+        correo.setTo(destinatario);
+        correo.setSubject(asunto);
+        correo.setText(texto);
         mailSender.send(correo);
     }
 

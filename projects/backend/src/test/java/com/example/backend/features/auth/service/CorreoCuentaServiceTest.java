@@ -14,24 +14,37 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 
-class CorreoRecuperacionServiceTest {
+class CorreoCuentaServiceTest {
 
     private final JavaMailSender mail = mock(JavaMailSender.class);
 
-    private CorreoRecuperacionService servicio(String servidor, String remitente, String url) {
-        return new CorreoRecuperacionService(mail, servidor, remitente, url);
+    private CorreoCuentaService servicio(String servidor, String remitente, String url) {
+        return new CorreoCuentaService(mail, servidor, remitente, url);
     }
 
     @Test
-    void enviarEnlace_poneElTokenEnElFragmentoDeUnCorreoDeTexto() {
+    void enviarRecuperacion_poneElTokenEnElFragmentoDeUnCorreoDeTexto() {
         servicio("smtp.test", "no-reply@test.local", "https://app.test/")
-                .enviarEnlace("persona@test.local", "abc123");
+                .enviarRecuperacion("persona@test.local", "abc123");
 
         ArgumentCaptor<SimpleMailMessage> enviado = ArgumentCaptor.forClass(SimpleMailMessage.class);
         verify(mail).send(enviado.capture());
         assertThat(enviado.getValue().getTo()).containsExactly("persona@test.local");
         assertThat(enviado.getValue().getFrom()).isEqualTo("no-reply@test.local");
         assertThat(enviado.getValue().getText()).contains("https://app.test/reset-password#token=abc123")
+                .doesNotContain("?token=");
+    }
+
+    @Test
+    void enviarInvitacion_llevaAlEnlaceDeAceptacionYAvisaLaVigencia() {
+        servicio("smtp.test", "no-reply@test.local", "https://app.test")
+                .enviarInvitacion("persona@test.local", "abc123");
+
+        ArgumentCaptor<SimpleMailMessage> enviado = ArgumentCaptor.forClass(SimpleMailMessage.class);
+        verify(mail).send(enviado.capture());
+        assertThat(enviado.getValue().getTo()).containsExactly("persona@test.local");
+        assertThat(enviado.getValue().getText())
+                .contains("https://app.test/accept-invitation#token=abc123", "24 horas", "administrador")
                 .doesNotContain("?token=");
     }
 

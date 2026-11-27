@@ -131,7 +131,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
             permitido = forgotBuckets.get(ip, k -> newBucket(forgotCapacity, forgotRefillPerMinute))
                     .tryConsume(1);
         }
-        if (permitido && esPost(request, "/api/v1/auth/password/reset")) {
+        // * Aceptar una invitación es el mismo paso que restablecer: comparten límite.
+        if (permitido && (esPost(request, "/api/v1/auth/password/reset")
+                || esPost(request, "/api/v1/auth/invitation/accept"))) {
             permitido = resetBuckets.get(ip, k -> newBucket(resetCapacity, resetRefillPerMinute))
                     .tryConsume(1);
         }

@@ -133,6 +133,14 @@ public class SesionService {
     }
 
     /**
+     * `true` si esa sesión es del usuario y sigue `ACTIVA`. Debe correr dentro
+     * de una transacción con un contexto de RLS que permita verla.
+     */
+    public boolean estaActiva(UUID sesion, UUID usuario) {
+        return sesionRepository.existsByCodigoAndUsuarioCodigoAndEstado(sesion, usuario, EstadoSesion.ACTIVA);
+    }
+
+    /**
      * Revoca todas las sesiones `ACTIVA` del usuario. Debe correr dentro de una
      * transacción con `app.current_user` fijado.
      */

@@ -18,6 +18,7 @@ public final class AuthErrorCodes {
     public static final String ERR_AUTH_08 = "ERR_AUTH_08";
     public static final String ERR_AUTH_09 = "ERR_AUTH_09";
     public static final String ERR_AUTH_10 = "ERR_AUTH_10";
+    public static final String ERR_AUTH_11 = "ERR_AUTH_11";
 
     private AuthErrorCodes() {
     }

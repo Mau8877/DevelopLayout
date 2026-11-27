@@ -1,5 +1,6 @@
 package com.example.backend.features.usuarios.repository;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,4 +20,9 @@ public interface UsuarioRolRepository extends JpaRepository<UsuarioRol, Long> {
     @Query("select ur.rol from UsuarioRol ur "
             + "where ur.usuario = :usuario and ur.isActive = true and ur.rol.isActive = true")
     List<Rol> findActivosByUsuario(@Param("usuario") Usuario usuario);
+
+    /** Las asignaciones activas de varios usuarios, con su rol, en una sola consulta. */
+    @Query("select ur from UsuarioRol ur join fetch ur.rol r "
+            + "where ur.usuario in :usuarios and ur.isActive = true and r.isActive = true")
+    List<UsuarioRol> findActivasConRol(@Param("usuarios") Collection<Usuario> usuarios);
 }

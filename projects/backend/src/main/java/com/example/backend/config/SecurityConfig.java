@@ -95,7 +95,7 @@ public class SecurityConfig {
                 // 3. Recuperar la contraseña: quien la olvidó no tiene sesión. La credencial
                 //    para cambiarla es el token de un solo uso; en web el CSRF sigue activo.
                 .requestMatchers(HttpMethod.POST, "/api/v1/auth/password/forgot",
-                        "/api/v1/auth/password/reset").permitAll()
+                        "/api/v1/auth/password/reset", "/api/v1/auth/invitation/accept").permitAll()
                 // 4. Cualquier otra ruta es privada por defecto
                 .anyRequest().authenticated()
             );
