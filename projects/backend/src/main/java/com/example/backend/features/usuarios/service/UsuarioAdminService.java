@@ -5,6 +5,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -31,6 +32,7 @@ import com.example.backend.features.auth.service.InvitacionEnvio;
 import com.example.backend.features.auth.service.InvitacionTokenService;
 import com.example.backend.features.auth.service.PasswordResetTokenService;
 import com.example.backend.features.auth.service.SesionService;
+import com.example.backend.features.usuarios.RolNombres;
 import com.example.backend.features.usuarios.UsuarioAcciones;
 import com.example.backend.features.usuarios.UsuarioErrorCodes;
 import com.example.backend.features.usuarios.dto.ReenvioInvitacionResponse;
@@ -199,6 +201,68 @@ public class UsuarioAdminService {
             registrarCambioDeEstado(actor, codigo, UsuarioAcciones.USUARIOS_USUARIO_REACTIVADO);
         }
         return aRespuesta(usuario, nombresDeRoles(usuario));
+    }
+
+    /**
+     * Deja a la cuenta exactamente con esos roles y cierra todas sus sesiones, para
+     * que rijan desde ya. Pedir el mismo conjunto no hace nada.
+     *
+     * * El bloqueo de la fila hace que un login en curso espere y lea los roles
+     * * nuevos, o termine antes y su sesión se revoque acá.
+     * ! Si Redis falla, no se confirma nada.
+     */
+    @PreAuthorize(ES_ADMIN)
+    @Transactional
+    public UsuarioResponse cambiarRoles(Actor actor, UUID codigo, List<String> rolesPedidos) {
+        guardia.exigirVigente(actor.codigo(), actor.sesion());
+        List<Rol> pedidos = rolesExistentes(rolesPedidos);
+        Usuario usuario = usuarioRepository.bloquearParaCambio(codigo).orElseThrow(UsuarioAdminService::noExiste);
+
+        List<UsuarioRol> asignaciones = usuarioRolRepository.findTodasConRol(usuario);
+        // * Una asignación a un rol desactivado en el catálogo no cuenta ni se toca.
+        Set<String> actuales = asignaciones.stream()
+                .filter(a -> a.isActive() && a.getRol().isActive())
+                .map(a -> a.getRol().getNombre())
+                .collect(Collectors.toSet());
+        Set<String> nuevos = pedidos.stream().map(Rol::getNombre).collect(Collectors.toSet());
+        List<String> agregados = diferencia(nuevos, actuales);
+        List<String> quitados = diferencia(actuales, nuevos);
+        if (agregados.isEmpty() && quitados.isEmpty()) {
+            return aRespuesta(usuario, List.copyOf(actuales));
+        }
+        if (codigo.equals(actor.codigo()) && quitados.contains(RolNombres.SUPER_ADMIN)) {
+            throw new ConflictException(UsuarioErrorCodes.ERR_US_07,
+                    "No podés quitarte tu propio rol de administrador");
+        }
+
+        aplicar(usuario, asignaciones, pedidos, agregados, quitados);
+        sesionService.revocarTodas(codigo, MotivoRevocacion.ADMIN);
+        bitacora.registrar(actor.codigo(), UsuarioAcciones.USUARIOS_ROLES_EDITADOS, UsuarioAcciones.MODULO,
+                "usuario", codigo, ResultadoBitacora.EXITO, Map.of("agregados", agregados, "quitados", quitados));
+        try (MDC.MDCCloseable ignored = MDC.putCloseable("module", "usuarios")) {
+            LOG.info("Roles cambiados usuarioCodigo={} actor={}", codigo, actor.codigo());
+        }
+        return aRespuesta(usuario, List.copyOf(nuevos));
+    }
+
+    private void aplicar(Usuario usuario, List<UsuarioRol> asignaciones, List<Rol> pedidos,
+            List<String> agregados, List<String> quitados) {
+        asignaciones.stream()
+                .filter(a -> quitados.contains(a.getRol().getNombre()))
+                .forEach(UsuarioRol::desactivar);
+        for (Rol rol : pedidos) {
+            if (agregados.contains(rol.getNombre())) {
+                asignaciones.stream()
+                        .filter(a -> a.getRol().getNombre().equals(rol.getNombre()))
+                        .findFirst()
+                        .ifPresentOrElse(UsuarioRol::activar,
+                                () -> usuarioRolRepository.save(new UsuarioRol(usuario, rol)));
+            }
+        }
+    }
+
+    private static List<String> diferencia(Set<String> conjunto, Set<String> menos) {
+        return conjunto.stream().filter(nombre -> !menos.contains(nombre)).sorted().toList();
     }
 
     private void anularEnlaces(UUID usuario) {

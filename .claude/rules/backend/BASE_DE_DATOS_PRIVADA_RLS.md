@@ -87,8 +87,8 @@ alta del administrador inicial, que usa la conexión dueña (ver
   es **de solo lectura**.
 - `app_runtime` no borra usuarios ni asignaciones, no cambia correos y, por un
   trigger, solo el propio usuario cambia su contraseña.
-- **Pendiente:** el administrador no modifica asignaciones ya creadas (llegará
-  con el cambio de roles).
+- De una asignación ya creada, el administrador solo cambia si está activa: no
+  puede reapuntarla a otro usuario o rol, ni borrarla.
 
 ## 5. Excepciones (`RLS-OPT-OUT`)
 

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { MailIcon, UserCheckIcon, UserPlusIcon, UserXIcon } from 'lucide-react'
+import { MailIcon, ShieldIcon, UserCheckIcon, UserPlusIcon, UserXIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ErrorState } from '@/components/ui/error-state'
 import { ModalConfirmacion } from '@/components/ui/modal-confirmacion'
@@ -20,6 +20,7 @@ import { nuevaBusqueda, SIN_BUSQUEDA, useUsuarios } from '../api/useUsuarios'
 import { columnasUsuario } from '../components/columnasUsuario'
 import { CrearUsuarioModal } from '../components/CrearUsuarioModal'
 import { mensajeDelError } from '../components/mensajeDelError'
+import { RolesModal } from '../components/RolesModal'
 import { ROLES } from '../components/roles'
 import type { EstadoUsuario, Usuario } from '../types/usuario'
 
@@ -39,6 +40,7 @@ export function UsuariosScreen() {
   const [pageSize, setPageSize] = useState(20)
   const [creando, setCreando] = useState(false)
   const [aDesactivar, setADesactivar] = useState<Usuario | null>(null)
+  const [conRoles, setConRoles] = useState<Usuario | null>(null)
 
   const yo = useSession().data?.codigo
   const consulta = useUsuarios({ busqueda, estado, rol, page, pageSize })
@@ -95,6 +97,12 @@ export function UsuariosScreen() {
   // * Qué botones se muestran es comodidad: quien decide es el backend.
   const acciones = (usuario: Usuario) => (
     <>
+      <RowActionButton
+        icon={<ShieldIcon />}
+        label="Cambiar roles"
+        disabled={ocupado}
+        onClick={() => setConRoles(usuario)}
+      />
       {usuario.estado === 'ACTIVO' && usuario.invitacionPendiente && (
         <RowActionButton
           icon={<MailIcon />}
@@ -195,6 +203,9 @@ export function UsuariosScreen() {
       )}
 
       {creando && <CrearUsuarioModal onClose={() => setCreando(false)} />}
+      {conRoles && (
+        <RolesModal usuario={conRoles} esPropia={conRoles.codigo === yo} onClose={() => setConRoles(null)} />
+      )}
 
       <ModalConfirmacion
         open={aDesactivar !== null}

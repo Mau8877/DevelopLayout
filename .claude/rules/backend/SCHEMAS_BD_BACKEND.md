@@ -185,7 +185,7 @@ poner en el diagrama es el texto entre comillas al final de una columna
 | Schema | Estado |
 | --- | --- |
 | `public` | Migrado (`V1__init_schema.sql`) |
-| `authentication` | Migrado (`V20261125063000__create_auth_tables.sql`, `V20261125063100__create_app_runtime_role.sql`, `V20261126090000__rls_admin_lee_usuarios.sql`, `V20261126090100__purga_bitacora_dueno_sin_superusuario.sql`, `V20261126120000__refresh_token_firmado.sql`, `V20261127090000__alta_inicial_dueno_sin_superusuario.sql`, `V20261127100000__admin_usuarios.sql`) |
+| `authentication` | Migrado (`V20261125063000__create_auth_tables.sql`, `V20261125063100__create_app_runtime_role.sql`, `V20261126090000__rls_admin_lee_usuarios.sql`, `V20261126090100__purga_bitacora_dueno_sin_superusuario.sql`, `V20261126120000__refresh_token_firmado.sql`, `V20261127090000__alta_inicial_dueno_sin_superusuario.sql`, `V20261127100000__admin_usuarios.sql`, `V20261127110000__admin_roles.sql`) |
 
 Convenciones que `docs/BASE_DE_DATOS.mermaid` no puede expresar y por eso
 viven aquí: las columnas comunes de `BaseModel` (`id`, `codigo_<tabla>`,

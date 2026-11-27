@@ -350,7 +350,14 @@ async function comprobarUsuarios(pedir, entorno, compose) {
     method: 'POST', body: { email, password: 'ClaveCualquiera123' }, ...comoMobile, // gitleaks:allow
   });
   comprobar(entrada.status === 401, 'la cuenta pendiente no puede iniciar sesión', `status ${entrada.status}`);
-  const baja = await pedir(`/api/v1/usuarios/${alta.json.data.usuario.codigo}/desactivar`, { method: 'POST', ...admin });
+  const cuenta = `/api/v1/usuarios/${alta.json.data.usuario.codigo}`;
+  const cambio = await pedir(`${cuenta}/roles`, { method: 'PUT', body: { roles: ['USUARIO', 'SUPER_ADMIN'] }, ...admin });
+  comprobar(
+    cambio.status === 200 && cambio.json?.data?.roles?.join() === 'SUPER_ADMIN,USUARIO',
+    'se pueden cambiar los roles a través del proxy',
+    `${cambio.status} ${cambio.texto}`,
+  );
+  const baja = await pedir(`${cuenta}/desactivar`, { method: 'POST', ...admin });
   comprobar(baja.status === 200 && baja.json?.data?.estado === 'INACTIVO', 'se puede desactivar', `status ${baja.status}`);
   const salud = docker('inspect', '-f', '{{.State.Health.Status}} {{.RestartCount}}', 'app-backend');
   const health = compose(['exec', '-T', 'backend', 'wget', '-qO-', 'http://localhost:8080/health'], { capturar: true }).salida;

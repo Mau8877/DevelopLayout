@@ -19,6 +19,7 @@ criterios en `.claude/rules/backend/BASE_DE_DATOS_PRIVADA_RLS.md`.
 | `authentication.usuario_rol`, política `usuario_rol_lectura_alta_inicial` (solo el dueño, con `app.alta_inicial`) | Un dueño sin superusuario necesita ver si ya existe un `SUPER_ADMIN` al arrancar. Solo lectura; el contexto lo fija `AdminInicialInitializer` dentro de la transacción del conteo. No aplica a `app_runtime` | 2026-11-27 | Mau8877 |
 | `authentication.usuario`, políticas `usuario_alta_admin` y `usuario_edicion_admin` (`app.is_admin`) | Alta y cambio de estado de usuarios. `app_runtime` no cambia el correo (permiso por columnas) ni contraseñas ajenas (trigger `trg_usuario_password_propio`) ni borra | 2026-11-27 | Mau8877 |
 | `authentication.usuario_rol`, políticas `usuario_rol_lectura_admin` y `usuario_rol_alta_admin` (`app.is_admin`) | Listar roles y asignarlos al crear una cuenta. `app_runtime` no borra asignaciones | 2026-11-27 | Mau8877 |
+| `authentication.usuario_rol`, política `usuario_rol_edicion_admin` (`FOR UPDATE` con `app.is_admin`) | Cambiar los roles de una cuenta. `app_runtime` solo modifica `is_active` y las fechas: no puede reapuntar ni borrar una asignación | 2026-11-27 | Mau8877 |
 | `authentication.usuario` y `usuario_rol`, políticas `usuario_alta_dueno` y `usuario_rol_alta_dueno` (solo el dueño, para la fila de `app.current_user`) | El alta del administrador inicial con un dueño sin superusuario. No aplican a `app_runtime` | 2026-11-27 | Mau8877 |
 
 # Escrituras fuera del rol `app_runtime`

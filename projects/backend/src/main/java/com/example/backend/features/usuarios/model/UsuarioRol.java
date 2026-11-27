@@ -27,11 +27,11 @@ import lombok.NoArgsConstructor;
 public class UsuarioRol extends BaseModel {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "usuario_id", nullable = false)
+    @JoinColumn(name = "usuario_id", nullable = false, updatable = false)
     private Usuario usuario;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "rol_id", nullable = false)
+    @JoinColumn(name = "rol_id", nullable = false, updatable = false)
     private Rol rol;
 
     @Column(name = "is_active", nullable = false)
@@ -41,5 +41,15 @@ public class UsuarioRol extends BaseModel {
         this.usuario = usuario;
         this.rol = rol;
         this.isActive = true;
+    }
+
+    /** Vuelve a dar un rol que se había quitado: se reutiliza la misma fila. */
+    public void activar() {
+        this.isActive = true;
+    }
+
+    /** Quitar un rol no borra la asignación. */
+    public void desactivar() {
+        this.isActive = false;
     }
 }

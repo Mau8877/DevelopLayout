@@ -49,7 +49,8 @@ export function CheckboxGroupField({
         return (
           <label key={option.value} className="flex items-start gap-2 text-sm">
             <Checkbox
-              className="mt-0.5"
+              // * La casilla no es un `button`: su estado deshabilitado llega como `data-disabled`.
+              className="mt-0.5 data-disabled:cursor-not-allowed data-disabled:opacity-50"
               checked={value.includes(option.value)}
               disabled={option.disabled}
               aria-invalid={Boolean(error)}
