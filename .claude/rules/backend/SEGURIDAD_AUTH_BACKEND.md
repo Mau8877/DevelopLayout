@@ -10,7 +10,8 @@ globs: projects/backend/**/*
 | --- | --- |
 | Login, `/me`, refresh, logout y token CSRF | Implementado (HU Base, Login, Refresh) |
 | Cierre de sesión | Backend y web probados; falta la validación mobile en emulador (HU Logout) |
-| Recuperación y cambio de contraseña, envío de correo | **No implementado** |
+| Recuperación de contraseña y envío de correo | Backend y web probados; falta la validación mobile en emulador (HU OlvidePassword) |
+| Cambio de contraseña con sesión iniciada | **No implementado** (sin HU) |
 | Administrar sesiones y consultar la bitácora | Implementado, solo `SUPER_ADMIN` (HU SesionesAdmin, Bitacora) |
 | Gestión de usuarios y roles | **No implementada** (sin HU). El administrador solo puede **leer** `usuario`; falta la política para `usuario_rol` y las de escritura |
 
@@ -101,7 +102,7 @@ El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
   las pestañas se coordinan con un candado compartido (ver
   [TANSTACK_QUERY_FRONTEND.md](../frontend/TANSTACK_QUERY_FRONTEND.md#renovación-de-sesión)).
 - Redis guarda los contadores de intentos de login y la lista de sesiones
-  revocadas (a futuro, los tokens de recuperación de contraseña). **No**
+  revocadas, y los tokens y el límite por correo de la recuperación de contraseña. **No**
   guarda refresh tokens. Corre con `maxmemory-policy noeviction`: no puede
   desalojar esos datos. El rate limit vive en memoria, no en Redis.
 
@@ -119,6 +120,33 @@ El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
   contraseñas. Un login correcto devuelve su reserva.
 - Límites conocidos: con 20 o más IP todavía se puede bloquear una cuenta; quien
   comparte IP comparte el límite de una misma cuenta.
+
+## Recuperación de contraseña
+
+`RecuperacionService`; endpoints `POST /auth/password/forgot` y `/reset`. Reglas
+que **no se relajan**:
+
+- **`forgot` no mira la cuenta antes de responder.** En la petición solo se cuenta
+  el límite por correo; consulta, token, envío y bitácora van a un ejecutor
+  acotado (`RecuperacionEjecutorConfig`). No se vuelve a enviar dentro de la
+  petición: un SMTP lento o caído delataría qué cuentas existen. Sin cola
+  persistente: un envío se puede perder.
+- **Límites:** por IP, 429; por correo, 3 por hora y **silencioso** (200 sin envío;
+  el último enlace sigue valiendo).
+- **Token** (`PasswordResetTokenService`): 32 bytes aleatorios, en Redis solo su
+  hash, 30 minutos, uno vigente por usuario, emisión y consumo atómicos. Va en el
+  **fragmento** del enlace y después por body. La dirección sale de
+  `app.frontend-base-url`, nunca de cabeceras de la petición.
+- **Se consume al final**, dentro de la transacción del cambio: una contraseña
+  rechazada no gasta el enlace. BCrypt y SMTP nunca corren con una conexión tomada.
+- **Un login no sobrevive al cambio:** el restablecimiento bloquea la fila del
+  usuario (exclusivo) y el login la relee con bloqueo compartido **y exige que el
+  hash sea el que verificó**. Todo flujo futuro que cambie la contraseña usa el
+  mismo bloqueo, revoca las sesiones y llama a `LoginAttemptService.reiniciar`.
+- **Correo:** `CorreoRecuperacionService` valida servidor, remitente y URL (HTTPS
+  salvo localhost) al arrancar. `management.health.mail.enabled=false`: un SMTP
+  caído no marca la app como no sana. Los fallos se registran **sin el mensaje de
+  la excepción** (puede traer el correo).
 
 ## Usuarios y validación de credenciales
 
@@ -239,7 +267,8 @@ intentar de más).
   Central; se verificó contra el índice de Maven Central antes de fijar la
   versión). Un bucket por IP (caché de Caffeine), refill
   "greedy" (los tokens se regeneran continuo, no en ráfagas cada N segundos).
-- **Límites propios por IP**, además del global: login 10/min
+- **Límites propios por IP**, además del global: solicitar recuperación (ráfaga
+  de 5, 1/min) y restablecer (ráfaga de 10, 5/min); login 10/min
   (`app.ratelimit.login-*`) y refresh 30/min (`app.ratelimit.refresh-*`).
 - **Config** (`application.properties`, sobreescribible por env var):
   `app.ratelimit.capacity` (default `100`) y
@@ -283,5 +312,6 @@ Sin autenticación solo quedan los declarados en `SecurityConfig`: `/health`,
 `/health/**`, `/prometheus`, `/swagger-ui/**`, `/v3/api-docs/**`,
 `GET /api/v1/auth/csrf` y `POST /api/v1/auth/login`, `/refresh` y `/logout`
 (en los dos últimos la credencial es el refresh token y en web el CSRF sigue
-activo). No hay registro público. Cualquier otro endpoint nuevo es privado por
+activo). También son públicos `POST /api/v1/auth/password/forgot` y
+`/password/reset` (en el segundo la credencial es el token del enlace). No hay registro público. Cualquier otro endpoint nuevo es privado por
 default: hacerlo público es una decisión explícita.
