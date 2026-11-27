@@ -13,6 +13,7 @@
 		"db:restore": "node scripts/db-backup.mjs restore",
 		"openapi:sync": "node scripts/openapi-sync.mjs",
 		"openapi:types": "pnpm --filter ./projects/frontend run openapi:types",
+		"test:prod": "node scripts/prod-smoke.mjs",
 		"test:scripts": "node --test \"scripts/**/*.test.mjs\""
 	},
 	"lint-staged": {

@@ -103,3 +103,12 @@ versión de Windows cada paso queda marcado con `>>> título` y
 
 La actualización automática semanal de dependencias (Maven, npm, pub, Docker y
 GitHub Actions) la hace además `.github/dependabot.yml`.
+
+## `test:prod`: producción de punta a punta
+
+```bash
+pnpm test:prod
+```
+
+Levanta `docker-compose.prod.yml` con secretos, certificado y volúmenes descartables, comprueba que funciona, borra los datos, restaura un respaldo en un servidor vacío y limpia. Necesita Docker, `openssl` (en Windows viene con Git) y los puertos `18080` y `18443` libres. Se niega a correr si hay contenedores con los nombres del proyecto (`docker compose down` antes; **no** uses `-v`, que borra tus datos). Deja las imágenes construidas con el tag `e2e-prod`. Tarda varios minutos. Es la misma prueba que corre el job `docker` de CI.
+

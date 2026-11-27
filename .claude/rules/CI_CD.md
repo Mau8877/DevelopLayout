@@ -29,10 +29,10 @@ proyecto).
   `pubspec.lock`, más misconfiguraciones de los `Dockerfile`), con
   `HIGH,CRITICAL` y `ignore-unfixed`.
 - **Job `docker`**: construye las imágenes de producción (backend, web y proxy),
-  las escanea con Trivy y valida `docker-compose.prod.yml` con
-  `docker compose config`. Corre si cambian el backend, el frontend,
-  `infrastructure/`, el compose de producción, `.env.example` o `ci.yml`. No
-  publica nada ni **levanta** el stack: eso solo se probó en local.
+  las escanea con Trivy, valida `docker-compose.prod.yml` y **levanta el stack
+  completo** (`scripts/prod-smoke.mjs`, `pnpm test:prod` en local). Corre si
+  cambian el backend, el frontend, `infrastructure/`, el compose de producción,
+  `.env.example`, `ci.yml` o los scripts que usa la prueba. No publica nada.
 - **`permissions: contents: read`** a nivel de workflow: ningún job
   escribe en el repo.
 - **Dependabot** (`.github/dependabot.yml`): semanal (Maven, npm, pub, Docker,
@@ -48,6 +48,22 @@ proyecto).
 > acciones, falsos positivos de Trivy). Un falso positivo se documenta y se
 > agrega a un `.trivyignore`, no se baja la severidad del escaneo.
 > `scripts/{linux,windows}/update-deps.*` hace la misma auditoría en local.
+
+## Prueba de producción de punta a punta
+
+`scripts/prod-smoke.mjs` comprueba arranque, puertos publicados, redirección y
+cabeceras, rutas internas, sesiones web y mobile, bucket de MinIO privado, y
+respaldo restaurado en un servidor vacío (incluido que una sesión anterior no
+reviva). **Todo cambio que altere ese comportamiento actualiza la prueba.**
+
+Borra volúmenes, así que antes de tocar Docker exige que todos los volúmenes y
+redes lleven su prefijo y que no haya contenedores con los mismos nombres (en
+local hay que bajar el stack propio antes). Esas protecciones tienen tests en
+`prod-smoke.test.mjs`: **no se relajan**. Usa un certificado autofirmado que sí
+verifica, publica solo en `127.0.0.1:18080/18443` y no lee el `.env` de la raíz.
+
+No cubre: un servidor real, un certificado de una autoridad, carga, ni
+actualizar un despliegue que ya tiene datos de una versión anterior.
 
 ## Descarga de Maven
 
