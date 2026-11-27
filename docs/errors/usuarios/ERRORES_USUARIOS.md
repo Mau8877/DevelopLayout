@@ -5,7 +5,7 @@
 - **HTTP:** 404
 - **Excepción:** `NotFoundException`
 - **Significado:** el código no corresponde a ninguna cuenta.
-- **Dónde se lanza:** `UsuarioAdminService.reenviarInvitacion()`, `desactivar()` y `reactivar()`
+- **Dónde se lanza:** `UsuarioAdminService.reenviarInvitacion()`, `desactivar()`, `reactivar()` y `cambiarRoles()`
 
 ## `ERR_US_02`
 
@@ -19,7 +19,7 @@
 - **HTTP:** 400
 - **Excepción:** `ValidationException`
 - **Significado:** se pidió un rol que no existe o está desactivado.
-- **Dónde se lanza:** `UsuarioAdminService.crear()`
+- **Dónde se lanza:** `UsuarioAdminService.crear()` y `cambiarRoles()`
 
 ## `ERR_US_04`
 
@@ -41,3 +41,10 @@
 - **Excepción:** `ConflictException`
 - **Significado:** se superó el límite de reenvíos de una cuenta en una hora.
 - **Dónde se lanza:** `UsuarioAdminService.reenviarInvitacion()`
+
+## `ERR_US_07`
+
+- **HTTP:** 409
+- **Excepción:** `ConflictException`
+- **Significado:** un administrador intentó quitarse su propio rol `SUPER_ADMIN`.
+- **Dónde se lanza:** `UsuarioAdminService.cambiarRoles()`

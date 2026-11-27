@@ -366,6 +366,23 @@
         },
         "type": "object"
       },
+      "CambiarRolesRequest": {
+        "properties": {
+          "roles": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 20,
+            "minItems": 0,
+            "type": "array"
+          }
+        },
+        "required": [
+          "roles"
+        ],
+        "type": "object"
+      },
       "CrearUsuarioRequest": {
         "properties": {
           "email": {
@@ -1269,6 +1286,47 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseReenvioInvitacionResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "usuario-controller"
+        ]
+      }
+    },
+    "/api/v1/usuarios/{codigo}/roles": {
+      "put": {
+        "operationId": "cambiarRolesUsuario",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "codigo",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CambiarRolesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUsuarioResponse"
                 }
               }
             },

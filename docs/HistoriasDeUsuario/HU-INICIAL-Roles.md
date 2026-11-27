@@ -2,7 +2,7 @@
 
 | Id | Nombre corto de HU | Prioridad | PHU | Estado |
 | --- | --- | --- | --- | --- |
-| HU-INICIAL-ROLES | Asignar roles | Alta |  | Pendiente |
+| HU-INICIAL-ROLES | Asignar roles | Alta |  | Hecha |
 
 **Como:** administrador
 **Quiero:** cambiar los roles de un usuario

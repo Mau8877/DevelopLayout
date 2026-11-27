@@ -68,6 +68,7 @@ docs/errors/
 - [`ERR_US_04`](usuarios/ERRORES_USUARIOS.md#err_us_04) — No podés desactivar tu propia cuenta (409)
 - [`ERR_US_05`](usuarios/ERRORES_USUARIOS.md#err_us_05) — No corresponde reenviar la invitación (409)
 - [`ERR_US_06`](usuarios/ERRORES_USUARIOS.md#err_us_06) — Demasiados reenvíos (409)
+- [`ERR_US_07`](usuarios/ERRORES_USUARIOS.md#err_us_07) — No podés quitarte tu rol de administrador (409)
 
 <!--
   A medida que se agregan módulos de negocio (usuarios, pedidos...),
