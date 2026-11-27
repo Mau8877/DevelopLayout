@@ -90,3 +90,23 @@ describe('minio-init (cliente que crea el bucket)', () => {
     assert.equal(imagen('docker-compose.yml'), imagen('docker-compose.prod.yml'));
   });
 });
+
+describe('Mailpit (bandeja de correo de desarrollo)', () => {
+  const mailpit = () => servicio('docker-compose.yml', 'mailpit');
+
+  it('tag fijo, sin root, sin capabilities ni escalada', () => {
+    assert.match(mailpit(), /^ {4}image: axllent\/mailpit:v\d+\.\d+\.\d+$/m);
+    assert.match(mailpit(), /user: ['"]65534:65534['"]/);
+    assert.match(mailpit(), /cap_drop:\s*\n\s*- ALL/);
+    assert.match(mailpit(), /no-new-privileges:true/);
+  });
+
+  it('SMTP y bandeja publicados solo en 127.0.0.1', () => {
+    const puertos = [...mailpit().matchAll(/^ {6}- '([^']+)'$/gm)].map((m) => m[1]).filter((p) => /:\d+$/.test(p));
+    assert.deepEqual(puertos, ['127.0.0.1:1025:1025', '127.0.0.1:8025:8025']);
+  });
+
+  it('no existe en producción', () => {
+    assert.doesNotMatch(readFileSync(join(raiz, 'docker-compose.prod.yml'), 'utf8'), /mailpit/i);
+  });
+});
