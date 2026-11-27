@@ -51,9 +51,10 @@ proyecto).
 
 ## Descarga de Maven
 
-`mvnw` baja Maven de Maven Central y esa descarga puede fallar en el runner. El
-job `backend` guarda `~/.m2/wrapper/dists`, reintenta mostrando el error y, si no
-hay caso, usa el Maven preinstalado del runner y deja una advertencia. Con esa
+`mvnw` baja Maven de Maven Central y esa descarga puede fallar en el runner. En
+el job `backend`, `setup-java` (`cache: maven`) guarda `~/.m2/wrapper/dists`; el
+paso «Preparar Maven» reintenta mostrando el error y, si no hay caso, usa el
+Maven preinstalado del runner y deja una advertencia. Con esa
 advertencia, la versión de Maven puede no ser la de `maven-wrapper.properties`.
 
 ## CVEs en las imágenes base
@@ -82,14 +83,19 @@ desactiva una regla ni se excluye una carpeta. gitleaks revisa cada commit del
 PR, así que rebasear cambia los hashes anotados. **Un secreto real no se ignora:
 se rota.**
 
-## Pendiente: fijar las acciones de terceros por SHA
+## Acciones fijadas por SHA
 
-Las acciones de `ci.yml` están fijadas por tag (`@v4`), que es mutable: el
-incidente de `trivy-action` de marzo de 2026 mostró el riesgo. Lo correcto es
-`uses: owner/accion@<sha-de-40-caracteres> # vX.Y.Z`. Dependabot
-(`github-actions`) sigue actualizando esos SHA. Se hace con el hash verificado
-de cada release (`git ls-remote https://github.com/owner/accion refs/tags/vX`;
-si el tag es anotado, usar el commit al que apunta `vX^{}`), no copiado de memoria.
+Toda acción externa se referencia por el SHA completo de su release, con la
+versión como comentario: `uses: owner/accion@<sha-de-40-caracteres> # vX.Y.Z`
+(un tag como `@v4` es mutable: el incidente de `trivy-action` de marzo de 2026
+mostró el riesgo). `scripts/ci-seguridad.test.mjs` falla si alguna no lo cumple.
+Dependabot (`github-actions`) actualiza SHA y comentario. Para agregar o subir una
+a mano, el SHA se toma de `git ls-remote https://github.com/owner/accion
+'refs/tags/vX.Y.Z*'` (si el tag es anotado, el de `^{}`), nunca de memoria, y
+antes de un salto mayor se leen sus notas de versión.
+
+No cubre lo que cada acción descarga o usa por dentro (el binario de gitleaks, la
+base de Trivy, sus propias dependencias).
 
 ## Un job por proyecto, no uno solo para todo
 
