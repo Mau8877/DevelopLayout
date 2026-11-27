@@ -27,19 +27,21 @@ pnpm setup:env:check    # no escribe nada; falla si falta algo o queda un CAMBIA
   del administrador inicial).
 - Los tests del script: `pnpm test:scripts`.
 
-## `db:backup` / `db:verify`: respaldo de Postgres y prueba de restauración
+## `db:backup` / `db:verify` / `db:restore`: respaldo y restauración de Postgres
 
 ```bash
 pnpm db:backup              # backups/<base>-<fecha>.dump (formato custom de pg_dump)
 pnpm db:backup --keep 7     # y conserva solo los 7 más recientes
 pnpm db:verify              # restaura el último respaldo en una base TEMPORAL, comprueba
-                            # migraciones/tablas/usuarios y la borra (tu base real no se toca)
+                            # migraciones/tablas/usuarios/permisos y la borra (tu base real no se toca)
+pnpm db:restore backups/<archivo>.dump --confirmar
+                            # REEMPLAZA la base real (backend detenido)
 ```
 
 - Requiere el stack levantado (`docker compose up`). Con `--prod` usa `docker-compose.prod.yml`.
 - Un respaldo que nunca se restauró no es un respaldo: corré `db:verify` después de cada `db:backup`.
 - Contiene datos reales (hashes de contraseñas, bitácora): `backups/` está en `.gitignore`. Guardalo cifrado y fuera de la máquina.
-- **Restauración manual** (base real, con la app detenida): `docker compose exec -T postgres pg_restore -U <usuario> -d <base> --clean --if-exists --no-owner < backups/<archivo>.dump` (en Linux/macOS/Git Bash; en PowerShell 5 la redirección `<` no existe, usá `cmd /c`).
+- **`db:restore`** se niega sin `--confirmar`, sin un archivo explícito o con el backend en marcha. Crea el rol `app_runtime` si falta (usa `APP_RUNTIME_PASSWORD` del `.env`), restaura en **una sola transacción** (si falla, la base no cambia) y **revoca todas las sesiones**, porque el respaldo revive las que se cerraron después. Los access token ya emitidos siguen valiendo hasta 15 minutos. Sirve sobre un servidor vacío: ver [INFRAESTRUCTURA.md](../docs/INFRAESTRUCTURA.md#7d-respaldos-de-la-base). No uses `pg_restore` a mano.
 - Tests: `pnpm test:scripts`.
 
 ## `openapi:sync` / `openapi:types`: contrato de la API para los clientes

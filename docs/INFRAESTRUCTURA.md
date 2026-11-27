@@ -464,7 +464,8 @@ del repo.
 
 Probado real (versión anterior, con `nginx:alpine`): build exitoso,
 contenedor corriendo, `200` + `<title>frontend</title>` al pedir `/`. La
-versión actual (nginx-unprivileged) todavía no se probó corriendo.
+versión actual (nginx-unprivileged slim parcheada) se probó dentro del compose de
+producción completo (sección 7c).
 
 ## 7c. `docker-compose.prod.yml`
 
@@ -502,6 +503,23 @@ sudo chown root:101 privkey.pem && sudo chmod 640 privkey.pem
 también dejen atravesar el directorio a ese grupo). No uses `chmod 644`
 con una clave real, solo con el certificado de prueba local.
 
+**El proxy y la web se construyen** (`infrastructure/nginx/Dockerfile` y
+`projects/frontend/Dockerfile`) para parchear la imagen base. Para recibir parches
+nuevos hay que reconstruir sin caché y sobre la base al día:
+`docker compose -f docker-compose.prod.yml build --pull --no-cache`.
+
+**Arranque.** El backend tarda unos segundos en estar listo (en la prueba local,
+unos 26 s); hasta entonces el proxy responde `502` en `/api/`. No uses
+`up --wait` como señal de éxito: sale con código 1 porque `minio-init` es un
+contenedor de una sola corrida que termina, y puede volver con el backend todavía
+arrancando. Mirá el estado de salud de `app-backend`.
+
+**Probado** (2026-11, en una máquina local, certificado autofirmado y volúmenes
+vacíos): todos los servicios arrancan; HTTP redirige a HTTPS; login web y mobile,
+refresh y logout funcionan; solo el proxy publica puertos; y respaldo +
+restauración en un servidor vacío. **No probado:** un servidor Linux real, un
+certificado de una autoridad real y carga sostenida.
+
 Grafana y Prometheus no tienen puertos: se consultan por túnel SSH o con
 `docker compose exec`, nunca por internet.
 
@@ -524,6 +542,29 @@ Grafana y Prometheus no tienen puertos: se consultan por túnel SSH o con
 `pnpm db:backup` / `pnpm db:verify` (ver `scripts/README.md`). Es manual: no hay
 programación automática ni copia fuera del servidor — en producción hay que
 agendarlo (cron/tarea del proveedor) y enviar el archivo, cifrado, a otro lugar.
+El respaldo cubre **solo Postgres**: los archivos de MinIO se respaldan aparte.
+
+### Recuperar en un servidor vacío
+
+Con el mismo `.env` (mismos `POSTGRES_USER` y `POSTGRES_DB`), levantá **solo
+Postgres**, restaurá y recién después levantá el resto:
+
+```bash
+docker compose -f docker-compose.prod.yml up -d --wait postgres
+pnpm db:restore backups/<archivo>.dump --confirmar --prod
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+Sin Node en el servidor, o con una base administrada, hay que hacer a mano lo que
+hace `db:restore`, en este orden: crear el rol `app_runtime` (`LOGIN`,
+`NOSUPERUSER NOBYPASSRLS`, con `APP_RUNTIME_PASSWORD`), restaurar con
+`pg_restore --clean --if-exists --no-owner --exit-on-error --single-transaction` y
+revocar las sesiones activas.
+
+! Un `pg_restore` directo sobre un servidor vacío **deja la app sin arrancar**: el
+volcado no incluye roles, y Flyway no vuelve a crear `app_runtime` porque el
+historial restaurado marca esa migración como aplicada. Por la misma razón, no
+levantes el backend antes de restaurar.
 
 ## 8. Qué NO está implementado todavía (para que quede explícito, no ambiguo)
 
@@ -535,18 +576,11 @@ agendarlo (cron/tarea del proveedor) y enviar el archivo, cifrado, a otro lugar.
   proceso (caché acotada), correcto para una sola instancia; con más
   de una réplica cada una tendría su propio cupo independiente (ver
   `SEGURIDAD_AUTH_BACKEND.md#rate-limit`).
-- **Redis está levantado y conectado, pero sin ningún uso real** todavía
-  (el caso de uso planeado —refresh tokens— no está implementado).
 - **Sin CD** — existe `docker-compose.prod.yml` (sección 7c), pero ningún
   job publica imágenes ni despliega: el destino (VPS, ECS, Cloud Run...)
   sigue sin decidirse (ver `CI_CD.md`).
-- **`docker-compose.prod.yml` y las imágenes de producción no se probaron
-  corriendo** — se validan solo por sintaxis y por el job `docker` de CI.
-  La primera vez en un servidor real hay que revisar el arranque de cada
-  servicio (en especial `read_only` del backend y los certificados TLS).
-- **Sin rol `app_runtime` en Postgres** — la app aún se conecta con el
-  superusuario del contenedor, que **ignora RLS**. Se crea junto con la
-  autenticación (ver `BASE_DE_DATOS_PRIVADA_RLS.md`).
+- **Producción no se probó en un servidor real** — ver qué se probó en local en
+  la sección 7c.
 - **`infrastructure/postgres/init/` y `infrastructure/docker/` están
   vacías** (`.gitkeep`) — reservadas para scripts de inicialización de
   Postgres o configuración Docker adicional que todavía no hizo falta.
