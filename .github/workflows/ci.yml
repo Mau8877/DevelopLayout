@@ -24,6 +24,7 @@ jobs:
       frontend: ${{ steps.filter.outputs.frontend }}
       mobile: ${{ steps.filter.outputs.mobile }}
       scripts: ${{ steps.filter.outputs.scripts }}
+      produccion: ${{ steps.filter.outputs.produccion }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -42,7 +43,14 @@ jobs:
             scripts:
               - 'scripts/**'
               - 'docker-compose*.yml'
+              - 'infrastructure/nginx/Dockerfile'
+              - 'projects/frontend/Dockerfile'
               - 'package.json'
+            produccion:
+              - 'infrastructure/**'
+              - 'docker-compose.prod.yml'
+              - '.env.example'
+              - '.github/workflows/ci.yml'
 
   backend:
     needs: changes
@@ -207,7 +215,7 @@ jobs:
   # producción sea válido. No publica nada (CD sigue sin implementarse).
   docker:
     needs: changes
-    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true'
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.produccion == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -215,6 +223,8 @@ jobs:
         run: docker build -t app-backend:ci projects/backend
       - name: Build imagen frontend
         run: docker build -f projects/frontend/Dockerfile -t app-frontend:ci .
+      - name: Build imagen proxy
+        run: docker build -t app-proxy:ci infrastructure/nginx
       # Trivy sobre las imágenes ya construidas: revisa también los paquetes del
       # sistema base y el runtime (JRE, nginx), que el escaneo del repo no ve.
       # ignore-unfixed: solo falla por lo que ya tiene arreglo disponible.
@@ -230,6 +240,14 @@ jobs:
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: app-frontend:ci
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+      - name: Vulnerabilidades en la imagen proxy (Trivy)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: app-proxy:ci
           scanners: vuln
           severity: HIGH,CRITICAL
           ignore-unfixed: true

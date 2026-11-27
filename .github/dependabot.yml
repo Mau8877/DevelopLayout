@@ -26,6 +26,10 @@ updates:
     directory: /projects/frontend
     schedule: { interval: weekly }
     commit-message: { prefix: "chore[INFRA]" }
+  - package-ecosystem: docker
+    directory: /infrastructure/nginx
+    schedule: { interval: weekly }
+    commit-message: { prefix: "chore[INFRA]" }
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
