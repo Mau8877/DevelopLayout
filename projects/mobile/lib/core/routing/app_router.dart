@@ -6,6 +6,7 @@ import '../../features/auth/models/usuario_sesion.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
+import '../../features/auth/screens/mis_sesiones_screen.dart';
 import '../../layouts/admin/admin_shell.dart';
 import '../../layouts/usuario/usuario_shell.dart';
 
@@ -13,6 +14,7 @@ const rutaLogin = '/login';
 const rutaCargando = '/cargando';
 const rutaInicio = '/';
 const rutaOlvidePassword = '/forgot-password';
+const rutaMisSesiones = '/mis-sesiones';
 
 /// Rutas a las que se entra sin sesión. Con sesión, llevan a inicio.
 const _rutasSinSesion = {rutaLogin, rutaOlvidePassword};
@@ -54,6 +56,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const Scaffold(body: Center(child: CircularProgressIndicator())),
       ),
       GoRoute(path: rutaInicio, builder: (context, state) => const _InicioPorRol()),
+      GoRoute(path: rutaMisSesiones, builder: (context, state) => const MisSesionesScreen()),
     ],
   );
   ref.onDispose(router.dispose);
