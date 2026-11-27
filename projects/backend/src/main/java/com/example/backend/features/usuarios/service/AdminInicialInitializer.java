@@ -26,9 +26,10 @@ import com.example.backend.features.usuarios.RolNombres;
  *
  * * Usa la conexión dueña (`spring.flyway.*`), no la de `app_runtime`: en el
  * * arranque no hay usuario autenticado y RLS está forzado. Para que también
- * * funcione con un dueño que no ignore RLS, fija `app.current_user` al código
- * * del usuario nuevo dentro de la transacción. Es la única escritura fuera
- * * de `app_runtime` (ver docs/seguridad/RLS_EXCEPCIONES.md).
+ * * funcione con un dueño que no ignore RLS, fija dentro de cada transacción
+ * * `app.alta_inicial` para buscar al administrador y `app.current_user` (el
+ * * código del usuario nuevo) para crearlo. Es la única escritura fuera de
+ * * `app_runtime` (ver docs/seguridad/RLS_EXCEPCIONES.md).
  * ! La contraseña solo se hashea con BCrypt: nunca se loguea ni se guarda en claro.
  */
 @Component
@@ -65,24 +66,29 @@ public class AdminInicialInitializer implements ApplicationRunner {
         try {
             DriverManagerDataSource dataSource = new DriverManagerDataSource(url, usuarioDueno, passwordDueno);
             JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+            TransactionTemplate transaccion = new TransactionTemplate(new DataSourceTransactionManager(dataSource));
 
-            if (existeSuperAdmin(jdbc)) {
+            if (existeSuperAdmin(jdbc, transaccion)) {
                 LOG.debug("Ya existe un {}; no se crea el administrador inicial", RolNombres.SUPER_ADMIN);
                 return;
             }
             validar(email, password);
-            crear(jdbc, new TransactionTemplate(new DataSourceTransactionManager(dataSource)));
+            crear(jdbc, transaccion);
         } finally {
             MDC.remove("module");
         }
     }
 
-    private static boolean existeSuperAdmin(JdbcTemplate jdbc) {
-        Integer total = jdbc.queryForObject(
-                "SELECT count(*) FROM authentication.usuario_rol ur "
-                        + "JOIN authentication.rol r ON r.id = ur.rol_id "
-                        + "WHERE r.nombre = ? AND ur.is_active AND ur.deleted_at IS NULL",
-                Integer.class, RolNombres.SUPER_ADMIN);
+    private static boolean existeSuperAdmin(JdbcTemplate jdbc, TransactionTemplate transaccion) {
+        // Sin este contexto, un dueño que no ignore RLS contaría 0 sin ningún error.
+        Integer total = transaccion.execute(status -> {
+            jdbc.queryForObject("SELECT set_config('app.alta_inicial', 'on', true)", String.class);
+            return jdbc.queryForObject(
+                    "SELECT count(*) FROM authentication.usuario_rol ur "
+                            + "JOIN authentication.rol r ON r.id = ur.rol_id "
+                            + "WHERE r.nombre = ? AND ur.is_active AND ur.deleted_at IS NULL",
+                    Integer.class, RolNombres.SUPER_ADMIN);
+        });
         return total != null && total > 0;
     }
 
