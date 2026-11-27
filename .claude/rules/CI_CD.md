@@ -35,9 +35,13 @@ proyecto).
   publica nada ni **levanta** el stack: eso solo se probó en local.
 - **`permissions: contents: read`** a nivel de workflow: ningún job
   escribe en el repo.
-- **Dependabot** (`.github/dependabot.yml`): una PR semanal por ecosistema
-  (Maven, npm, pub, Docker, GitHub Actions). Ignora el major de
-  `typescript` hasta que `typescript-eslint` lo soporte.
+- **Dependabot** (`.github/dependabot.yml`): semanal (Maven, npm, pub, Docker,
+  GitHub Actions). Agrupa versiones menores y parches por ecosistema (Docker no
+  se agrupa); cada salto mayor llega solo. Ignora el major de `typescript` (hasta
+  que `typescript-eslint` lo soporte), de `eclipse-temurin` y de `node`, y la
+  imagen `maven` entera (la versión de Java va en su etiqueta). **Cambiar de Java
+  o de Node es una decisión manual** que alinea Dockerfile, `pom.xml` o
+  `package.json`, compose y CI.
 
 > Estos jobs **no se pudieron ejecutar localmente** al escribirlos: la
 > primera corrida real en GitHub puede pedir ajustes (versiones de las

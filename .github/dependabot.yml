@@ -1,15 +1,26 @@
-# Actualizaciones automáticas de dependencias (OWASP A03/A06). Una PR por
-# ecosistema y semana; los commits siguen el formato del proyecto.
+# Actualizaciones automáticas de dependencias (OWASP A03/A06), cada semana. Las
+# versiones menores y parches llegan agrupadas por ecosistema; cada salto mayor, en
+# su propia PR. Los commits siguen el formato del proyecto.
+# ! `ignore` con semver-major deja esos saltos fuera: Java y Node se cambian a mano,
+# ! alineando Dockerfile, pom/package.json, compose y CI en el mismo cambio.
 version: 2
 updates:
   - package-ecosystem: maven
     directory: /projects/backend
     schedule: { interval: weekly }
     commit-message: { prefix: "chore[BACK]" }
+    groups:
+      maven-menores:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
   - package-ecosystem: npm
     directory: /
     schedule: { interval: weekly }
     commit-message: { prefix: "chore[FRONT]" }
+    groups:
+      npm-menores:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
     # TypeScript 7 queda fuera hasta que typescript-eslint lo soporte.
     ignore:
       - dependency-name: typescript
@@ -18,14 +29,27 @@ updates:
     directory: /projects/mobile
     schedule: { interval: weekly }
     commit-message: { prefix: "chore[MOBILE]" }
+    groups:
+      pub-menores:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
   - package-ecosystem: docker
     directory: /projects/backend
     schedule: { interval: weekly }
     commit-message: { prefix: "chore[INFRA]" }
+    ignore:
+      - dependency-name: eclipse-temurin
+        update-types: ["version-update:semver-major"]
+      # La versión de Java va en el sufijo de la etiqueta
+      # (3.9-eclipse-temurin-21-alpine). La etiqueta recibe parches al reconstruir.
+      - dependency-name: maven
   - package-ecosystem: docker
     directory: /projects/frontend
     schedule: { interval: weekly }
     commit-message: { prefix: "chore[INFRA]" }
+    ignore:
+      - dependency-name: node
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: docker
     directory: /infrastructure/nginx
     schedule: { interval: weekly }
@@ -34,3 +58,7 @@ updates:
     directory: /
     schedule: { interval: weekly }
     commit-message: { prefix: "ci[REPO]" }
+    groups:
+      actions-menores:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
