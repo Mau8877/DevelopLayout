@@ -105,7 +105,7 @@ jobs:
         run: chmod +x ./mvnw
       # mvnw baja Maven de Maven Central. Se guarda entre corridas, y si la descarga
       # falla se usa el Maven que trae el runner en vez de dejar el CI caído.
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.m2/wrapper/dists
           key: maven-wrapper-${{ runner.os }}-${{ hashFiles('projects/backend/.mvn/wrapper/maven-wrapper.properties') }}
