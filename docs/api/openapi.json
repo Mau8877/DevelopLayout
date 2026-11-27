@@ -1,6 +1,25 @@
 {
   "components": {
     "schemas": {
+      "AceptarInvitacionRequest": {
+        "properties": {
+          "password": {
+            "maxLength": 72,
+            "minLength": 8,
+            "type": "string"
+          },
+          "token": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "password",
+          "token"
+        ],
+        "type": "object"
+      },
       "ApiResponseListBitacoraResponse": {
         "properties": {
           "data": {
@@ -82,10 +101,109 @@
         },
         "type": "object"
       },
+      "ApiResponseListUsuarioResponse": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/UsuarioResponse"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PageMeta"
+          },
+          "status": {
+            "type": "string"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "ApiResponseLoginResponse": {
         "properties": {
           "data": {
             "$ref": "#/components/schemas/LoginResponse"
+          },
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PageMeta"
+          },
+          "status": {
+            "type": "string"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseReenvioInvitacionResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ReenvioInvitacionResponse"
+          },
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PageMeta"
+          },
+          "status": {
+            "type": "string"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseUsuarioCreadoResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/UsuarioCreadoResponse"
+          },
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PageMeta"
+          },
+          "status": {
+            "type": "string"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseUsuarioResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/UsuarioResponse"
           },
           "error": {
             "type": "string"
@@ -218,6 +336,60 @@
         ],
         "type": "object"
       },
+      "BuscarUsuariosRequest": {
+        "properties": {
+          "estado": {
+            "enum": [
+              "ACTIVO",
+              "INACTIVO"
+            ],
+            "type": "string"
+          },
+          "page": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "pageSize": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "rol": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string"
+          },
+          "search": {
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CrearUsuarioRequest": {
+        "properties": {
+          "email": {
+            "format": "email",
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string"
+          },
+          "roles": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 20,
+            "minItems": 0,
+            "type": "array"
+          }
+        },
+        "required": [
+          "email",
+          "roles"
+        ],
+        "type": "object"
+      },
       "ForgotPasswordRequest": {
         "properties": {
           "email": {
@@ -324,6 +496,14 @@
         },
         "type": "object"
       },
+      "ReenvioInvitacionResponse": {
+        "properties": {
+          "invitacionEnviada": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
       "RefreshRequest": {
         "properties": {
           "refreshToken": {
@@ -385,6 +565,49 @@
           "usuarioCodigo": {
             "format": "uuid",
             "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "UsuarioCreadoResponse": {
+        "properties": {
+          "invitacionEnviada": {
+            "type": "boolean"
+          },
+          "usuario": {
+            "$ref": "#/components/schemas/UsuarioResponse"
+          }
+        },
+        "type": "object"
+      },
+      "UsuarioResponse": {
+        "properties": {
+          "codigo": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "creadoEn": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "estado": {
+            "enum": [
+              "ACTIVO",
+              "INACTIVO"
+            ],
+            "type": "string"
+          },
+          "invitacionPendiente": {
+            "type": "boolean"
+          },
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           }
         },
         "type": "object"
@@ -512,6 +735,36 @@
         "operationId": "csrf",
         "responses": {
           "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "auth-controller"
+        ]
+      }
+    },
+    "/api/v1/auth/invitation/accept": {
+      "post": {
+        "operationId": "aceptarInvitacion",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AceptarInvitacionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
             "description": "OK"
           }
         },
@@ -871,6 +1124,159 @@
         },
         "tags": [
           "bitacora-controller"
+        ]
+      }
+    },
+    "/api/v1/usuarios": {
+      "post": {
+        "operationId": "crearUsuario",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrearUsuarioRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUsuarioCreadoResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "usuario-controller"
+        ]
+      }
+    },
+    "/api/v1/usuarios/buscar": {
+      "post": {
+        "operationId": "buscarUsuarios",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuscarUsuariosRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListUsuarioResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "usuario-controller"
+        ]
+      }
+    },
+    "/api/v1/usuarios/{codigo}/desactivar": {
+      "post": {
+        "operationId": "desactivarUsuario",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "codigo",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUsuarioResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "usuario-controller"
+        ]
+      }
+    },
+    "/api/v1/usuarios/{codigo}/reactivar": {
+      "post": {
+        "operationId": "reactivarUsuario",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "codigo",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUsuarioResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "usuario-controller"
+        ]
+      }
+    },
+    "/api/v1/usuarios/{codigo}/reenviar-invitacion": {
+      "post": {
+        "operationId": "reenviarInvitacion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "codigo",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseReenvioInvitacionResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "usuario-controller"
         ]
       }
     }

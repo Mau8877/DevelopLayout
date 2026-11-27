@@ -68,6 +68,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/invitation/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["aceptarInvitacion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/login": {
         parameters: {
             query?: never;
@@ -228,10 +244,94 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/usuarios": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["crearUsuario"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/usuarios/buscar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["buscarUsuarios"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/usuarios/{codigo}/desactivar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["desactivarUsuario"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/usuarios/{codigo}/reactivar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["reactivarUsuario"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/usuarios/{codigo}/reenviar-invitacion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["reenviarInvitacion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AceptarInvitacionRequest: {
+            password: string;
+            token: string;
+        };
         ApiResponseListBitacoraResponse: {
             data?: components["schemas"]["BitacoraResponse"][];
             error?: string;
@@ -259,8 +359,44 @@ export interface components {
             /** Format: date-time */
             timestamp?: string;
         };
+        ApiResponseListUsuarioResponse: {
+            data?: components["schemas"]["UsuarioResponse"][];
+            error?: string;
+            message?: string;
+            meta?: components["schemas"]["PageMeta"];
+            status?: string;
+            /** Format: date-time */
+            timestamp?: string;
+        };
         ApiResponseLoginResponse: {
             data?: components["schemas"]["LoginResponse"];
+            error?: string;
+            message?: string;
+            meta?: components["schemas"]["PageMeta"];
+            status?: string;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseReenvioInvitacionResponse: {
+            data?: components["schemas"]["ReenvioInvitacionResponse"];
+            error?: string;
+            message?: string;
+            meta?: components["schemas"]["PageMeta"];
+            status?: string;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseUsuarioCreadoResponse: {
+            data?: components["schemas"]["UsuarioCreadoResponse"];
+            error?: string;
+            message?: string;
+            meta?: components["schemas"]["PageMeta"];
+            status?: string;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseUsuarioResponse: {
+            data?: components["schemas"]["UsuarioResponse"];
             error?: string;
             message?: string;
             meta?: components["schemas"]["PageMeta"];
@@ -313,6 +449,21 @@ export interface components {
             /** Format: int32 */
             pageSize?: number;
         };
+        BuscarUsuariosRequest: {
+            /** @enum {string} */
+            estado?: "ACTIVO" | "INACTIVO";
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            pageSize?: number;
+            rol?: string;
+            search?: string;
+        };
+        CrearUsuarioRequest: {
+            /** Format: email */
+            email: string;
+            roles: string[];
+        };
         ForgotPasswordRequest: {
             /** Format: email */
             email: string;
@@ -352,6 +503,9 @@ export interface components {
             /** Format: int32 */
             totalPages?: number;
         };
+        ReenvioInvitacionResponse: {
+            invitacionEnviada?: boolean;
+        };
         RefreshRequest: {
             refreshToken?: string;
         };
@@ -374,6 +528,21 @@ export interface components {
             userAgent?: string;
             /** Format: uuid */
             usuarioCodigo?: string;
+        };
+        UsuarioCreadoResponse: {
+            invitacionEnviada?: boolean;
+            usuario?: components["schemas"]["UsuarioResponse"];
+        };
+        UsuarioResponse: {
+            /** Format: uuid */
+            codigo?: string;
+            /** Format: date-time */
+            creadoEn?: string;
+            email?: string;
+            /** @enum {string} */
+            estado?: "ACTIVO" | "INACTIVO";
+            invitacionPendiente?: boolean;
+            roles?: string[];
         };
         UsuarioSesionResponse: {
             /** Format: uuid */
@@ -473,6 +642,30 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    aceptarInvitacion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AceptarInvitacionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
+                };
             };
         };
     };
@@ -706,6 +899,120 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseListBitacoraResponse"];
+                };
+            };
+        };
+    };
+    crearUsuario: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CrearUsuarioRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseUsuarioCreadoResponse"];
+                };
+            };
+        };
+    };
+    buscarUsuarios: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuscarUsuariosRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListUsuarioResponse"];
+                };
+            };
+        };
+    };
+    desactivarUsuario: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                codigo: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseUsuarioResponse"];
+                };
+            };
+        };
+    };
+    reactivarUsuario: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                codigo: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseUsuarioResponse"];
+                };
+            };
+        };
+    };
+    reenviarInvitacion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                codigo: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseReenvioInvitacionResponse"];
                 };
             };
         };

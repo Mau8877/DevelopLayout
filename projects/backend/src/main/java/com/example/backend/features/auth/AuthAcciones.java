@@ -16,6 +16,8 @@ public final class AuthAcciones {
 
     public static final String AUTH_SESION_CERRADA = "AUTH_SESION_CERRADA";
 
+    public static final String AUTH_INVITACION_ACEPTADA = "AUTH_INVITACION_ACEPTADA";
+
     private AuthAcciones() {
     }
 }

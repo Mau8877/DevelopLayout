@@ -236,17 +236,20 @@ async function comprobarEntrada(pedir) {
     'la web responde con HSTS, nosniff, X-Frame-Options y CSP',
   );
   const normal = h['referrer-policy'];
-  const restablecer = (await pedir('/reset-password')).headers;
-  comprobar(
-    normal === 'strict-origin-when-cross-origin' && restablecer['referrer-policy'] === 'no-referrer',
-    '/reset-password no manda Referer y el resto conserva su política',
-    `${normal} / ${restablecer['referrer-policy']}`,
-  );
-  comprobar(
-    ['strict-transport-security', 'content-security-policy', 'x-frame-options', 'x-content-type-options']
-      .every((cabecera) => restablecer[cabecera] === h[cabecera]),
-    '/reset-password conserva las demás cabeceras de seguridad',
-  );
+  // Las dos páginas que reciben un token en el enlace de un correo.
+  for (const ruta of ['/reset-password', '/accept-invitation']) {
+    const cabeceras = (await pedir(ruta)).headers;
+    comprobar(
+      normal === 'strict-origin-when-cross-origin' && cabeceras['referrer-policy'] === 'no-referrer',
+      `${ruta} no manda Referer y el resto conserva su política`,
+      `${normal} / ${cabeceras['referrer-policy']}`,
+    );
+    comprobar(
+      ['strict-transport-security', 'content-security-policy', 'x-frame-options', 'x-content-type-options']
+        .every((cabecera) => cabeceras[cabecera] === h[cabecera]),
+      `${ruta} conserva las demás cabeceras de seguridad`,
+    );
+  }
   for (const ruta of ['/health', '/prometheus', '/actuator', '/v3/api-docs', '/swagger-ui/index.html']) {
     const r = await pedir(ruta);
     comprobar(!/jvm_|"openapi"|swagger-ui|"status"\s*:\s*"UP"/i.test(r.texto), `${ruta} no expone datos internos`);
@@ -324,6 +327,36 @@ async function comprobarRecuperacion(pedir, compose) {
   comprobar(salud === 'healthy 0' && /"status":"UP"/.test(health), 'con el SMTP caído el backend sigue sano', `${salud} ${health}`);
 }
 
+/** Con el correo caído: la cuenta se crea, se avisa y no puede entrar hasta aceptar la invitación. */
+async function comprobarUsuarios(pedir, entorno, compose) {
+  const sesion = await login(pedir, entorno, comoMobile);
+  comprobar(sesion.status === 200, 'login del administrador', `status ${sesion.status}`);
+  const admin = {
+    headers: { ...comoMobile.headers, Authorization: `Bearer ${sesion.json.data.accessToken}` },
+  };
+  const email = 'invitada@e2e.test';
+  const alta = await pedir('/api/v1/usuarios', { method: 'POST', body: { email, roles: ['USUARIO'] }, ...admin });
+  comprobar(
+    alta.status === 201 && alta.json?.data?.invitacionEnviada === false,
+    'el alta crea la cuenta y avisa que el correo no salió',
+    `${alta.status} ${alta.texto}`,
+  );
+  const listado = await pedir('/api/v1/usuarios/buscar', { method: 'POST', body: { search: email }, ...admin });
+  comprobar(
+    listado.json?.data?.length === 1 && listado.json.data[0].invitacionPendiente === true,
+    'la cuenta aparece con la invitación pendiente',
+  );
+  const entrada = await pedir('/api/v1/auth/login', {
+    method: 'POST', body: { email, password: 'ClaveCualquiera123' }, ...comoMobile, // gitleaks:allow
+  });
+  comprobar(entrada.status === 401, 'la cuenta pendiente no puede iniciar sesión', `status ${entrada.status}`);
+  const baja = await pedir(`/api/v1/usuarios/${alta.json.data.usuario.codigo}/desactivar`, { method: 'POST', ...admin });
+  comprobar(baja.status === 200 && baja.json?.data?.estado === 'INACTIVO', 'se puede desactivar', `status ${baja.status}`);
+  const salud = docker('inspect', '-f', '{{.State.Health.Status}} {{.RestartCount}}', 'app-backend');
+  const health = compose(['exec', '-T', 'backend', 'wget', '-qO-', 'http://localhost:8080/health'], { capturar: true }).salida;
+  comprobar(salud === 'healthy 0' && /"status":"UP"/.test(health), 'el backend sigue sano', `${salud} ${health}`);
+}
+
 function comprobarBucket(compose) {
   const r = compose(
     ['run', '--rm', '--no-deps', '-T', '--entrypoint', '/bin/sh', 'minio-init', '-c',
@@ -390,10 +423,13 @@ async function main() {
     console.log('4. Recuperación de contraseña con el correo caído');
     await comprobarRecuperacion(pedir, compose);
 
-    console.log('5. Almacenamiento');
+    console.log('5. Alta de usuarios con el correo caído');
+    await comprobarUsuarios(pedir, entorno, compose);
+
+    console.log('6. Almacenamiento');
     comprobarBucket(compose);
 
-    console.log('6. Respaldo');
+    console.log('7. Respaldo');
     const db = crearDocker({ root, prod: true });
     const datos = { usuario: entorno.POSTGRES_USER, base: entorno.POSTGRES_DB };
     const dir = join(carpeta, 'backups');
@@ -401,7 +437,7 @@ async function main() {
     const verificado = await verificarBackup(db, { ...datos, dir });
     comprobar(verificado.usuarios >= 1, 'respaldo creado y verificado');
 
-    console.log('7. Recuperación en un servidor vacío');
+    console.log('8. Recuperación en un servidor vacío');
     compose(['down', '-v']);
     compose(['up', '-d', '--wait', 'postgres']);
     // * Durante la inicialización Postgres ya responde por el socket pero va a reiniciarse:

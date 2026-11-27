@@ -54,10 +54,20 @@ docs/errors/
 - [`ERR_AUTH_08`](auth/ERRORES_AUTH.md#err_auth_08) — Acceso denegado o CSRF inválido (403)
 - [`ERR_AUTH_09`](auth/ERRORES_AUTH.md#err_auth_09) — La sesión a cerrar no existe (404)
 - [`ERR_AUTH_10`](auth/ERRORES_AUTH.md#err_auth_10) — La sesión actual no se cierra desde «Mis sesiones» (400)
+- [`ERR_AUTH_11`](auth/ERRORES_AUTH.md#err_auth_11) — La invitación no es válida (400)
 
 ### Bitácora (`BIT`)
 
 - [`ERR_BIT_01`](bitacora/ERRORES_BITACORA.md#err_bit_01) — Rango de fechas inválido (400)
+
+### Usuarios (`US`)
+
+- [`ERR_US_01`](usuarios/ERRORES_USUARIOS.md#err_us_01) — El usuario no existe (404)
+- [`ERR_US_02`](usuarios/ERRORES_USUARIOS.md#err_us_02) — Ya existe una cuenta con ese correo (409)
+- [`ERR_US_03`](usuarios/ERRORES_USUARIOS.md#err_us_03) — Rol inexistente (400)
+- [`ERR_US_04`](usuarios/ERRORES_USUARIOS.md#err_us_04) — No podés desactivar tu propia cuenta (409)
+- [`ERR_US_05`](usuarios/ERRORES_USUARIOS.md#err_us_05) — No corresponde reenviar la invitación (409)
+- [`ERR_US_06`](usuarios/ERRORES_USUARIOS.md#err_us_06) — Demasiados reenvíos (409)
 
 <!--
   A medida que se agregan módulos de negocio (usuarios, pedidos...),

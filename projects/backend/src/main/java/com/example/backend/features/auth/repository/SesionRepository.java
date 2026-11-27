@@ -27,6 +27,8 @@ public interface SesionRepository extends JpaRepository<Sesion, Long> {
 
     Optional<Sesion> findByCodigo(UUID codigo);
 
+    boolean existsByCodigoAndUsuarioCodigoAndEstado(UUID codigo, UUID usuarioCodigo, EstadoSesion estado);
+
     /** Sesiones utilizables del usuario: `ACTIVA` y no vencidas. */
     Page<Sesion> findByUsuarioCodigoAndEstadoAndExpiraEnAfter(UUID usuarioCodigo, EstadoSesion estado,
             Instant despuesDe, Pageable pageable);

@@ -26,7 +26,7 @@ con el campo "Nombre corto de HU" de la tabla interna (ver abajo).
 
 ## HU iniciales (`HU-INICIAL-{Nombre}`)
 
-El layout trae HU ya redactadas para la autenticación, en
+El layout trae HU ya redactadas para la autenticación y la administración de usuarios, en
 `docs/HistoriasDeUsuario/HU-INICIAL-{Nombre}.md` (`Base`, `Login`,
 `Refresh`, `Logout`, `OlvidePassword`). Van **fuera de la numeración**
 `HU{NN}`: no consumen números, así que las HU propias de cada proyecto
@@ -36,8 +36,8 @@ con la carpeta `docs/UnidadesTrabajo/HU-INICIAL-{Nombre}/`. El resto del
 formato de esta rule aplica igual.
 
 Orden de implementación: `Base` → `Login` → `Refresh` → `Logout` →
-`OlvidePassword` → `SesionesAdmin` → `Bitacora` → `Sesiones`. Cada una puede
-suponer ya implementadas las anteriores.
+`OlvidePassword` → `SesionesAdmin` → `Bitacora` → `Sesiones` → `Usuarios` →
+`Roles`. Cada una puede suponer ya implementadas las anteriores.
 
 ## Granularidad: una HU, un flujo
 

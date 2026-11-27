@@ -18,17 +18,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import com.example.backend.features.auth.service.SesionAdminService;
-import com.example.backend.security.RlsContext;
 
 import jakarta.servlet.http.Cookie;
 
@@ -37,15 +33,6 @@ class SesionAdminControllerTest extends AuthSesionIntegrationTest {
 
     @Autowired
     private SesionAdminService servicio;
-
-    @Autowired
-    private RlsContext rlsContext;
-
-    @Autowired
-    private JdbcTemplate jdbc;
-
-    @Autowired
-    private PlatformTransactionManager transacciones;
 
     private String accessAdmin;
     private String codigoAdmin;
@@ -243,19 +230,5 @@ class SesionAdminControllerTest extends AuthSesionIntegrationTest {
         } finally {
             SecurityContextHolder.clearContext();
         }
-    }
-
-    @Test
-    void contextoDeAdmin_leeUsuariosPeroNoPuedeModificarlos() {
-        new TransactionTemplate(transacciones).executeWithoutResult(estado -> {
-            rlsContext.usarAdmin();
-            assertThat(jdbc.queryForObject("SELECT count(*) FROM authentication.usuario WHERE email = ?",
-                    Integer.class, email)).isEqualTo(1);
-            assertThat(jdbc.update("UPDATE authentication.usuario SET estado = 'INACTIVO' WHERE email = ?", email))
-                    .isZero();
-            assertThat(jdbc.update("DELETE FROM authentication.usuario WHERE email = ?", email)).isZero();
-        });
-        assertThat(dueno().queryForObject("SELECT estado FROM authentication.usuario WHERE email = ?",
-                String.class, email)).isEqualTo("ACTIVO");
     }
 }

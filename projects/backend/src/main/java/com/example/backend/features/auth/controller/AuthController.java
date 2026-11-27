@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.backend.common.bitacora.OrigenSolicitud;
 import com.example.backend.common.response.ApiResponse;
 import com.example.backend.features.auth.AuthCookies;
+import com.example.backend.features.auth.dto.AceptarInvitacionRequest;
 import com.example.backend.features.auth.dto.ForgotPasswordRequest;
 import com.example.backend.features.auth.dto.LoginRequest;
 import com.example.backend.features.auth.dto.LoginResponse;
@@ -23,6 +24,7 @@ import com.example.backend.features.auth.dto.ResetPasswordRequest;
 import com.example.backend.features.auth.dto.UsuarioSesionResponse;
 import com.example.backend.features.auth.enums.TipoCliente;
 import com.example.backend.features.auth.service.AuthService;
+import com.example.backend.features.auth.service.InvitacionService;
 import com.example.backend.features.auth.service.RecuperacionService;
 import com.example.backend.security.CurrentUserId;
 
@@ -38,6 +40,7 @@ public class AuthController {
     private final AuthService authService;
     private final AuthCookies authCookies;
     private final RecuperacionService recuperacion;
+    private final InvitacionService invitacion;
 
     /** Entrega la cookie `XSRF-TOKEN` (double-submit) al cliente web. */
     @GetMapping("/csrf")
@@ -118,6 +121,14 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> restablecerPassword(@Valid @RequestBody ResetPasswordRequest request) {
         recuperacion.restablecer(request.token(), request.password());
         return ResponseEntity.ok(ApiResponse.success(null, "Contraseña actualizada. Ya podés iniciar sesión"));
+    }
+
+    /** La credencial es el token de la invitación: quien acepta no tiene contraseña. */
+    @PostMapping("/invitation/accept")
+    public ResponseEntity<ApiResponse<Void>> aceptarInvitacion(
+            @Valid @RequestBody AceptarInvitacionRequest request) {
+        invitacion.aceptar(request.token(), request.password());
+        return ResponseEntity.ok(ApiResponse.success(null, "Contraseña guardada. Ya podés iniciar sesión"));
     }
 
     @GetMapping("/me")
