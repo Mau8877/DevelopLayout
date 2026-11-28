@@ -8,8 +8,9 @@ globs: projects/frontend/**/*
 
 La carpeta `src/store/` es donde vive **todo lo relacionado a estado y
 datos** del lado del cliente: los stores de Zustand descritos acá, y
-también el cliente HTTP + `QueryClient` de TanStack Query (`createBaseApi.ts`,
-`apiClient.ts`, `candadoSesion.ts`, `queryClient.ts`, `QueryProvider.tsx` — ver
+también el cliente HTTP (`http/`: `createBaseApi.ts`, `apiClient.ts`,
+`candadoSesion.ts`) y TanStack Query (`query/`: `queryClient.ts`,
+`QueryProvider.tsx`). Los stores de Zustand van en `ui/` — ver
 [TANSTACK_QUERY_FRONTEND.md](TANSTACK_QUERY_FRONTEND.md#cliente-http-centralizado-ya-implementado)).
 Es una decisión de **organización de carpetas**, no una relajación de la
 separación conceptual de abajo — TanStack Query sigue siendo el único que
@@ -42,7 +43,7 @@ tarde o temprano el store y el servidor quedan desincronizados.
 
 ## Un store global + stores por feature
 
-- **Store global** (`src/store/useUiStore.ts`) para estado transversal de la
+- **Store global** (`src/store/ui/useUiStore.ts`) para estado transversal de la
   UI del proyecto completo: sidebar, layout activo, tema. Un solo store, no
   uno por cada pedacito de UI global.
 - **Stores de una sola feature** viven **dentro** de esa feature
@@ -60,7 +61,7 @@ tarde o temprano el store y el servidor quedan desincronizados.
 Store plano mientras el estado sea simple:
 
 ```ts
-// src/store/useUiStore.ts
+// src/store/ui/useUiStore.ts
 import { create } from 'zustand'
 
 interface UiState {

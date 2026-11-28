@@ -12,7 +12,7 @@ muestra un error crudo, y ningún `catch` se traga un error en silencio.
 
 Todo fallo de una llamada a la API llega a hooks y componentes como `ApiError`
 (`code` + `message`). El único lugar que convierte errores de red es
-`src/store/apiClient.ts`:
+`src/store/http/apiClient.ts`:
 
 - Respuesta con sobre `failed` → `ApiError(error, message)` (ya implementado).
 - **Fallos sin sobre** (sin conexión, timeout, respuesta no JSON de un proxy,

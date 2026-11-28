@@ -15,7 +15,7 @@ aplicación) y a [SEGURIDAD_OWASP.md](../SEGURIDAD_OWASP.md) (A09).
   (actor, `NULL` si no hay sesión), `accion`, `modulo`, `entidad`,
   `entidad_codigo`, `resultado` (`EXITO`/`FALLO`), `ip`, `user_agent`
   (truncado), `detalle` (`jsonb`), `created_at`.
-- **Un solo punto de escritura:** `common/bitacora/BitacoraService.registrar(...)`.
+- **Un solo punto de escritura:** `common/bitacora/service/BitacoraService.registrar(...)`.
   Ningún módulo inserta en `bitacora` por su cuenta ni crea su propio repositorio.
 - IP y user agent se toman de la request actual cuando existe.
 - `registrarEnTransaccionPropia` solo desde código **sin** transacción abierta:
@@ -39,7 +39,7 @@ aplicación) y a [SEGURIDAD_OWASP.md](../SEGURIDAD_OWASP.md) (A09).
 
 `{MODULO}_{ACCION}` en mayúsculas con guion bajo (`AUTH_LOGIN_OK`,
 `PEDIDOS_PEDIDO_APROBADO`). Se definen como constantes del módulo, junto a sus
-`ErrorCodes`.
+`ErrorCodes`, en `features/{modulo}/constant/`.
 
 ## Qué NO va en `detalle`
 

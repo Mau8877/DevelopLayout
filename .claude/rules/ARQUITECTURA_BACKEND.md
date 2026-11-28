@@ -24,9 +24,10 @@ com.example.backend
 ├── common/          # Compartido entre 2+ módulos (nunca "por las dudas")
 │                    #   bitacora/, idioma/, exception/, response/, model/, util/
 ├── config/          # Beans de configuración de Spring (SecurityConfig, etc.)
-├── security/        # JWT, filtros, @CurrentUserId
+├── security/        # annotation/, resolver/, jwt/, handler/ y filtros sueltos
 └── features/
     └── {modulo}/
+        ├── constant/    # Códigos de error, acciones de bitácora y otras constantes
         ├── controller/  # Entrada HTTP
         ├── enums/       # Enumeraciones de negocio (si aplica)
         ├── service/     # Lógica de negocio
@@ -118,6 +119,6 @@ agrega ninguna dependencia nueva de este tipo sin anotarla acá con su motivo.
 
 | Quién | De qué depende | Motivo |
 | --- | --- | --- |
-| `security/` (resolvers, `JwtService`, respuestas 401 y 403) | `features/auth/AuthErrorCodes` | Responden con códigos del catálogo de `auth` |
+| `security/` (`resolver/`, `jwt/` y `handler/`) | `features/auth/constant/AuthErrorCodes` | Responden con códigos del catálogo de `auth` |
 | `security/UserDetailsServiceImpl` | Model, enum y repositorios de `features/usuarios` | Solo existe para que Spring Boot no cree su usuario en memoria; el login no lo usa |
 | Servicios de `features/auth` (`AuthService`, `SesionService`, `RecuperacionService`, `CambioPasswordService`, `InvitacionService`) | Model y repositorios de `features/usuarios` | La autenticación lee y bloquea la fila del usuario dentro de sus propias transacciones, con su contexto de RLS (login, cambio y restablecimiento de contraseña) |
