@@ -110,3 +110,27 @@ describe('Mailpit (bandeja de correo de desarrollo)', () => {
     assert.doesNotMatch(readFileSync(join(raiz, 'docker-compose.prod.yml'), 'utf8'), /mailpit/i);
   });
 });
+
+describe('tamaño máximo del body en el proxy (API4)', () => {
+  for (const archivo of ['infrastructure/nginx/nginx.conf', 'infrastructure/nginx/nginx.prod.conf']) {
+    it(`${archivo} limita a 1 MB y ningún bloque lo amplía`, () => {
+      const limites = [...readFileSync(join(raiz, archivo), 'utf8').matchAll(/^\s*client_max_body_size\s+(\S+);/gm)];
+
+      assert.deepEqual(limites.map((m) => m[1]), ['1m']);
+    });
+  }
+});
+
+describe('ajustes de seguridad que llegan al backend', () => {
+  // Compose solo pasa lo que declara: sin la línea, cambiar el .env no hace nada.
+  const leidas = readFileSync(join(raiz, 'projects/backend/src/main/resources/application.properties'), 'utf8');
+  for (const variable of ['RATE_LIMIT_CAPACITY', 'RATE_LIMIT_REFILL_PER_MINUTE', 'LOGIN_MAX_ATTEMPTS_PER_ACCOUNT',
+    'BITACORA_RETENTION_MONTHS']) {
+    it(`${variable}: los dos compose la pasan con el mismo valor por defecto que la aplicación`, () => {
+      const porDefecto = new RegExp(`\\$\\{${variable}:(\\d+)\\}`).exec(leidas)[1];
+      for (const archivo of ['docker-compose.yml', 'docker-compose.prod.yml']) {
+        assert.ok(readFileSync(join(raiz, archivo), 'utf8').includes(`\${${variable}:-${porDefecto}}`), archivo);
+      }
+    });
+  }
+});

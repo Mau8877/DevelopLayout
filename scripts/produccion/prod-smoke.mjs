@@ -255,6 +255,8 @@ async function comprobarEntrada(pedir) {
     const r = await pedir(ruta);
     comprobar(!/jvm_|"openapi"|swagger-ui|"status"\s*:\s*"UP"/i.test(r.texto), `${ruta} no expone datos internos`);
   }
+  const enorme = await pedir('/api/v1/auth/login', { method: 'POST', body: { email: 'x'.repeat(1_100_000) } });
+  comprobar(enorme.status === 413, 'el proxy rechaza un cuerpo de más de 1 MB', `status ${enorme.status}`);
 }
 
 const login = (pedir, entorno, extra = {}) =>

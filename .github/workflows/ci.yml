@@ -54,6 +54,8 @@ jobs:
               - 'infrastructure/nginx/Dockerfile'
               - 'projects/frontend/Dockerfile'
               - 'package.json'
+              # Una prueba exige la UT de seguridad en cada historia.
+              - 'docs/UnidadesTrabajo/**'
               # Una prueba recorre la plantilla entera (project:init).
               - 'projects/**'
               - 'infrastructure/**'
