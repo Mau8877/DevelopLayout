@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import com.example.backend.common.exception.ExcepcionSinMensajes;
 
 /**
  * Borra cada día los eventos anteriores al período de retención.
@@ -22,13 +25,16 @@ public class BitacoraPurgaJob {
     private static final Logger LOG = LoggerFactory.getLogger(BitacoraPurgaJob.class);
 
     private final JdbcTemplate jdbc;
+    private final TransactionTemplate transaccion;
     private final int meses;
 
-    public BitacoraPurgaJob(JdbcTemplate jdbc, @Value("${app.bitacora.retention-months:12}") int meses) {
+    public BitacoraPurgaJob(JdbcTemplate jdbc, TransactionTemplate transaccion,
+            @Value("${app.bitacora.retention-months:12}") int meses) {
         if (meses < 1) {
             throw new IllegalStateException("app.bitacora.retention-months debe ser 1 o más");
         }
         this.jdbc = jdbc;
+        this.transaccion = transaccion;
         this.meses = meses;
     }
 
@@ -36,10 +42,14 @@ public class BitacoraPurgaJob {
     public void purgar() {
         try (MDC.MDCCloseable ignored = MDC.putCloseable("module", "bitacora")) {
             try {
-                Long borradas = jdbc.queryForObject("SELECT authentication.purgar_bitacora(?)", Long.class, meses);
+                Long borradas = transaccion.execute(estado -> {
+                    // * Con muchos eventos pendientes tarda más que una consulta normal. Solo en esta transacción.
+                    jdbc.execute("SET LOCAL statement_timeout = '5min'");
+                    return jdbc.queryForObject("SELECT authentication.purgar_bitacora(?)", Long.class, meses);
+                });
                 LOG.info("Purga de bitácora: eventos borrados={} retencionMeses={}", borradas, meses);
             } catch (RuntimeException e) {
-                LOG.error("Falló la purga de la bitácora", e);
+                LOG.error("Falló la purga de la bitácora", ExcepcionSinMensajes.de(e));
             }
         }
     }

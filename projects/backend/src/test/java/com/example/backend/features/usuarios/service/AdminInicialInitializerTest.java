@@ -5,13 +5,17 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.example.backend.support.PostgresIntegrationTest;
 
 @SpringBootTest
+@ExtendWith(OutputCaptureExtension.class)
 class AdminInicialInitializerTest extends PostgresIntegrationTest {
 
     @Autowired
@@ -37,6 +41,21 @@ class AdminInicialInitializerTest extends PostgresIntegrationTest {
     }
 
     @Test
+    void elAlta_registraElCodigoDelUsuarioYNoSuCorreo(CapturedOutput salida) {
+        // * Base descartable: se quita el administrador para volver a ver su alta.
+        jdbc.update("DELETE FROM authentication.usuario_rol WHERE usuario_id IN "
+                + "(SELECT id FROM authentication.usuario WHERE email = 'admin@test.local')");
+        jdbc.update("DELETE FROM authentication.usuario WHERE email = 'admin@test.local'");
+
+        initializer.run(null);
+
+        String codigo = jdbc.queryForObject("SELECT codigo_usuario::text FROM authentication.usuario "
+                + "WHERE email = 'admin@test.local'", String.class);
+        assertThat(salida.getAll()).contains("Administrador inicial creado usuarioCodigo=" + codigo)
+                .doesNotContain("admin@test.local");
+    }
+
+    @Test
     void ejecutarDeNuevo_conAdminExistente_noCambiaNada() {
         assertThatCode(() -> initializer.run(null)).doesNotThrowAnyException();
 
@@ -49,6 +68,16 @@ class AdminInicialInitializerTest extends PostgresIntegrationTest {
         assertThatThrownBy(() -> AdminInicialInitializer.validar("", ""))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("INITIAL_ADMIN_PASSWORD");
+    }
+
+    @Test
+    void validar_conUnaContrasenaMuyUsada_lanzaExcepcionSinMostrarla() {
+        String comun = "Password123"; // gitleaks:allow
+
+        assertThatThrownBy(() -> AdminInicialInitializer.validar("admin@test.local", comun))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("muy usada")
+                .hasMessageNotContaining(comun);
     }
 
     @Test

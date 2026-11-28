@@ -74,7 +74,7 @@ public class GlobalExceptionHandler {
         if (ex instanceof ErrorResponse error && error.getStatusCode().is4xxClientError()) {
             return errorDelCliente(error);
         }
-        LOG.error("Error interno no controlado", ex);
+        LOG.error("Error interno no controlado", ExcepcionSinMensajes.de(ex));
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("ERR_SYS_00", mensajes.de("common.error.inesperado")));
     }

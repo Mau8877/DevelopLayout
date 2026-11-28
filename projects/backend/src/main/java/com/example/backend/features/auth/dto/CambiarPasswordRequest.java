@@ -1,5 +1,6 @@
 package com.example.backend.features.auth.dto;
 
+import com.example.backend.common.validation.PasswordNoComun;
 import com.example.backend.features.auth.validation.MaximoBytes;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -17,6 +18,7 @@ public record CambiarPasswordRequest(
         @NotBlank(message = "{auth.validacion.passwordObligatoria}")
         @Size(min = 8, max = 72, message = "{auth.validacion.passwordLargo}")
         @MaximoBytes(72)
+        @PasswordNoComun
         String passwordNueva) {
 
     // ! Sin las contraseñas: un record las incluiría en su toString.

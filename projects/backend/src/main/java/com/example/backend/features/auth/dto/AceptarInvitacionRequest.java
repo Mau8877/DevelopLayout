@@ -1,5 +1,6 @@
 package com.example.backend.features.auth.dto;
 
+import com.example.backend.common.validation.PasswordNoComun;
 import com.example.backend.features.auth.validation.MaximoBytes;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -16,6 +17,7 @@ public record AceptarInvitacionRequest(
         @NotBlank(message = "{auth.validacion.passwordObligatoria}")
         @Size(min = 8, max = 72, message = "{auth.validacion.passwordLargo}")
         @MaximoBytes(72)
+        @PasswordNoComun
         String password) {
     // ! Sin el token ni la contraseña: un record los incluiría en su toString.
     @Override

@@ -19,6 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import com.example.backend.common.validation.ContrasenasComunes;
 import com.example.backend.features.usuarios.constant.RolNombres;
 
 /**
@@ -109,6 +110,10 @@ public class AdminInicialInitializer implements ApplicationRunner {
             throw new IllegalStateException("INITIAL_ADMIN_PASSWORD debe tener entre " + PASSWORD_MIN_BYTES
                     + " y " + PASSWORD_MAX_BYTES + " bytes");
         }
+        if (ContrasenasComunes.contiene(password)) {
+            throw new IllegalStateException(
+                    "INITIAL_ADMIN_PASSWORD es una contraseña muy usada y fácil de adivinar: elige otra");
+        }
     }
 
     private void crear(JdbcTemplate jdbc, TransactionTemplate transaccion) {
@@ -130,6 +135,6 @@ public class AdminInicialInitializer implements ApplicationRunner {
             throw new IllegalStateException("Ya existe un usuario con INITIAL_ADMIN_EMAIL pero ninguno es "
                     + RolNombres.SUPER_ADMIN + ": resolvelo a mano o usá otro correo", e);
         }
-        LOG.info("Administrador inicial creado: {} ({})", correo, RolNombres.SUPER_ADMIN);
+        LOG.info("Administrador inicial creado usuarioCodigo={} rol={}", codigoUsuario, RolNombres.SUPER_ADMIN);
     }
 }
