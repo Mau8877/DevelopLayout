@@ -1,0 +1,69 @@
+{
+  "columna": {
+    "correo": "Correo",
+    "roles": "Roles",
+    "estado": "Estado",
+    "invitacion": "Invitación",
+    "alta": "Creada"
+  },
+  "estado": {
+    "activa": "Activa",
+    "inactiva": "Inactiva"
+  },
+  "invitacion": {
+    "pendiente": "Pendiente"
+  },
+  "rol": {
+    "superAdmin": {
+      "nombre": "Administrador",
+      "descripcion": "Control total del sistema"
+    },
+    "usuario": {
+      "nombre": "Usuario",
+      "descripcion": "Acceso estándar"
+    }
+  },
+  "errorDeAccion": "No pudimos completar la acción. Inténtalo de nuevo.",
+  "crear": {
+    "titulo": "Crear usuario",
+    "subtitulo": "Recibirá un correo para elegir su contraseña",
+    "confirmar": "Crear",
+    "correo": "Correo",
+    "exitoTitulo": "Usuario creado",
+    "exitoTexto": "Le enviamos la invitación por correo",
+    "sinCorreoTitulo": "La cuenta se creó, pero no se pudo enviar el correo",
+    "sinCorreoTexto": "Reenvía la invitación desde la lista"
+  },
+  "roles": {
+    "titulo": "Cambiar roles",
+    "actualizados": "Roles actualizados",
+    "propio": "No puedes quitarte tu propio rol de administrador",
+    "confirmarTitulo": "Confirmar el cambio de roles",
+    "avisoPropio": "Se cerrarán tus sesiones abiertas, también esta: tendrás que iniciar sesión de nuevo.",
+    "avisoOtro": "Se cerrarán las sesiones abiertas de {{correo}}. Los roles nuevos se aplican la próxima vez que inicie sesión."
+  },
+  "lista": {
+    "usuarioDesactivado": "Usuario desactivado",
+    "usuarioReactivado": "Usuario reactivado",
+    "invitacionReenviada": "Invitación reenviada",
+    "sinCorreoTitulo": "No se pudo enviar el correo",
+    "sinCorreoTexto": "Inténtalo de nuevo en un momento",
+    "cambiarRoles": "Cambiar roles",
+    "reenviar": "Reenviar invitación",
+    "desactivar": "Desactivar",
+    "reactivar": "Reactivar",
+    "buscar": "Buscar por correo",
+    "filtroEstado": "Estado",
+    "filtroRol": "Rol",
+    "crear": "Crear usuario",
+    "vacio": "No hay usuarios con esos criterios",
+    "desactivarTitulo": "Desactivar usuario",
+    "desactivarAviso": "{{correo}} no podrá iniciar sesión y se cerrarán sus sesiones abiertas. Puedes reactivar la cuenta después."
+  },
+  "validacion": {
+    "correoObligatorio": "El correo es obligatorio",
+    "correoLargo": "El correo es demasiado largo",
+    "correoInvalido": "El correo no es válido",
+    "rolObligatorio": "Elige al menos un rol"
+  }
+}

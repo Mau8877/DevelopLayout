@@ -12,8 +12,8 @@ import {
   RouterProvider,
 } from '@tanstack/react-router'
 import { apiClient, ApiError } from '@/store'
-import { authKeys } from '../api/keys'
-import { ResetPasswordPage } from '../screens/ResetPasswordPage'
+import { authKeys } from '../api'
+import { ResetPasswordPage } from '../screens'
 
 // * Con un router de verdad: lo que se prueba es qué pasa con la URL y el historial.
 function renderEn(url: string) {
@@ -40,7 +40,7 @@ function renderEn(url: string) {
 async function completar(password: string, confirmacion = password) {
   const user = userEvent.setup()
   const nueva = await screen.findByLabelText('Contraseña nueva')
-  const repetida = screen.getByLabelText('Repetí la contraseña')
+  const repetida = screen.getByLabelText('Repite la contraseña')
   await user.clear(nueva)
   await user.type(nueva, password)
   await user.clear(repetida)

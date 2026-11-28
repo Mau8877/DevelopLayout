@@ -3,7 +3,7 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { apiClient, ApiError } from '@/store'
-import { SesionesAdminScreen } from '../screens/SesionesAdminScreen'
+import { SesionesAdminScreen } from '../screens'
 
 const sesion = {
   codigo: 's-1',
@@ -54,7 +54,7 @@ describe('SesionesAdminScreen', () => {
 
     // * Se muestra el resumen del dispositivo y el user agent completo queda en el `title`.
     expect(await screen.findByTitle('Navegador de prueba')).toHaveTextContent('Dispositivo desconocido')
-    expect(post).toHaveBeenCalledWith('/admin/sesiones/buscar', { email: 'ana@test.local', page: 1, pageSize: 20 })
+    expect(post).toHaveBeenCalledWith('/admin/sessions/search', { email: 'ana@test.local', page: 1, pageSize: 20 })
     const claves = JSON.stringify(queryClient.getQueryCache().getAll().map((q) => q.queryKey))
     expect(claves).not.toContain('ana@test.local')
   })
@@ -79,7 +79,7 @@ describe('SesionesAdminScreen', () => {
     expect(borrar).not.toHaveBeenCalled()
     await user.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Cerrar' }))
 
-    await waitFor(() => expect(borrar).toHaveBeenCalledWith('/admin/sesiones/s-1'))
+    await waitFor(() => expect(borrar).toHaveBeenCalledWith('/admin/sessions/s-1'))
     await waitFor(() => expect(post).toHaveBeenCalledTimes(2))
   })
 
@@ -91,7 +91,7 @@ describe('SesionesAdminScreen', () => {
     await user.click(await screen.findByRole('button', { name: 'Cerrar todas' }))
     await user.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Cerrar' }))
 
-    await waitFor(() => expect(post).toHaveBeenCalledWith('/admin/usuarios/u-9/sesiones/cerrar'))
+    await waitFor(() => expect(post).toHaveBeenCalledWith('/admin/users/u-9/sessions/revoke'))
   })
 
   it('un fallo muestra el mensaje del backend con Reintentar', async () => {

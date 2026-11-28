@@ -5,10 +5,10 @@ import { loginSchema } from './loginSchema'
 export const resetPasswordSchema = z
   .object({
     password: loginSchema.shape.password,
-    confirmacion: z.string().min(1, 'Repetí la contraseña'),
+    confirmacion: z.string().min(1, 'auth:validacion.repetirPassword'),
   })
   .refine((valores) => valores.password === valores.confirmacion, {
-    message: 'Las contraseñas no coinciden',
+    message: 'auth:validacion.passwordsDistintas',
     path: ['confirmacion'],
   })
 

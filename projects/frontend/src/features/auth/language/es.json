@@ -1,0 +1,99 @@
+{
+  "comun": {
+    "correo": "Correo",
+    "password": "Contraseña",
+    "errorDeAccion": "No pudimos completar la acción. Inténtalo de nuevo.",
+    "cerrar": "Cerrar"
+  },
+  "validacion": {
+    "correoObligatorio": "El correo es obligatorio",
+    "correoInvalido": "El correo no es válido",
+    "passwordObligatoria": "La contraseña es obligatoria",
+    "passwordCorta": "La contraseña debe tener al menos 8 caracteres",
+    "passwordLarga": "La contraseña es demasiado larga",
+    "repetirPassword": "Repite la contraseña",
+    "passwordsDistintas": "Las contraseñas no coinciden"
+  },
+  "login": {
+    "titulo": "Iniciar sesión",
+    "descripcion": "Ingresa con tu correo y contraseña",
+    "error": "No pudimos iniciar sesión. Inténtalo de nuevo.",
+    "entrando": "Iniciando sesión…",
+    "entrar": "Iniciar sesión",
+    "olvidaste": "¿Olvidaste tu contraseña?"
+  },
+  "recuperar": {
+    "titulo": "Recuperar contraseña",
+    "descripcion": "Escribe el correo de tu cuenta",
+    "error": "No pudimos enviar la solicitud. Inténtalo de nuevo.",
+    "enviado": "Si hay una cuenta con ese correo, te enviamos un enlace para restablecer la contraseña. Revisa también la carpeta de correo no deseado.",
+    "enviando": "Enviando…",
+    "enviar": "Enviar enlace",
+    "volver": "Volver a iniciar sesión"
+  },
+  "nuevaPassword": {
+    "password": "Contraseña nueva",
+    "confirmacion": "Repite la contraseña",
+    "guardando": "Guardando…"
+  },
+  "restablecer": {
+    "titulo": "Elige una contraseña nueva",
+    "descripcion": "Se cerrarán tus sesiones abiertas",
+    "boton": "Cambiar contraseña",
+    "exitoTitulo": "Contraseña actualizada",
+    "exitoTexto": "Ya puedes iniciar sesión",
+    "error": "No pudimos cambiar la contraseña. Inténtalo de nuevo.",
+    "enlaceTitulo": "El enlace no sirve",
+    "enlaceTexto": "El enlace no es válido, ya se usó o venció. Si recargaste la página, ábrelo de nuevo desde el correo o pide otro.",
+    "pedirOtro": "Pedir un enlace nuevo"
+  },
+  "invitacion": {
+    "titulo": "Activa tu cuenta",
+    "descripcion": "Elige la contraseña con la que vas a iniciar sesión",
+    "boton": "Activar cuenta",
+    "exitoTitulo": "Cuenta activada",
+    "exitoTexto": "Ya puedes iniciar sesión",
+    "error": "No pudimos activar la cuenta. Inténtalo de nuevo.",
+    "invalidaTitulo": "La invitación no sirve",
+    "invalidaTexto": "La invitación no es válida, ya se usó o venció. Si recargaste la página, ábrela de nuevo desde el correo. Si no funciona, pide a un administrador que te envíe otra.",
+    "irALogin": "Ir al inicio de sesión"
+  },
+  "sesiones": {
+    "columna": {
+      "dispositivo": "Dispositivo",
+      "cliente": "Cliente",
+      "ip": "IP",
+      "iniciada": "Iniciada",
+      "ultimoUso": "Último uso"
+    },
+    "cerrada": "Sesión cerrada",
+    "tituloCerrar": "Cerrar sesión"
+  },
+  "misSesiones": {
+    "actual": "Esta sesión",
+    "demasCerradas": "Se cerraron las demás sesiones",
+    "explicacion": "Estos son los lugares donde tu cuenta está abierta. Si no reconoces alguno, ciérralo y cambia tu contraseña.",
+    "cerrarDemas": "Cerrar todas las demás",
+    "vacio": "No hay sesiones activas",
+    "cerrarEsta": "Cerrar esta otra sesión",
+    "tituloDemas": "Cerrar todas las demás sesiones",
+    "avisoDemas": "Los demás dispositivos perderán el acceso de inmediato. Esta sesión sigue abierta.",
+    "avisoUna": "Ese dispositivo perderá el acceso de inmediato."
+  },
+  "sesionesAdmin": {
+    "cerradas": "Sesiones cerradas",
+    "codigoCopiado": "Código de usuario copiado",
+    "noSeCopio": "No se pudo copiar",
+    "correoDelUsuario": "Correo del usuario",
+    "correoExacto": "Correo exacto",
+    "buscar": "Buscar",
+    "instruccion": "Busca un usuario por su correo para ver sus sesiones activas.",
+    "copiarCodigo": "Copiar código de usuario",
+    "cerrarTodas": "Cerrar todas",
+    "vacio": "No hay sesiones activas para ese correo",
+    "cerrarDispositivo": "Cerrar sesión de este dispositivo",
+    "tituloTodas": "Cerrar todas las sesiones",
+    "avisoTodas": "El usuario perderá el acceso en todos sus dispositivos. Si es tu cuenta, tendrás que iniciar sesión de nuevo.",
+    "avisoUna": "El dispositivo perderá el acceso de inmediato. Si es tu sesión actual, tendrás que iniciar sesión de nuevo."
+  }
+}

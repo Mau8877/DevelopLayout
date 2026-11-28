@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -24,11 +25,12 @@ export function ModalDetailLayout({
   subtitle,
   icon,
   size = 'md',
-  closeLabel = 'Cerrar',
+  closeLabel,
   actionLabel,
   onAction,
   children,
 }: ModalDetailLayoutProps) {
+  const { t } = useTranslation('shared')
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -39,7 +41,7 @@ export function ModalDetailLayout({
         <div className="flex-1 overflow-y-auto p-6">{children}</div>
         <DialogFooter className="shrink-0 border-t border-border p-6">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            {closeLabel}
+            {closeLabel ?? t('comun.cerrar')}
           </Button>
           {actionLabel && onAction && (
             <Button type="button" variant="success" onClick={onAction}>

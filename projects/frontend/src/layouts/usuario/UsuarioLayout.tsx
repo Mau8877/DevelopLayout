@@ -1,5 +1,7 @@
 import { AppShell } from '@/components/layout'
 import { useLogout } from '@/features/auth'
+import { APP_NAME } from '@/utils'
+import { useMenuTraducido } from '../navegacion'
 
 import { usuarioNavItems } from './usuarioNavItems'
 import type { UsuarioLayoutProps } from './usuarioTypes'
@@ -12,12 +14,13 @@ export function UsuarioLayout({
   children,
 }: UsuarioLayoutProps) {
   const logout = useLogout()
+  const menu = useMenuTraducido(usuarioNavItems)
 
   return (
     <AppShell
-      appName="App"
+      appName={APP_NAME}
       title={title}
-      navItems={usuarioNavItems}
+      navItems={menu}
       activeHref={activeHref}
       user={user}
       notifications={notifications}

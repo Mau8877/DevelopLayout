@@ -6,7 +6,7 @@ export function useCerrarTodasAdmin() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (codigoUsuario: string) => apiClient.post(`/admin/usuarios/${codigoUsuario}/sesiones/cerrar`),
+    mutationFn: (codigoUsuario: string) => apiClient.post(`/admin/users/${codigoUsuario}/sessions/revoke`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: authKeys.sesionesAdmin }),
   })
 }

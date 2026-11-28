@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { type LucideIcon, XIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DialogClose, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -11,6 +12,7 @@ export interface ModalLayoutHeaderProps {
 }
 
 export function ModalLayoutHeader({ title, subtitle, icon: Icon, className }: ModalLayoutHeaderProps) {
+  const { t } = useTranslation('shared')
   return (
     // * bg-header/text-header-foreground (no bg-primary) a propósito -- es
     // * el mismo token fijo (no varía entre claro/oscuro) que usa AppHeader
@@ -37,7 +39,7 @@ export function ModalLayoutHeader({ title, subtitle, icon: Icon, className }: Mo
           }
         >
           <XIcon />
-          <span className="sr-only">Cerrar</span>
+          <span className="sr-only">{t('comun.cerrar')}</span>
         </DialogClose>
       </div>
       {subtitle && <DialogDescription className="text-header-foreground/80">{subtitle}</DialogDescription>}

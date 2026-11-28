@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { UsuarioSesion } from '@/features/auth'
 import { AdminLayout } from './admin'
 import { UsuarioLayout } from './usuario'
@@ -15,11 +16,12 @@ interface LayoutPorRolProps {
  * el layout de ese rol en las rutas, no acá.
  */
 export function LayoutPorRol({ usuario, title, children }: LayoutPorRolProps) {
+  const { t } = useTranslation('shared')
   const esAdmin = usuario.roles.includes('SUPER_ADMIN')
   const Layout = esAdmin ? AdminLayout : UsuarioLayout
 
   return (
-    <Layout title={title} user={{ nombre: usuario.email, rol: esAdmin ? 'Administrador' : 'Usuario' }}>
+    <Layout title={title} user={{ nombre: usuario.email, rol: t(esAdmin ? 'rol.administrador' : 'rol.usuario') }}>
       {children}
     </Layout>
   )

@@ -1,7 +1,7 @@
-import dayjs from './dayjsEs'
+import { dayjs } from './dayjsLocal'
 
 /**
- * Formatea una fecha ISO-8601 a relativo en español (ej. "hace 5 minutos",
+ * Formatea una fecha ISO-8601 a relativo en el idioma vigente (ej. "hace 5 minutos",
  * "hace 2 días") -- pensado para timestamps de eventos recientes
  * (notificaciones, actividad reciente), no para fechas de negocio lejanas
  * (ahí una fecha absoluta es más útil que "hace 3 meses").

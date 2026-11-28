@@ -1,0 +1,35 @@
+{
+  "resultado": {
+    "todos": "All",
+    "exito": "Success",
+    "fallo": "Failure"
+  },
+  "campo": {
+    "fecha": "Date",
+    "accion": "Action",
+    "modulo": "Module",
+    "resultado": "Result",
+    "usuario": "User",
+    "codigoUsuario": "User code",
+    "desde": "From",
+    "hasta": "To",
+    "ip": "IP",
+    "entidad": "Entity",
+    "codigoEntidad": "Entity code"
+  },
+  "filtrar": "Filter",
+  "limpiar": "Clear filters",
+  "errorDeCarga": "We could not load the audit log.",
+  "vacio": "There are no events for those filters",
+  "verDetalle": "View details",
+  "detalle": "Details",
+  "evento": "Event",
+  "sinDetalle": "No details",
+  "validacion": {
+    "fechaInvalida": "The date is not valid",
+    "accionLarga": "The action is too long",
+    "moduloLargo": "The module is too long",
+    "codigoInvalido": "The user code is not valid",
+    "rangoInvalido": "The start date cannot be after the end date"
+  }
+}

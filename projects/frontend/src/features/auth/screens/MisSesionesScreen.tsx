@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { LogOutIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -7,24 +8,25 @@ import { ModalDestructive } from '@/components/ui/modal-destructive'
 import { DataTable, DataTablePagination, RowActionButton, useDataTable } from '@/components/ui/tanstack-table'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import { ApiError } from '@/store'
-import { useCerrarMiSesion } from '../api/useCerrarMiSesion'
-import { useCerrarOtrasSesiones } from '../api/useCerrarOtrasSesiones'
-import { useMisSesiones } from '../api/useMisSesiones'
-import { columnasSesion } from '../components/columnasSesion'
-import type { MiSesion } from '../types/sesion'
-
-const columnas = columnasSesion<MiSesion>((sesion) => (sesion.actual ? <Badge>Esta sesión</Badge> : null))
+import { useCerrarMiSesion } from '../api'
+import { useCerrarOtrasSesiones } from '../api'
+import { useMisSesiones } from '../api'
+import { columnasSesion } from '../components'
+import type { MiSesion } from '../types'
 
 type Confirmacion = { tipo: 'una'; sesion: MiSesion } | { tipo: 'otras' }
 
-function mensajeDelError(error: unknown): string {
-  return error instanceof ApiError ? error.message : 'No pudimos completar la acción. Intentá de nuevo.'
-}
-
 export function MisSesionesScreen() {
+  const { t } = useTranslation('auth')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
   const [confirmacion, setConfirmacion] = useState<Confirmacion | null>(null)
+
+  const columnas = columnasSesion<MiSesion>((sesion) =>
+    sesion.actual ? <Badge>{t('misSesiones.actual')}</Badge> : null,
+  )
+  const mensajeDelError = (error: unknown) =>
+    error instanceof ApiError ? error.message : t('comun.errorDeAccion')
 
   const consulta = useMisSesiones(page, pageSize)
   const cerrarUna = useCerrarMiSesion()
@@ -54,10 +56,10 @@ export function MisSesionesScreen() {
     try {
       if (confirmacion.tipo === 'una') {
         await cerrarUna.mutateAsync(confirmacion.sesion.codigo)
-        toastSuccess('Sesión cerrada')
+        toastSuccess(t('sesiones.cerrada'))
       } else {
         await cerrarOtras.mutateAsync()
-        toastSuccess('Se cerraron las demás sesiones')
+        toastSuccess(t('misSesiones.demasCerradas'))
         setPage(1)
       }
     } catch (error) {
@@ -74,10 +76,7 @@ export function MisSesionesScreen() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">
-          Estos son los lugares donde tu cuenta está abierta. Si no reconocés alguno, cerralo y cambiá tu
-          contraseña.
-        </p>
+        <p className="text-sm text-muted-foreground">{t('misSesiones.explicacion')}</p>
         <Button
           variant="destructive"
           size="sm"
@@ -85,7 +84,7 @@ export function MisSesionesScreen() {
           onClick={() => setConfirmacion({ tipo: 'otras' })}
         >
           <LogOutIcon data-icon="inline-start" />
-          Cerrar todas las demás
+          {t('misSesiones.cerrarDemas')}
         </Button>
       </div>
 
@@ -93,12 +92,12 @@ export function MisSesionesScreen() {
         table={table}
         isLoading={consulta.isPending}
         isError={false}
-        emptyMessage="No hay sesiones activas"
+        emptyMessage={t('misSesiones.vacio')}
         renderActions={(row) =>
           row.original.actual ? null : (
             <RowActionButton
               icon={<LogOutIcon />}
-              label="Cerrar esta otra sesión"
+              label={t('misSesiones.cerrarEsta')}
               variant="destructive"
               onClick={() => setConfirmacion({ tipo: 'una', sesion: row.original })}
             />
@@ -116,13 +115,13 @@ export function MisSesionesScreen() {
       <ModalDestructive
         open={confirmacion !== null}
         onOpenChange={(open) => !open && setConfirmacion(null)}
-        title={confirmacion?.tipo === 'otras' ? 'Cerrar todas las demás sesiones' : 'Cerrar sesión'}
+        title={confirmacion?.tipo === 'otras' ? t('misSesiones.tituloDemas') : t('sesiones.tituloCerrar')}
         description={
           confirmacion?.tipo === 'otras'
-            ? 'Los demás dispositivos perderán el acceso de inmediato. Esta sesión sigue abierta.'
-            : 'Ese dispositivo perderá el acceso de inmediato.'
+            ? t('misSesiones.avisoDemas')
+            : t('misSesiones.avisoUna')
         }
-        confirmLabel="Cerrar"
+        confirmLabel={t('comun.cerrar')}
         isSubmitting={cerrarUna.isPending || cerrarOtras.isPending}
         onConfirm={() => void confirmar()}
       />

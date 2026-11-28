@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance, type CreateAxiosDefaults, type InternalAxiosRequestConfig } from 'axios'
-import { logger } from '@/utils/logger'
+import { logger } from '@/utils'
 
 // * Activado por VITE_ENABLE_API_LOGS (ver .env.example). Con la variable en
 // * false/ausente no se loguea nada -- ni siquiera el resumen colapsado.

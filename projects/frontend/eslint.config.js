@@ -1,4 +1,5 @@
 import js from '@eslint/js'
+import i18next from 'eslint-plugin-i18next'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
@@ -41,6 +42,30 @@ export default defineConfig([
     files: ['src/components/ui/**/*.tsx'],
     rules: {
       'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
+    // Sin texto fijo en pantalla: todo sale de los archivos de idioma (IDIOMAS_FRONTEND.md).
+    // Lo que esta regla no ve (avisos, mensajes de Zod, voseo) lo cubre sinTextoFijo.test.ts.
+    files: ['src/**/*.tsx'],
+    ignores: ['src/**/*.test.tsx', 'src/**/tests/**'],
+    plugins: { i18next },
+    rules: {
+      'i18next/no-literal-string': [
+        'error',
+        {
+          mode: 'jsx-only',
+          'jsx-attributes': {
+            include: [
+              'aria-label', 'aria-description', 'placeholder', 'title', 'alt', 'label', 'legend', 'description',
+              'subtitle', 'titulo', 'descripcion', 'confirmLabel', 'cancelLabel', 'closeLabel', 'actionLabel',
+              'emptyMessage', 'actionsLabel', 'searchPlaceholder', 'textoBoton', 'mensajeGenerico', 'appName',
+            ],
+          },
+          words: { exclude: ['[0-9!-/:-@[-`{-~—…·•]+', '[A-Z_-]+'] },
+          'jsx-components': { exclude: ['Trans'] },
+        },
+      ],
     },
   },
 ])

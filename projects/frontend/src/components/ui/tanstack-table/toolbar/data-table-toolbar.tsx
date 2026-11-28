@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { SearchIcon, XIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
@@ -51,11 +52,12 @@ export interface DataTableToolbarProps {
 export function DataTableToolbar({
   searchValue,
   onSearchChange,
-  searchPlaceholder = 'Buscar...',
+  searchPlaceholder,
   filters = [],
   actions,
   className,
 }: DataTableToolbarProps) {
+  const { t } = useTranslation('shared')
   const hasActiveFilters =
     Boolean(searchValue?.trim()) || filters.some((filter) => filter.value !== undefined)
 
@@ -74,7 +76,7 @@ export function DataTableToolbar({
               type="search"
               value={searchValue ?? ''}
               onChange={(event) => onSearchChange(event.target.value)}
-              placeholder={searchPlaceholder}
+              placeholder={searchPlaceholder ?? t('filtros.buscar')}
               className="w-56 pl-8"
             />
           </div>
@@ -92,13 +94,13 @@ export function DataTableToolbar({
                 <SelectValue placeholder={filter.placeholder ?? filter.label}>
                   {(value: string | null) =>
                     !value || value === FILTER_ALL_VALUE
-                      ? 'Todos'
+                      ? t('filtros.todos')
                       : (filter.options.find((option) => option.value === value)?.label ?? value)
                   }
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={FILTER_ALL_VALUE}>Todos</SelectItem>
+                <SelectItem value={FILTER_ALL_VALUE}>{t('filtros.todos')}</SelectItem>
                 {filter.options.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -111,7 +113,7 @@ export function DataTableToolbar({
         {hasActiveFilters && (
           <Button variant="ghost" size="sm" onClick={clearFilters}>
             <XIcon data-icon="inline-start" />
-            Limpiar filtros
+            {t('filtros.limpiar')}
           </Button>
         )}
       </div>

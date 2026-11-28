@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/api/v1/admin/sesiones/buscar": {
+    "/api/v1/admin/sessions/search": {
         parameters: {
             query?: never;
             header?: never;
@@ -20,7 +20,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/sesiones/{codigo}": {
+    "/api/v1/admin/sessions/{codigo}": {
         parameters: {
             query?: never;
             header?: never;
@@ -36,7 +36,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/usuarios/{codigoUsuario}/sesiones/cerrar": {
+    "/api/v1/admin/users/{codigoUsuario}/sessions/revoke": {
         parameters: {
             query?: never;
             header?: never;
@@ -46,6 +46,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["cerrarTodas"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/audit-log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listar"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -180,7 +196,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/sesiones": {
+    "/api/v1/auth/sessions": {
         parameters: {
             query?: never;
             header?: never;
@@ -196,7 +212,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/sesiones/cerrar-otras": {
+    "/api/v1/auth/sessions/revoke-others": {
         parameters: {
             query?: never;
             header?: never;
@@ -212,7 +228,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/sesiones/{codigo}": {
+    "/api/v1/auth/sessions/{codigo}": {
         parameters: {
             query?: never;
             header?: never;
@@ -228,23 +244,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/bitacora": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["listar"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/usuarios": {
+    "/api/v1/users": {
         parameters: {
             query?: never;
             header?: never;
@@ -260,7 +260,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/usuarios/buscar": {
+    "/api/v1/users/search": {
         parameters: {
             query?: never;
             header?: never;
@@ -276,7 +276,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/usuarios/{codigo}/desactivar": {
+    "/api/v1/users/{codigo}/deactivate": {
         parameters: {
             query?: never;
             header?: never;
@@ -292,7 +292,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/usuarios/{codigo}/reactivar": {
+    "/api/v1/users/{codigo}/reactivate": {
         parameters: {
             query?: never;
             header?: never;
@@ -308,7 +308,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/usuarios/{codigo}/reenviar-invitacion": {
+    "/api/v1/users/{codigo}/resend-invitation": {
         parameters: {
             query?: never;
             header?: never;
@@ -324,7 +324,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/usuarios/{codigo}/roles": {
+    "/api/v1/users/{codigo}/roles": {
         parameters: {
             query?: never;
             header?: never;
@@ -646,6 +646,35 @@ export interface operations {
             };
         };
     };
+    listar: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                "filter[action]"?: string;
+                "filter[module]"?: string;
+                "filter[result]"?: "EXITO" | "FALLO";
+                "filter[userCode]"?: string;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListBitacoraResponse"];
+                };
+            };
+        };
+    };
     csrf: {
         parameters: {
             query?: never;
@@ -889,35 +918,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseVoid"];
-                };
-            };
-        };
-    };
-    listar: {
-        parameters: {
-            query?: {
-                page?: number;
-                pageSize?: number;
-                "filter[accion]"?: string;
-                "filter[modulo]"?: string;
-                "filter[resultado]"?: "EXITO" | "FALLO";
-                "filter[usuarioCodigo]"?: string;
-                desde?: string;
-                hasta?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ApiResponseListBitacoraResponse"];
                 };
             };
         };

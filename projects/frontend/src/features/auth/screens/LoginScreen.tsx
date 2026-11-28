@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useForm } from '@tanstack/react-form'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { Alert } from '@/components/ui/alert'
@@ -6,18 +7,13 @@ import { FormField } from '@/components/ui/form-field'
 import { Input } from '@/components/ui/input'
 import { CenteredCardLayout } from '@/components/layout'
 import { ApiError } from '@/store'
-import { primerError } from '@/utils/primerError'
-import { validarAlSalir } from '@/utils/validarAlSalir'
-import { useLogin } from '../api/useLogin'
-import { loginSchema } from '../schemas/loginSchema'
-
-const MENSAJE_GENERICO = 'No pudimos iniciar sesión. Intentá de nuevo.'
-
-function mensajeDelError(error: unknown): string {
-  return error instanceof ApiError ? error.message : MENSAJE_GENERICO
-}
+import { primerError } from '@/utils'
+import { validarAlSalir } from '@/utils'
+import { useLogin } from '../api'
+import { loginSchema } from '../schemas'
 
 export function LoginScreen() {
+  const { t } = useTranslation('auth')
   const navigate = useNavigate()
   const login = useLogin()
 
@@ -27,7 +23,7 @@ export function LoginScreen() {
     onSubmit: async ({ value }) => {
       try {
         await login.mutateAsync(value)
-        await navigate({ to: '/panel' })
+        await navigate({ to: '/dashboard' })
       } catch {
         // * El error queda en login.error y se muestra abajo; nada que hacer acá.
       }
@@ -37,7 +33,7 @@ export function LoginScreen() {
   const bloqueada = login.error instanceof ApiError && login.error.code === 'ERR_AUTH_02'
 
   return (
-    <CenteredCardLayout titulo="Iniciar sesión" descripcion="Ingresá con tu correo y contraseña">
+    <CenteredCardLayout titulo={t('login.titulo')} descripcion={t('login.descripcion')}>
       <form
         noValidate
         className="flex flex-col gap-4"
@@ -48,14 +44,14 @@ export function LoginScreen() {
         }}
       >
         {login.isError && (
-          <Alert variant={bloqueada ? 'warning' : 'destructive'}>{mensajeDelError(login.error)}</Alert>
+          <Alert variant={bloqueada ? 'warning' : 'destructive'}>{login.error instanceof ApiError ? login.error.message : t('login.error')}</Alert>
         )}
 
         <form.Field name="email">
           {(field) => (
             <FormField
               id="email"
-              label="Correo"
+              label={t('comun.correo')}
               error={field.state.meta.isTouched ? primerError(field.state.meta.errors) : undefined}
             >
               {(controlProps) => (
@@ -77,7 +73,7 @@ export function LoginScreen() {
           {(field) => (
             <FormField
               id="password"
-              label="Contraseña"
+              label={t('comun.password')}
               error={field.state.meta.isTouched ? primerError(field.state.meta.errors) : undefined}
             >
               {(controlProps) => (
@@ -97,12 +93,12 @@ export function LoginScreen() {
 
         {/* Deshabilitado mientras envía: evita el doble envío (más fuerte que un debounce). */}
         <Button type="submit" disabled={login.isPending}>
-          {login.isPending ? 'Ingresando…' : 'Ingresar'}
+          {login.isPending ? t('login.entrando') : t('login.entrar')}
         </Button>
 
         <p className="text-center text-sm">
           <Link to="/forgot-password" className="text-primary underline underline-offset-4">
-            ¿Olvidaste tu contraseña?
+            {t('login.olvidaste')}
           </Link>
         </p>
       </form>

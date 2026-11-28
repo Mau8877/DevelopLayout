@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useMemo, useState } from 'react'
 import { MailIcon, ShieldIcon, UserCheckIcon, UserPlusIcon, UserXIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -13,25 +14,21 @@ import {
 } from '@/components/ui/tanstack-table'
 import { toastError, toastSuccess, toastWarning } from '@/components/ui/toast'
 import { useSession } from '@/features/auth'
-import { debounce } from '@/utils/debounce'
-import { useCambiarEstadoUsuario, type CambioDeEstado } from '../api/useCambiarEstadoUsuario'
-import { useReenviarInvitacion } from '../api/useReenviarInvitacion'
-import { nuevaBusqueda, SIN_BUSQUEDA, useUsuarios } from '../api/useUsuarios'
-import { columnasUsuario } from '../components/columnasUsuario'
-import { CrearUsuarioModal } from '../components/CrearUsuarioModal'
-import { mensajeDelError } from '../components/mensajeDelError'
-import { RolesModal } from '../components/RolesModal'
-import { ROLES } from '../components/roles'
-import type { EstadoUsuario, Usuario } from '../types/usuario'
+import { debounce } from '@/utils'
+import { useCambiarEstadoUsuario, type CambioDeEstado } from '../api'
+import { useReenviarInvitacion } from '../api'
+import { nuevaBusqueda, SIN_BUSQUEDA, useUsuarios } from '../api'
+import { columnasUsuario } from '../components'
+import { CrearUsuarioModal } from '../components'
+import { mensajeDelError } from '../components'
+import { RolesModal } from '../components'
+import { opcionesDeRol } from '../components'
+import type { EstadoUsuario, Usuario } from '../types'
 
 const ESPERA_BUSQUEDA_MS = 300
 
-const OPCIONES_ESTADO = [
-  { value: 'ACTIVO', label: 'Activa' },
-  { value: 'INACTIVO', label: 'Inactiva' },
-]
-
 export function UsuariosScreen() {
+  const { t } = useTranslation('usuarios')
   const [texto, setTexto] = useState('')
   const [busqueda, setBusqueda] = useState(SIN_BUSQUEDA)
   const [estado, setEstado] = useState<EstadoUsuario | undefined>(undefined)
@@ -62,7 +59,7 @@ export function UsuariosScreen() {
   }
   const { table } = useDataTable({
     data: consulta.data?.data ?? [],
-    columns: columnasUsuario,
+    columns: columnasUsuario(t),
     meta: consulta.data?.meta,
     page,
     pageSize,
@@ -74,7 +71,7 @@ export function UsuariosScreen() {
   async function cambiar(cambio: CambioDeEstado) {
     try {
       await cambiarEstado.mutateAsync(cambio)
-      toastSuccess(cambio.accion === 'desactivar' ? 'Usuario desactivado' : 'Usuario reactivado')
+      toastSuccess(t(cambio.accion === 'deactivate' ? 'lista.usuarioDesactivado' : 'lista.usuarioReactivado'))
     } catch (error) {
       toastError(mensajeDelError(error))
     } finally {
@@ -85,8 +82,8 @@ export function UsuariosScreen() {
   async function reenviarInvitacion(usuario: Usuario) {
     try {
       const { invitacionEnviada } = await reenviar.mutateAsync(usuario.codigo)
-      if (invitacionEnviada) toastSuccess('Invitación reenviada')
-      else toastWarning('No se pudo enviar el correo', 'Probá de nuevo en un rato')
+      if (invitacionEnviada) toastSuccess(t('lista.invitacionReenviada'))
+      else toastWarning(t('lista.sinCorreoTitulo'), t('lista.sinCorreoTexto'))
     } catch (error) {
       toastError(mensajeDelError(error))
     }
@@ -99,14 +96,14 @@ export function UsuariosScreen() {
     <>
       <RowActionButton
         icon={<ShieldIcon />}
-        label="Cambiar roles"
+        label={t('lista.cambiarRoles')}
         disabled={ocupado}
         onClick={() => setConRoles(usuario)}
       />
       {usuario.estado === 'ACTIVO' && usuario.invitacionPendiente && (
         <RowActionButton
           icon={<MailIcon />}
-          label="Reenviar invitación"
+          label={t('lista.reenviar')}
           disabled={ocupado}
           onClick={() => void reenviarInvitacion(usuario)}
         />
@@ -114,7 +111,7 @@ export function UsuariosScreen() {
       {usuario.estado === 'ACTIVO' && usuario.codigo !== yo && (
         <RowActionButton
           icon={<UserXIcon />}
-          label="Desactivar"
+          label={t('lista.desactivar')}
           variant="destructive"
           disabled={ocupado}
           onClick={() => setADesactivar(usuario)}
@@ -123,9 +120,9 @@ export function UsuariosScreen() {
       {usuario.estado === 'INACTIVO' && (
         <RowActionButton
           icon={<UserCheckIcon />}
-          label="Reactivar"
+          label={t('lista.reactivar')}
           disabled={ocupado}
-          onClick={() => void cambiar({ codigo: usuario.codigo, accion: 'reactivar' })}
+          onClick={() => void cambiar({ codigo: usuario.codigo, accion: 'reactivate' })}
         />
       )}
     </>
@@ -139,12 +136,15 @@ export function UsuariosScreen() {
           setTexto(nuevo.slice(0, 255))
           aplicarBusqueda(nuevo.slice(0, 255))
         }}
-        searchPlaceholder="Buscar por correo"
+        searchPlaceholder={t('lista.buscar')}
         filters={[
           {
             id: 'estado',
-            label: 'Estado',
-            options: OPCIONES_ESTADO,
+            label: t('lista.filtroEstado'),
+            options: [
+              { value: 'ACTIVO', label: t('estado.activa') },
+              { value: 'INACTIVO', label: t('estado.inactiva') },
+            ],
             value: estado,
             onValueChange: (valor) => {
               setPage(1)
@@ -153,8 +153,8 @@ export function UsuariosScreen() {
           },
           {
             id: 'rol',
-            label: 'Rol',
-            options: ROLES,
+            label: t('lista.filtroRol'),
+            options: opcionesDeRol(),
             value: rol,
             onValueChange: (valor) => {
               setPage(1)
@@ -165,7 +165,7 @@ export function UsuariosScreen() {
         actions={
           <Button size="sm" onClick={() => setCreando(true)}>
             <UserPlusIcon data-icon="inline-start" />
-            Crear usuario
+            {t('lista.crear')}
           </Button>
         }
       />
@@ -179,7 +179,7 @@ export function UsuariosScreen() {
               table={table}
               isLoading={consulta.isPending}
               isError={false}
-              emptyMessage="No hay usuarios con esos criterios"
+              emptyMessage={t('lista.vacio')}
               renderActions={(row) => acciones(row.original)}
             />
           </div>
@@ -188,7 +188,7 @@ export function UsuariosScreen() {
               table={table}
               isLoading={consulta.isPending}
               isError={false}
-              emptyMessage="No hay usuarios con esos criterios"
+              emptyMessage={t('lista.vacio')}
               renderActions={(row) => acciones(row.original)}
             />
           </div>
@@ -210,11 +210,11 @@ export function UsuariosScreen() {
       <ModalConfirmacion
         open={aDesactivar !== null}
         onOpenChange={(open) => !open && setADesactivar(null)}
-        title="Desactivar usuario"
-        description={`${aDesactivar?.email ?? ''} no podrá iniciar sesión y se cerrarán sus sesiones abiertas. Podés reactivar la cuenta después.`}
-        confirmLabel="Desactivar"
+        title={t('lista.desactivarTitulo')}
+        description={t('lista.desactivarAviso', { correo: aDesactivar?.email ?? '' })}
+        confirmLabel={t('lista.desactivar')}
         isSubmitting={cambiarEstado.isPending}
-        onConfirm={() => aDesactivar && void cambiar({ codigo: aDesactivar.codigo, accion: 'desactivar' })}
+        onConfirm={() => aDesactivar && void cambiar({ codigo: aDesactivar.codigo, accion: 'deactivate' })}
       />
     </div>
   )

@@ -1,3 +1,3 @@
-export { BitacoraScreen } from './screens/BitacoraScreen'
-export { useBitacora } from './api/useBitacora'
-export { bitacoraKeys } from './api/keys'
+export { BitacoraScreen } from './screens'
+export { useBitacora } from './api'
+export { bitacoraKeys } from './api'

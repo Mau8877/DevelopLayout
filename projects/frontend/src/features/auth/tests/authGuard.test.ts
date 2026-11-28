@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { QueryClient } from '@tanstack/react-query'
 import { apiClient, ApiError, queryClient } from '@/store'
-import { ensureSession } from '../api/ensureSession'
+import { ensureSession } from '../api'
 
 const usuario = { codigo: 'u-1', email: 'a@b.co', roles: ['USUARIO'] }
 

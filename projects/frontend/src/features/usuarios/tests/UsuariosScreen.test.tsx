@@ -1,7 +1,7 @@
 import { screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiClient, ApiError } from '@/store'
-import { UsuariosScreen } from '../screens/UsuariosScreen'
+import { UsuariosScreen } from '../screens'
 import { montar, pagina, usuario } from './soporte'
 
 // * La tabla y las tarjetas conviven (se ocultan por CSS): se mira la tabla.
@@ -28,7 +28,7 @@ describe('UsuariosScreen: listado', () => {
     await user.type(screen.getByPlaceholderText('Buscar por correo'), 'ana@test')
 
     await waitFor(() =>
-      expect(post).toHaveBeenLastCalledWith('/usuarios/buscar', {
+      expect(post).toHaveBeenLastCalledWith('/users/search', {
         page: 1,
         pageSize: 20,
         search: 'ana@test',

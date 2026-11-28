@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import type { DataTablePageMeta } from '@/components/ui/tanstack-table'
 import { apiClient } from '@/store'
-import type { EstadoUsuario, Usuario } from '../types/usuario'
+import type { EstadoUsuario, Usuario } from '../types'
 import { usuariosKeys, type ClaveDeListado } from './keys'
 
 /** `id` distingue una búsqueda de otra sin poner el texto en la clave de caché. */
@@ -39,7 +39,7 @@ export function useUsuarios({ busqueda, estado, rol, page, pageSize }: Parametro
     queryKey: usuariosKeys.list({ busqueda: busqueda.id, estado: estado ?? '', rol: rol ?? '', page, pageSize }),
     queryFn: async () => {
       // * POST con el texto en el body: no queda en URLs ni en logs de acceso.
-      const response = await apiClient.post<Pagina>('/usuarios/buscar', {
+      const response = await apiClient.post<Pagina>('/users/search', {
         page,
         pageSize,
         search: busqueda.texto || undefined,

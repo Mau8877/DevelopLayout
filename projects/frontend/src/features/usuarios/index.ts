@@ -1,2 +1,2 @@
-export { usuariosKeys } from './api/keys'
-export { UsuariosScreen } from './screens/UsuariosScreen'
+export { usuariosKeys } from './api'
+export { UsuariosScreen } from './screens'

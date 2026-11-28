@@ -2,12 +2,14 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import './index.css'
+import './shared/language'
 import { routeTree } from './routeTree.gen'
+import { PaginaNoEncontrada } from './components/layout'
 import { ErrorState } from './components/ui/error-state'
 import { Toaster } from './components/ui/sonner'
 import { manejarSesionExpirada } from './features/auth'
 import { QueryProvider, ensureCsrfCookie, onSesionExpirada, queryClient } from './store'
-import { logger } from './utils/logger'
+import { logger } from '@/utils'
 
 // * Errores de render/carga y rutas inexistentes: pantalla genérica, sin
 // * detalles técnicos (el detalle va al logger, no a la UI).
@@ -17,9 +19,7 @@ const router = createRouter({
     logger.error('Error en la ruta', error instanceof Error ? error.name : 'desconocido')
     return <ErrorState onReintentar={reset} />
   },
-  defaultNotFoundComponent: () => (
-    <ErrorState titulo="Página no encontrada" descripcion="La página que buscás no existe." />
-  ),
+  defaultNotFoundComponent: PaginaNoEncontrada,
 })
 
 declare module '@tanstack/react-router' {

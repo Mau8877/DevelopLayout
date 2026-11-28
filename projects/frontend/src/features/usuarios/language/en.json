@@ -1,0 +1,69 @@
+{
+  "columna": {
+    "correo": "Email",
+    "roles": "Roles",
+    "estado": "Status",
+    "invitacion": "Invitation",
+    "alta": "Created"
+  },
+  "estado": {
+    "activa": "Active",
+    "inactiva": "Inactive"
+  },
+  "invitacion": {
+    "pendiente": "Pending"
+  },
+  "rol": {
+    "superAdmin": {
+      "nombre": "Administrator",
+      "descripcion": "Full control of the system"
+    },
+    "usuario": {
+      "nombre": "User",
+      "descripcion": "Standard access"
+    }
+  },
+  "errorDeAccion": "We could not complete the action. Try again.",
+  "crear": {
+    "titulo": "Create user",
+    "subtitulo": "They will get an email to choose their password",
+    "confirmar": "Create",
+    "correo": "Email",
+    "exitoTitulo": "User created",
+    "exitoTexto": "We sent the invitation by email",
+    "sinCorreoTitulo": "The account was created, but the email could not be sent",
+    "sinCorreoTexto": "Resend the invitation from the list"
+  },
+  "roles": {
+    "titulo": "Change roles",
+    "actualizados": "Roles updated",
+    "propio": "You cannot remove your own administrator role",
+    "confirmarTitulo": "Confirm the role change",
+    "avisoPropio": "Your open sessions will be closed, including this one: you will have to sign in again.",
+    "avisoOtro": "The open sessions of {{correo}} will be closed. The new roles apply the next time they sign in."
+  },
+  "lista": {
+    "usuarioDesactivado": "User deactivated",
+    "usuarioReactivado": "User reactivated",
+    "invitacionReenviada": "Invitation resent",
+    "sinCorreoTitulo": "The email could not be sent",
+    "sinCorreoTexto": "Try again in a moment",
+    "cambiarRoles": "Change roles",
+    "reenviar": "Resend invitation",
+    "desactivar": "Deactivate",
+    "reactivar": "Reactivate",
+    "buscar": "Search by email",
+    "filtroEstado": "Status",
+    "filtroRol": "Role",
+    "crear": "Create user",
+    "vacio": "There are no users that match those criteria",
+    "desactivarTitulo": "Deactivate user",
+    "desactivarAviso": "{{correo}} will not be able to sign in and their open sessions will be closed. You can reactivate the account later."
+  },
+  "validacion": {
+    "correoObligatorio": "Email is required",
+    "correoLargo": "The email is too long",
+    "correoInvalido": "The email is not valid",
+    "rolObligatorio": "Choose at least one role"
+  }
+}

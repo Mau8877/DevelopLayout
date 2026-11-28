@@ -1,10 +1,8 @@
-import { HomeIcon, ClipboardListIcon, ShieldCheckIcon, UserIcon } from 'lucide-react'
+import { HomeIcon, ShieldCheckIcon } from 'lucide-react'
 
-import type { NavItem } from '@/components/layout'
+import type { ElementoDeMenu } from '../navegacion'
 
-export const usuarioNavItems: NavItem[] = [
-  { label: 'Inicio', href: '/', icon: HomeIcon },
-  { label: 'Mis sesiones', href: '/mis-sesiones', icon: ShieldCheckIcon },
-  { label: 'Pedidos', href: '/pedidos', icon: ClipboardListIcon },
-  { label: 'Perfil', href: '/perfil', icon: UserIcon },
+export const usuarioNavItems: ElementoDeMenu[] = [
+  { clave: 'navegacion.inicio', href: '/', icon: HomeIcon },
+  { clave: 'navegacion.misSesiones', href: '/my-sessions', icon: ShieldCheckIcon },
 ]

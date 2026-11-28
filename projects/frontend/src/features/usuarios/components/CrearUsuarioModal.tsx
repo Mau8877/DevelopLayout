@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useForm } from '@tanstack/react-form'
 import { UserPlusIcon } from 'lucide-react'
 import { Alert } from '@/components/ui/alert'
@@ -6,17 +7,18 @@ import { FormField } from '@/components/ui/form-field'
 import { Input } from '@/components/ui/input'
 import { ModalLayout } from '@/components/ui/modal-layout'
 import { toastSuccess, toastWarning } from '@/components/ui/toast'
-import { primerError } from '@/utils/primerError'
-import { validarAlSalir } from '@/utils/validarAlSalir'
-import { useCrearUsuario } from '../api/useCrearUsuario'
-import { crearUsuarioSchema } from '../schemas/crearUsuarioSchema'
+import { primerError } from '@/utils'
+import { validarAlSalir } from '@/utils'
+import { useCrearUsuario } from '../api'
+import { crearUsuarioSchema } from '../schemas'
 import { mensajeDelError } from './mensajeDelError'
-import { ROLES } from './roles'
+import { opcionesDeRol } from './roles'
 
 const FORM_ID = 'crear-usuario'
 
 /** Se monta al abrirse: cada alta empieza con el formulario vacío. */
 export function CrearUsuarioModal({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation('usuarios')
   const crear = useCrearUsuario()
 
   const form = useForm({
@@ -27,12 +29,9 @@ export function CrearUsuarioModal({ onClose }: { onClose: () => void }) {
       try {
         const creado = await crear.mutateAsync({ email: value.email.trim(), roles: value.roles })
         if (creado.invitacionEnviada) {
-          toastSuccess('Usuario creado', 'Le enviamos la invitación por correo')
+          toastSuccess(t('crear.exitoTitulo'), t('crear.exitoTexto'))
         } else {
-          toastWarning(
-            'La cuenta se creó, pero el correo no salió',
-            'Reenviá la invitación desde la lista',
-          )
+          toastWarning(t('crear.sinCorreoTitulo'), t('crear.sinCorreoTexto'))
         }
         onClose()
       } catch {
@@ -45,11 +44,11 @@ export function CrearUsuarioModal({ onClose }: { onClose: () => void }) {
     <ModalLayout
       open
       onOpenChange={(open) => !open && onClose()}
-      title="Crear usuario"
-      subtitle="Recibirá un correo para elegir su contraseña"
+      title={t('crear.titulo')}
+      subtitle={t('crear.subtitulo')}
       icon={UserPlusIcon}
       formId={FORM_ID}
-      confirmLabel="Crear"
+      confirmLabel={t('crear.confirmar')}
       isSubmitting={crear.isPending}
     >
       <form
@@ -68,7 +67,7 @@ export function CrearUsuarioModal({ onClose }: { onClose: () => void }) {
           {(field) => (
             <FormField
               id="crear-email"
-              label="Correo"
+              label={t('crear.correo')}
               error={field.state.meta.isTouched ? primerError(field.state.meta.errors) : undefined}
             >
               {(controlProps) => (
@@ -94,8 +93,8 @@ export function CrearUsuarioModal({ onClose }: { onClose: () => void }) {
           {(field) => (
             <CheckboxGroupField
               id="crear-roles"
-              legend="Roles"
-              options={ROLES}
+              legend={t('columna.roles')}
+              options={opcionesDeRol()}
               value={field.state.value}
               onChange={(valor) => field.handleChange(valor)}
               error={field.state.meta.isTouched ? primerError(field.state.meta.errors) : undefined}

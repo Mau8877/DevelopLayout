@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next'
 import { useEffect } from 'react'
 import { Link, useLocation } from '@tanstack/react-router'
 import { XIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { useUiStore } from '@/store'
+import { PIE_DE_MENU } from '@/utils'
 
 import type { NavItem } from './types'
 
@@ -70,6 +72,7 @@ interface AppSidebarProps {
 // * total de la marca visual (sin la sombra/radios/botón de cierre por
 // * default de ese primitive) y que se vea igual al aside de desktop.
 export function AppSidebar({ items, activeHref }: AppSidebarProps) {
+  const { t } = useTranslation('shared')
   const sidebarCollapsed = useUiStore((s) => s.sidebarCollapsed)
   const mobileSidebarOpen = useUiStore((s) => s.mobileSidebarOpen)
   const setMobileSidebarOpen = useUiStore((s) => s.setMobileSidebarOpen)
@@ -104,7 +107,7 @@ export function AppSidebar({ items, activeHref }: AppSidebarProps) {
             sidebarCollapsed && 'md:hidden'
           )}
         >
-          v0.1.0 · App
+          {PIE_DE_MENU}
         </p>
       </aside>
 
@@ -121,7 +124,7 @@ export function AppSidebar({ items, activeHref }: AppSidebarProps) {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Menú de navegación"
+        aria-label={t('menu.navegacion')}
         className={cn(
           'fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-sidebar transition-transform duration-200 md:hidden',
           mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
@@ -129,7 +132,7 @@ export function AppSidebar({ items, activeHref }: AppSidebarProps) {
       >
         <div className="flex h-14 items-center justify-between border-b border-sidebar-border px-4">
           <span className="font-heading text-sm font-medium text-sidebar-foreground">
-            Menú
+            {t('menu.titulo')}
           </span>
           <button
             type="button"
@@ -137,7 +140,7 @@ export function AppSidebar({ items, activeHref }: AppSidebarProps) {
             className="flex size-7 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
           >
             <XIcon className="size-4" />
-            <span className="sr-only">Cerrar menú</span>
+            <span className="sr-only">{t('menu.cerrar')}</span>
           </button>
         </div>
         <div className="flex-1 overflow-y-auto">
@@ -148,7 +151,7 @@ export function AppSidebar({ items, activeHref }: AppSidebarProps) {
           />
         </div>
         <p className="truncate border-t border-sidebar-border px-4 py-3 text-xs text-muted-foreground">
-          v0.1.0 · App
+          {PIE_DE_MENU}
         </p>
       </div>
     </>

@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { apiClient, ApiError } from '@/store'
 import * as toast from '@/components/ui/toast'
-import { MisSesionesScreen } from '../screens/MisSesionesScreen'
+import { MisSesionesScreen } from '../screens'
 
 const base = { creadaEn: '2026-03-10T10:00:00Z', expiraEn: '2026-03-17T10:00:00Z', ip: '10.0.0.1' }
 const actual = {
@@ -44,7 +44,7 @@ describe('MisSesionesScreen', () => {
     expect(screen.getByText('App móvil')).toBeInTheDocument()
     expect(screen.getByText('Esta sesión')).toBeInTheDocument()
     expect(botonesDeCierre()).toHaveLength(1)
-    expect(get).toHaveBeenCalledWith('/auth/sesiones', { params: { page: 1, pageSize: 20 } })
+    expect(get).toHaveBeenCalledWith('/auth/sessions', { params: { page: 1, pageSize: 20 } })
   })
 
   it('no cierra nada sin confirmar; al confirmar cierra esa y vuelve a pedir el listado', async () => {
@@ -57,7 +57,7 @@ describe('MisSesionesScreen', () => {
     get.mockResolvedValue(pagina([actual]))
     await confirmar(user)
 
-    await waitFor(() => expect(borrar).toHaveBeenCalledWith('/auth/sesiones/s-otra'))
+    await waitFor(() => expect(borrar).toHaveBeenCalledWith('/auth/sessions/s-otra'))
     await waitFor(() => expect(screen.queryByText('App móvil')).not.toBeInTheDocument())
   })
 
@@ -80,7 +80,7 @@ describe('MisSesionesScreen', () => {
     await user.click(await screen.findByRole('button', { name: 'Cerrar todas las demás' }))
     await confirmar(user)
 
-    await waitFor(() => expect(post).toHaveBeenCalledWith('/auth/sesiones/cerrar-otras'))
+    await waitFor(() => expect(post).toHaveBeenCalledWith('/auth/sessions/revoke-others'))
   })
 
   it('si la sesión ya no existe avisa y refresca el listado', async () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import type { components } from '@/shared/api/schema'
-import type { ForgotPasswordRequest } from '../schemas/forgotPasswordSchema'
-import type { LoginRequest } from '../schemas/loginSchema'
+import type { components } from '@/shared/api'
+import type { ForgotPasswordRequest } from '../schemas'
+import type { LoginRequest } from '../schemas'
 
 // * La verificación real es de tipos (la corre `tsc -b` en `pnpm build`): si el backend
 // * cambia LoginRequest y el schema de Zod del formulario no lo sigue, el build falla.

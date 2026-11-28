@@ -18,12 +18,12 @@ describe('getErrorMessage', () => {
 
   it('con un Error genérico sin code, devuelve el fallback en vez del mensaje técnico', () => {
     const error = new Error('Network Error')
-    expect(getErrorMessage(error)).toBe('No se pudo completar la solicitud. Intentá de nuevo.')
+    expect(getErrorMessage(error)).toBe('No se pudo completar la solicitud. Inténtalo de nuevo.')
   })
 
   it('con algo que no es un Error (string, undefined, etc.), devuelve el fallback', () => {
-    expect(getErrorMessage('algo raro')).toBe('No se pudo completar la solicitud. Intentá de nuevo.')
-    expect(getErrorMessage(undefined)).toBe('No se pudo completar la solicitud. Intentá de nuevo.')
+    expect(getErrorMessage('algo raro')).toBe('No se pudo completar la solicitud. Inténtalo de nuevo.')
+    expect(getErrorMessage(undefined)).toBe('No se pudo completar la solicitud. Inténtalo de nuevo.')
   })
 
   it('acepta un fallback custom', () => {

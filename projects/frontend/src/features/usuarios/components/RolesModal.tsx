@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useForm } from '@tanstack/react-form'
 import { ShieldIcon } from 'lucide-react'
 import { useState } from 'react'
@@ -6,12 +7,12 @@ import { CheckboxGroupField } from '@/components/ui/checkbox-group-field'
 import { ModalConfirmacion } from '@/components/ui/modal-confirmacion'
 import { ModalLayout } from '@/components/ui/modal-layout'
 import { toastSuccess } from '@/components/ui/toast'
-import { primerError } from '@/utils/primerError'
-import { useCambiarRoles } from '../api/useCambiarRoles'
-import { rolesSchema } from '../schemas/rolesSchema'
-import type { Usuario } from '../types/usuario'
+import { primerError } from '@/utils'
+import { useCambiarRoles } from '../api'
+import { rolesSchema } from '../schemas'
+import type { Usuario } from '../types'
 import { mensajeDelError } from './mensajeDelError'
-import { ROLES } from './roles'
+import { opcionesDeRol } from './roles'
 
 const FORM_ID = 'cambiar-roles'
 const ROL_ADMIN = 'SUPER_ADMIN'
@@ -29,6 +30,7 @@ export interface RolesModalProps {
 
 /** Se monta al abrirse, con los roles actuales marcados. */
 export function RolesModal({ usuario, esPropia, onClose }: RolesModalProps) {
+  const { t } = useTranslation(['usuarios', 'shared'])
   const cambiar = useCambiarRoles()
   const [porConfirmar, setPorConfirmar] = useState<string[] | null>(null)
 
@@ -44,7 +46,7 @@ export function RolesModal({ usuario, esPropia, onClose }: RolesModalProps) {
   async function confirmar(roles: string[]) {
     try {
       await cambiar.mutateAsync({ codigo: usuario.codigo, roles })
-      toastSuccess('Roles actualizados')
+      toastSuccess(t('roles.actualizados'))
       onClose()
     } catch {
       // * El error queda en cambiar.error y se muestra en el formulario.
@@ -54,9 +56,9 @@ export function RolesModal({ usuario, esPropia, onClose }: RolesModalProps) {
   }
 
   // * Bloquear la casilla es comodidad: el backend rechaza quitarse ese rol.
-  const opciones = ROLES.map((rol) =>
+  const opciones = opcionesDeRol().map((rol) =>
     esPropia && rol.value === ROL_ADMIN && usuario.roles.includes(ROL_ADMIN)
-      ? { ...rol, disabled: true, descripcion: 'No podés quitarte tu propio rol de administrador' }
+      ? { ...rol, disabled: true, descripcion: t('roles.propio') }
       : rol,
   )
 
@@ -65,11 +67,11 @@ export function RolesModal({ usuario, esPropia, onClose }: RolesModalProps) {
       <ModalLayout
         open
         onOpenChange={(open) => !open && onClose()}
-        title="Cambiar roles"
+        title={t('roles.titulo')}
         subtitle={usuario.email}
         icon={ShieldIcon}
         formId={FORM_ID}
-        confirmLabel="Guardar"
+        confirmLabel={t('shared:comun.guardar')}
         isSubmitting={cambiar.isPending}
       >
         <form
@@ -87,7 +89,7 @@ export function RolesModal({ usuario, esPropia, onClose }: RolesModalProps) {
             {(field) => (
               <CheckboxGroupField
                 id="cambiar-roles-grupo"
-                legend="Roles"
+                legend={t('columna.roles')}
                 options={opciones}
                 value={field.state.value}
                 onChange={(valor) => {
@@ -104,13 +106,13 @@ export function RolesModal({ usuario, esPropia, onClose }: RolesModalProps) {
       <ModalConfirmacion
         open={porConfirmar !== null}
         onOpenChange={(open) => !open && setPorConfirmar(null)}
-        title="Confirmar el cambio de roles"
+        title={t('roles.confirmarTitulo')}
         description={
           esPropia
-            ? 'Se cerrarán tus sesiones abiertas, también esta: vas a tener que iniciar sesión de nuevo.'
-            : `Se cerrarán las sesiones abiertas de ${usuario.email}. Los roles nuevos rigen la próxima vez que entre.`
+            ? t('roles.avisoPropio')
+            : t('roles.avisoOtro', { correo: usuario.email })
         }
-        confirmLabel="Cambiar roles"
+        confirmLabel={t('roles.titulo')}
         isSubmitting={cambiar.isPending}
         onConfirm={() => porConfirmar && void confirmar(porConfirmar)}
       />

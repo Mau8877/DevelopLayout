@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { aParametros, bitacoraFiltrosSchema, SIN_FILTROS } from '../schemas/bitacoraFiltrosSchema'
+import { aParametros, bitacoraFiltrosSchema, SIN_FILTROS } from '../schemas'
 
 const con = (cambios: Partial<typeof SIN_FILTROS>) => ({ ...SIN_FILTROS, ...cambios })
 
@@ -17,9 +17,9 @@ describe('bitacoraFiltrosSchema', () => {
   it('arma los query params con el día local completo', () => {
     const params = aParametros(con({ accion: ' AUTH_LOGOUT ', resultado: 'FALLO', desde: '2026-03-01', hasta: '2026-03-01' }))
 
-    expect(params['filter[accion]']).toBe('AUTH_LOGOUT')
-    expect(params['filter[resultado]']).toBe('FALLO')
-    expect(params.desde).toBe(new Date(2026, 2, 1, 0, 0, 0, 0).toISOString())
-    expect(params.hasta).toBe(new Date(2026, 2, 1, 23, 59, 59, 999).toISOString().replace('999Z', '999999Z'))
+    expect(params['filter[action]']).toBe('AUTH_LOGOUT')
+    expect(params['filter[result]']).toBe('FALLO')
+    expect(params.from).toBe(new Date(2026, 2, 1, 0, 0, 0, 0).toISOString())
+    expect(params.to).toBe(new Date(2026, 2, 1, 23, 59, 59, 999).toISOString().replace('999Z', '999999Z'))
   })
 })

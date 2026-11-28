@@ -1,0 +1,35 @@
+{
+  "resultado": {
+    "todos": "Todos",
+    "exito": "Éxito",
+    "fallo": "Fallo"
+  },
+  "campo": {
+    "fecha": "Fecha",
+    "accion": "Acción",
+    "modulo": "Módulo",
+    "resultado": "Resultado",
+    "usuario": "Usuario",
+    "codigoUsuario": "Código de usuario",
+    "desde": "Desde",
+    "hasta": "Hasta",
+    "ip": "IP",
+    "entidad": "Entidad",
+    "codigoEntidad": "Código de la entidad"
+  },
+  "filtrar": "Filtrar",
+  "limpiar": "Limpiar filtros",
+  "errorDeCarga": "No pudimos cargar la bitácora.",
+  "vacio": "No hay eventos con esos filtros",
+  "verDetalle": "Ver detalle",
+  "detalle": "Detalle",
+  "evento": "Evento",
+  "sinDetalle": "Sin detalle",
+  "validacion": {
+    "fechaInvalida": "La fecha no es válida",
+    "accionLarga": "La acción es demasiado larga",
+    "moduloLargo": "El módulo es demasiado largo",
+    "codigoInvalido": "El código de usuario no es válido",
+    "rangoInvalido": "La fecha inicial no puede ser posterior a la final"
+  }
+}

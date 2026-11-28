@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslation } from "react-i18next"
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog"
 
 import { cn } from "@/lib/utils"
@@ -46,6 +47,8 @@ function SheetContent({
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
 }) {
+  // * Editado sobre la salida de shadcn: el texto sale de los archivos de idioma.
+  const { t } = useTranslation("shared")
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -72,7 +75,7 @@ function SheetContent({
           >
             <XIcon
             />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">{t("comun.cerrar")}</span>
           </SheetPrimitive.Close>
         )}
       </SheetPrimitive.Popup>

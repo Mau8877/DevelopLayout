@@ -1,4 +1,4 @@
-import type { BitacoraFiltros } from '../schemas/bitacoraFiltrosSchema'
+import type { BitacoraFiltros } from '../schemas'
 
 export interface BitacoraListParams {
   page: number

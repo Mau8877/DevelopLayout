@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { loginSchema } from '../schemas/loginSchema'
+import { traducirMensaje } from '@/shared/language'
+import { loginSchema } from '../schemas'
 
 describe('loginSchema', () => {
   it('acepta credenciales válidas', () => {
@@ -9,19 +10,19 @@ describe('loginSchema', () => {
   it('rechaza campos vacíos con mensajes en español', () => {
     const result = loginSchema.safeParse({ email: '', password: '' })
     expect(result.success).toBe(false)
-    const mensajes = result.error?.issues.map((i) => i.message) ?? []
+    const mensajes = result.error?.issues.map((i) => traducirMensaje(i.message)) ?? []
     expect(mensajes).toContain('El correo es obligatorio')
     expect(mensajes).toContain('La contraseña es obligatoria')
   })
 
   it('rechaza un correo inválido', () => {
     const result = loginSchema.safeParse({ email: 'no-es-correo', password: 'ClaveSegura123' })
-    expect(result.error?.issues[0].message).toBe('El correo no es válido')
+    expect(traducirMensaje(result.error?.issues[0].message)).toBe('El correo no es válido')
   })
 
   it('rechaza una contraseña de menos de 8 caracteres', () => {
     const result = loginSchema.safeParse({ email: 'a@b.co', password: 'corta' })
-    expect(result.error?.issues[0].message).toBe('La contraseña debe tener al menos 8 caracteres')
+    expect(traducirMensaje(result.error?.issues[0].message)).toBe('La contraseña debe tener al menos 8 caracteres')
   })
 
   it('rechaza una contraseña de más de 72 bytes (los acentos cuentan doble)', () => {

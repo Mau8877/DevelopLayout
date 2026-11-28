@@ -2,8 +2,8 @@ import { screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { toastSuccess } from '@/components/ui/toast'
 import { apiClient, ApiError } from '@/store'
-import { usuariosKeys } from '../api/keys'
-import { RolesModal } from '../components/RolesModal'
+import { usuariosKeys } from '../api'
+import { RolesModal } from '../components'
 import { montar, usuario } from './soporte'
 
 vi.mock('@/components/ui/toast', () => ({ toastSuccess: vi.fn() }))
@@ -36,7 +36,7 @@ describe('RolesModal', () => {
     await user.click(casilla('Usuario'))
     await user.click(guardar())
 
-    expect(await screen.findByText('Elegí al menos un rol')).toBeInTheDocument()
+    expect(await screen.findByText('Elige al menos un rol')).toBeInTheDocument()
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
     expect(put).not.toHaveBeenCalled()
   })
@@ -75,7 +75,7 @@ describe('RolesModal', () => {
 
     await waitFor(() => expect(onClose).toHaveBeenCalled())
     expect(put).toHaveBeenCalledTimes(1)
-    expect(put).toHaveBeenCalledWith('/usuarios/u-1/roles', { roles: ['SUPER_ADMIN', 'USUARIO'] })
+    expect(put).toHaveBeenCalledWith('/users/u-1/roles', { roles: ['SUPER_ADMIN', 'USUARIO'] })
     expect(invalidar).toHaveBeenCalledWith({ queryKey: usuariosKeys.lists() })
     expect(toastSuccess).toHaveBeenCalledWith('Roles actualizados')
   })
@@ -95,12 +95,12 @@ describe('RolesModal', () => {
 
     await user.click(screen.getByText('Administrador'))
     expect(casilla('Administrador')).toBeChecked()
-    expect(screen.getByText('No podés quitarte tu propio rol de administrador')).toBeInTheDocument()
+    expect(screen.getByText('No puedes quitarte tu propio rol de administrador')).toBeInTheDocument()
 
     await user.click(casilla('Usuario'))
     await user.click(guardar())
 
-    expect(await confirmacion()).toHaveTextContent('vas a tener que iniciar sesión de nuevo')
+    expect(await confirmacion()).toHaveTextContent('tendrás que iniciar sesión de nuevo')
   })
 
   it('un rechazo muestra el mensaje y deja elegir de nuevo', async () => {

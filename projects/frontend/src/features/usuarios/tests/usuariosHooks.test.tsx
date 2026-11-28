@@ -3,11 +3,11 @@ import { renderHook, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiClient, ApiError } from '@/store'
-import { usuariosKeys } from '../api/keys'
-import { useCambiarEstadoUsuario } from '../api/useCambiarEstadoUsuario'
-import { useCrearUsuario } from '../api/useCrearUsuario'
-import { useReenviarInvitacion } from '../api/useReenviarInvitacion'
-import { nuevaBusqueda, useUsuarios } from '../api/useUsuarios'
+import { usuariosKeys } from '../api'
+import { useCambiarEstadoUsuario } from '../api'
+import { useCrearUsuario } from '../api'
+import { useReenviarInvitacion } from '../api'
+import { nuevaBusqueda, useUsuarios } from '../api'
 
 function entorno() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -31,12 +31,12 @@ describe('hooks de usuarios', () => {
 
     await result.current.crear.mutateAsync({ email: 'a@test.local', roles: ['USUARIO'] })
     await result.current.reenviar.mutateAsync('u-1')
-    await result.current.estado.mutateAsync({ codigo: 'u-1', accion: 'desactivar' })
+    await result.current.estado.mutateAsync({ codigo: 'u-1', accion: 'deactivate' })
 
     expect(post.mock.calls.map(([url]) => url)).toEqual([
-      '/usuarios',
-      '/usuarios/u-1/reenviar-invitacion',
-      '/usuarios/u-1/desactivar',
+      '/users',
+      '/users/u-1/resend-invitation',
+      '/users/u-1/deactivate',
     ])
     expect(invalidar).toHaveBeenCalledTimes(3)
     expect(invalidar).toHaveBeenCalledWith({ queryKey: usuariosKeys.lists() })

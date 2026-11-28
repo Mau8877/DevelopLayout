@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import type { DataTablePageMeta } from '@/components/ui/tanstack-table'
 import { apiClient } from '@/store'
-import type { Sesion } from '../types/sesion'
+import type { Sesion } from '../types'
 import { authKeys } from './keys'
 
 /** `id` distingue una búsqueda de otra sin poner el correo en la clave de caché. */
@@ -28,7 +28,7 @@ export function useSesionesAdmin(busqueda: Busqueda | null, page: number, pageSi
     enabled: busqueda !== null,
     queryFn: async () => {
       // * POST con el correo en el body: no queda en URLs ni en logs de acceso.
-      const response = await apiClient.post<Pagina>('/admin/sesiones/buscar', {
+      const response = await apiClient.post<Pagina>('/admin/sessions/search', {
         email: busqueda?.email,
         page,
         pageSize,

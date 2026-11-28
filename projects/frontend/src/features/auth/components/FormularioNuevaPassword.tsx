@@ -1,16 +1,17 @@
+import { useTranslation } from 'react-i18next'
 import { useForm } from '@tanstack/react-form'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form-field'
 import { Input } from '@/components/ui/input'
 import { ApiError } from '@/store'
-import { primerError } from '@/utils/primerError'
-import { validarAlSalir } from '@/utils/validarAlSalir'
-import { resetPasswordSchema } from '../schemas/resetPasswordSchema'
+import { primerError } from '@/utils'
+import { validarAlSalir } from '@/utils'
+import { resetPasswordSchema } from '../schemas'
 
 const CAMPOS = [
-  { name: 'password', label: 'Contraseña nueva' },
-  { name: 'confirmacion', label: 'Repetí la contraseña' },
+  { name: 'password', clave: 'nuevaPassword.password' },
+  { name: 'confirmacion', clave: 'nuevaPassword.confirmacion' },
 ] as const
 
 export interface FormularioNuevaPasswordProps {
@@ -36,6 +37,7 @@ export function FormularioNuevaPassword({
   mensajeGenerico,
   textoBoton,
 }: FormularioNuevaPasswordProps) {
+  const { t } = useTranslation('auth')
   const rechazo = error instanceof ApiError ? error : null
   const errorDeContrasena = rechazo && codigosDeLaPassword.includes(rechazo.code) ? rechazo.message : undefined
 
@@ -67,12 +69,12 @@ export function FormularioNuevaPassword({
         </Alert>
       )}
 
-      {CAMPOS.map(({ name, label }) => (
+      {CAMPOS.map(({ name, clave }) => (
         <form.Field key={name} name={name}>
           {(field) => (
             <FormField
               id={name}
-              label={label}
+              label={t(clave)}
               error={
                 (field.state.meta.isTouched ? primerError(field.state.meta.errors) : undefined) ??
                 (name === 'password' ? errorDeContrasena : undefined)
@@ -98,7 +100,7 @@ export function FormularioNuevaPassword({
       ))}
 
       <Button type="submit" disabled={isPending}>
-        {isPending ? 'Guardando…' : textoBoton}
+        {isPending ? t('nuevaPassword.guardando') : textoBoton}
       </Button>
     </form>
   )

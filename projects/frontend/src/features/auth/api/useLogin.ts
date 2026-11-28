@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/store'
-import type { LoginRequest } from '../schemas/loginSchema'
-import type { UsuarioSesion } from '../types/auth'
+import type { LoginRequest } from '../schemas'
+import type { UsuarioSesion } from '../types'
 import { authKeys } from './keys'
 
 interface LoginData {

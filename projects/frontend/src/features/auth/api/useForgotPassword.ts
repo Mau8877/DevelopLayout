@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { apiClient } from '@/store'
-import type { ForgotPasswordRequest } from '../schemas/forgotPasswordSchema'
+import type { ForgotPasswordRequest } from '../schemas'
 
 /** Pide el enlace. El backend responde igual exista o no la cuenta. */
 export function useForgotPassword() {

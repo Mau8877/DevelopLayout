@@ -2,7 +2,7 @@ import { screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { toastSuccess, toastWarning } from '@/components/ui/toast'
 import { apiClient, ApiError } from '@/store'
-import { CrearUsuarioModal } from '../components/CrearUsuarioModal'
+import { CrearUsuarioModal } from '../components'
 import { montar, usuario } from './soporte'
 
 vi.mock('@/components/ui/toast', () => ({ toastSuccess: vi.fn(), toastWarning: vi.fn() }))
@@ -30,7 +30,7 @@ describe('CrearUsuarioModal', () => {
 
     await waitFor(() => expect(onClose).toHaveBeenCalled())
     expect(post).toHaveBeenCalledTimes(1)
-    expect(post).toHaveBeenCalledWith('/usuarios', { email: 'nueva@test.local', roles: ['USUARIO'] })
+    expect(post).toHaveBeenCalledWith('/users', { email: 'nueva@test.local', roles: ['USUARIO'] })
     expect(toastSuccess).toHaveBeenCalled()
   })
 
@@ -41,7 +41,7 @@ describe('CrearUsuarioModal', () => {
     await completar(user)
 
     await waitFor(() => expect(onClose).toHaveBeenCalled())
-    expect(toastWarning).toHaveBeenCalledWith('La cuenta se creó, pero el correo no salió', expect.any(String))
+    expect(toastWarning).toHaveBeenCalledWith('La cuenta se creó, pero no se pudo enviar el correo', expect.any(String))
     expect(toastSuccess).not.toHaveBeenCalled()
   })
 
@@ -51,7 +51,7 @@ describe('CrearUsuarioModal', () => {
 
     await user.click(screen.getByRole('button', { name: 'Crear' }))
     expect(await screen.findByText('El correo es obligatorio')).toBeInTheDocument()
-    expect(screen.getByText('Elegí al menos un rol')).toBeInTheDocument()
+    expect(screen.getByText('Elige al menos un rol')).toBeInTheDocument()
 
     await user.type(screen.getByLabelText('Correo'), 'no-es-correo{Enter}')
 

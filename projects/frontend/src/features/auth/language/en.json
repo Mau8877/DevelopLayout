@@ -1,0 +1,99 @@
+{
+  "comun": {
+    "correo": "Email",
+    "password": "Password",
+    "errorDeAccion": "We could not complete the action. Try again.",
+    "cerrar": "Close"
+  },
+  "validacion": {
+    "correoObligatorio": "Email is required",
+    "correoInvalido": "The email is not valid",
+    "passwordObligatoria": "Password is required",
+    "passwordCorta": "The password must be at least 8 characters long",
+    "passwordLarga": "The password is too long",
+    "repetirPassword": "Repeat the password",
+    "passwordsDistintas": "The passwords do not match"
+  },
+  "login": {
+    "titulo": "Sign in",
+    "descripcion": "Sign in with your email and password",
+    "error": "We could not sign you in. Try again.",
+    "entrando": "Signing in…",
+    "entrar": "Sign in",
+    "olvidaste": "Forgot your password?"
+  },
+  "recuperar": {
+    "titulo": "Recover password",
+    "descripcion": "Enter the email of your account",
+    "error": "We could not send the request. Try again.",
+    "enviado": "If there is an account with that email, we sent you a link to reset the password. Check your spam folder too.",
+    "enviando": "Sending…",
+    "enviar": "Send link",
+    "volver": "Back to sign in"
+  },
+  "nuevaPassword": {
+    "password": "New password",
+    "confirmacion": "Repeat the password",
+    "guardando": "Saving…"
+  },
+  "restablecer": {
+    "titulo": "Choose a new password",
+    "descripcion": "Your open sessions will be closed",
+    "boton": "Change password",
+    "exitoTitulo": "Password updated",
+    "exitoTexto": "You can sign in now",
+    "error": "We could not change the password. Try again.",
+    "enlaceTitulo": "This link does not work",
+    "enlaceTexto": "The link is not valid, was already used or has expired. If you reloaded the page, open it again from the email or ask for another one.",
+    "pedirOtro": "Ask for a new link"
+  },
+  "invitacion": {
+    "titulo": "Activate your account",
+    "descripcion": "Choose the password you will sign in with",
+    "boton": "Activate account",
+    "exitoTitulo": "Account activated",
+    "exitoTexto": "You can sign in now",
+    "error": "We could not activate the account. Try again.",
+    "invalidaTitulo": "This invitation does not work",
+    "invalidaTexto": "The invitation is not valid, was already used or has expired. If you reloaded the page, open it again from the email. If it does not work, ask an administrator to send you another one.",
+    "irALogin": "Go to sign in"
+  },
+  "sesiones": {
+    "columna": {
+      "dispositivo": "Device",
+      "cliente": "Client",
+      "ip": "IP",
+      "iniciada": "Started",
+      "ultimoUso": "Last used"
+    },
+    "cerrada": "Session closed",
+    "tituloCerrar": "Close session"
+  },
+  "misSesiones": {
+    "actual": "This session",
+    "demasCerradas": "The other sessions were closed",
+    "explicacion": "These are the places where your account is open. If you do not recognize one, close it and change your password.",
+    "cerrarDemas": "Close all others",
+    "vacio": "There are no active sessions",
+    "cerrarEsta": "Close this other session",
+    "tituloDemas": "Close all other sessions",
+    "avisoDemas": "The other devices will lose access immediately. This session stays open.",
+    "avisoUna": "That device will lose access immediately."
+  },
+  "sesionesAdmin": {
+    "cerradas": "Sessions closed",
+    "codigoCopiado": "User code copied",
+    "noSeCopio": "Could not copy",
+    "correoDelUsuario": "User email",
+    "correoExacto": "Exact email",
+    "buscar": "Search",
+    "instruccion": "Search for a user by email to see their active sessions.",
+    "copiarCodigo": "Copy user code",
+    "cerrarTodas": "Close all",
+    "vacio": "There are no active sessions for that email",
+    "cerrarDispositivo": "Close the session on this device",
+    "tituloTodas": "Close all sessions",
+    "avisoTodas": "The user will lose access on all their devices. If it is your account, you will have to sign in again.",
+    "avisoUna": "The device will lose access immediately. If it is your current session, you will have to sign in again."
+  }
+}

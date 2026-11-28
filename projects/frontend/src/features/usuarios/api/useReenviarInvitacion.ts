@@ -8,7 +8,7 @@ export function useReenviarInvitacion() {
   return useMutation({
     mutationFn: async (codigo: string) => {
       const response = await apiClient.post<{ invitacionEnviada: boolean }>(
-        `/usuarios/${codigo}/reenviar-invitacion`,
+        `/users/${codigo}/resend-invitation`,
       )
       return response.data
     },

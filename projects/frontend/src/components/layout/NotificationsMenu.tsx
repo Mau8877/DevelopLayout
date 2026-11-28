@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import {
   BellIcon,
@@ -11,7 +12,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
-import { formatRelativeDate } from '@/utils/formatRelativeDate'
+import { formatRelativeDate } from '@/utils'
 import {
   AlertDialog,
   AlertDialogClose,
@@ -79,6 +80,7 @@ function NotificationRow({ item, onMarkAsRead }: { item: NotificationItem; onMar
 }
 
 export function NotificationsMenu({ notifications, triggerClassName }: NotificationsMenuProps) {
+  const { t } = useTranslation('shared')
   const {
     items,
     meta,
@@ -112,14 +114,14 @@ export function NotificationsMenu({ notifications, triggerClassName }: Notificat
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
-          <span className="sr-only">Notificaciones</span>
+          <span className="sr-only">{t('notificaciones.titulo')}</span>
         </PopoverTrigger>
 
         <PopoverContent align="end" className="w-80 p-0">
           <div className="flex items-center justify-between px-4 py-3">
-            <span className="font-heading text-sm font-medium text-foreground">Notificaciones</span>
+            <span className="font-heading text-sm font-medium text-foreground">{t('notificaciones.titulo')}</span>
             {unreadCount > 0 && (
-              <span className="text-xs text-muted-foreground">{unreadCount} sin leer</span>
+              <span className="text-xs text-muted-foreground">{t('notificaciones.sinLeer', { count: unreadCount })}</span>
             )}
           </div>
           <Separator />
@@ -153,10 +155,10 @@ export function NotificationsMenu({ notifications, triggerClassName }: Notificat
                     {isLoadingMore ? (
                       <>
                         <Loader2Icon data-icon="inline-start" className="animate-spin" />
-                        Cargando...
+                        {t('notificaciones.cargando')}
                       </>
                     ) : (
-                      'Mostrar más'
+                      t('notificaciones.mostrarMas')
                     )}
                   </Button>
                 </li>
@@ -164,7 +166,7 @@ export function NotificationsMenu({ notifications, triggerClassName }: Notificat
             </ul>
           ) : (
             <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-              No tenés notificaciones.
+              {t('notificaciones.vacio')}
             </p>
           )}
 
@@ -177,7 +179,7 @@ export function NotificationsMenu({ notifications, triggerClassName }: Notificat
               disabled={!hasItems || unreadCount === 0}
               onClick={onMarkAllAsRead}
             >
-              Leer todo
+              {t('notificaciones.leerTodo')}
             </Button>
             <Button
               variant="destructive"
@@ -187,7 +189,7 @@ export function NotificationsMenu({ notifications, triggerClassName }: Notificat
               onClick={() => setConfirmDeleteOpen(true)}
             >
               <Trash2Icon data-icon="inline-start" />
-              Eliminar notificaciones
+              {t('notificaciones.eliminar')}
             </Button>
           </div>
         </PopoverContent>
@@ -196,17 +198,14 @@ export function NotificationsMenu({ notifications, triggerClassName }: Notificat
       <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar todas las notificaciones?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción no se puede deshacer -- se eliminan permanentemente, no solo se marcan
-              como leídas.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t('notificaciones.confirmarTitulo')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('notificaciones.confirmarTexto')}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogClose>Cancelar</AlertDialogClose>
+            <AlertDialogClose>{t('comun.cancelar')}</AlertDialogClose>
             <Button variant="destructive" onClick={handleConfirmDelete}>
               <Trash2Icon data-icon="inline-start" />
-              Eliminar notificaciones
+              {t('notificaciones.eliminar')}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

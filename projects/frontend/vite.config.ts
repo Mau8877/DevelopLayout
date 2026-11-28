@@ -27,6 +27,8 @@ export default defineConfig({
       '@': resolve(__dirname, './src'),
     },
   },
+  // * Las pruebas de navegador apuntan a una carpeta vacía: no leen ningún .env.
+  envDir: process.env.E2E_ENV_DIR || undefined,
   server: {
     host: true,
     port: Number(process.env.PORT) || 5173,
@@ -36,6 +38,8 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    // * `e2e/` son pruebas de Playwright, no de Vitest.
+    include: ['src/**/*.test.{ts,tsx}'],
     globals: true,
     setupFiles: './src/setupTests.ts',
     // * Node 25+ trae un `localStorage` experimental que tapa el de jsdom y rompe los tests que lo usan;

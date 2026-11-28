@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { apiClient, ApiError } from '@/store'
-import { LoginScreen } from '../screens/LoginScreen'
+import { LoginScreen } from '../screens'
 
 const navigate = vi.fn()
 vi.mock('@tanstack/react-router', () => ({
@@ -46,9 +46,9 @@ describe('LoginScreen', () => {
 
     await user.type(screen.getByLabelText('Correo'), 'a@b.co')
     await user.type(screen.getByLabelText('Contraseña'), 'ClaveSegura123')
-    await user.click(screen.getByRole('button', { name: 'Ingresar' }))
+    await user.click(screen.getByRole('button', { name: 'Iniciar sesión' }))
 
-    await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: '/panel' }))
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: '/dashboard' }))
     expect(post).toHaveBeenCalledWith('/auth/login', { email: 'a@b.co', password: 'ClaveSegura123' })
   })
 
@@ -59,7 +59,7 @@ describe('LoginScreen', () => {
 
     await user.type(screen.getByLabelText('Correo'), 'a@b.co')
     await user.type(screen.getByLabelText('Contraseña'), 'ClaveSegura123')
-    await user.click(screen.getByRole('button', { name: 'Ingresar' }))
+    await user.click(screen.getByRole('button', { name: 'Iniciar sesión' }))
 
     expect(await screen.findByText('Correo o contraseña incorrectos')).toBeInTheDocument()
     expect(navigate).not.toHaveBeenCalled()

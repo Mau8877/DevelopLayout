@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { forgotPasswordSchema } from '../schemas/forgotPasswordSchema'
-import { resetPasswordSchema } from '../schemas/resetPasswordSchema'
+import { traducirMensaje } from '@/shared/language'
+import { forgotPasswordSchema } from '../schemas'
+import { resetPasswordSchema } from '../schemas'
 
 const errores = (password: string, confirmacion = password) => {
   const r = resetPasswordSchema.safeParse({ password, confirmacion })
-  return r.success ? [] : r.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`)
+  return r.success ? [] : r.error.issues.map((i) => `${i.path.join('.')}: ${traducirMensaje(i.message)}`)
 }
 
 describe('resetPasswordSchema', () => {

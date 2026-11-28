@@ -12,7 +12,7 @@ import {
   RouterProvider,
 } from '@tanstack/react-router'
 import { apiClient, ApiError } from '@/store'
-import { AceptarInvitacionPage } from '../screens/AceptarInvitacionPage'
+import { AceptarInvitacionPage } from '../screens'
 
 // * Con un router de verdad: lo que se prueba es qué pasa con la URL y el historial.
 function renderEn(url: string) {
@@ -37,7 +37,7 @@ async function completarConEnter(user: ReturnType<typeof userEvent.setup>, passw
   const nueva = await screen.findByLabelText('Contraseña nueva')
   await user.clear(nueva)
   await user.type(nueva, password)
-  const confirmacion = screen.getByLabelText('Repetí la contraseña')
+  const confirmacion = screen.getByLabelText('Repite la contraseña')
   await user.clear(confirmacion)
   await user.type(confirmacion, `${repetida}{Enter}`)
 }
@@ -98,7 +98,7 @@ describe('AceptarInvitacionScreen', () => {
 
     await completarConEnter(user, 'ClaveElegida789') // gitleaks:allow
 
-    expect(await screen.findByText(/pedile al administrador/i)).toBeInTheDocument()
+    expect(await screen.findByText(/pide a un administrador/i)).toBeInTheDocument()
     expect(screen.queryByLabelText('Contraseña nueva')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ir al inicio de sesión' })).toHaveAttribute('href', '/login')
   })

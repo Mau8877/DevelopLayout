@@ -1,10 +1,11 @@
+import { useTranslation } from 'react-i18next'
 import { flexRender } from '@tanstack/react-table'
 import type { Cell, Row, RowData } from '@tanstack/react-table'
 import type { ReactNode } from 'react'
 import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
-import { logger } from '@/utils/logger'
+import { logger } from '@/utils'
 import type { DataStateProps } from '../shared'
 import type { DataTableInstance } from '../shared/types'
 import type { DataTableFeatures } from '../shared/tableFeatures'
@@ -125,14 +126,15 @@ export function DataCards<TData extends RowData>({
   table,
   isLoading,
   isError,
-  errorMessage = 'Ocurrió un error al cargar los datos',
+  errorMessage,
   renderCard,
   showRowNumber = false,
   renderActions,
   className,
   skeletonCount = 6,
-  emptyMessage = 'Sin resultados',
+  emptyMessage,
 }: DataCardsProps<TData>) {
+  const { t } = useTranslation('shared')
   const rows = table.getRowModel().rows
   const { pageIndex, pageSize } = table.state.pagination
   const gridClassName = cn('grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3', className)
@@ -159,7 +161,7 @@ export function DataCards<TData extends RowData>({
   if (isError) {
     return (
       <div className={gridClassName}>
-        <p className="col-span-full py-8 text-center text-sm text-destructive">{errorMessage}</p>
+        <p className="col-span-full py-8 text-center text-sm text-destructive">{errorMessage ?? t('tabla.errorDeCarga')}</p>
       </div>
     )
   }
@@ -167,7 +169,7 @@ export function DataCards<TData extends RowData>({
   if (rows.length === 0) {
     return (
       <div className={gridClassName}>
-        <p className="col-span-full py-8 text-center text-sm text-muted-foreground">{emptyMessage}</p>
+        <p className="col-span-full py-8 text-center text-sm text-muted-foreground">{emptyMessage ?? t('tabla.sinResultados')}</p>
       </div>
     )
   }
