@@ -9,7 +9,7 @@
 **Para:** recuperar el acceso a mi cuenta sin ayuda del administrador
 
 **Descripción:**
-Desde el login, el usuario pide recuperar su contraseña ingresando su correo. El sistema responde siempre lo mismo y sin esperar a saber si la cuenta existe; si existe y está activa, envía después un correo con un enlace de un solo uso válido 30 minutos que abre la pantalla de restablecer en el frontend web. Allí el usuario define una contraseña nueva (mínimo 8 caracteres, sin otras reglas); el sistema la guarda, invalida el enlace y todas las sesiones abiertas del usuario y levanta el bloqueo por intentos fallidos. En mobile solo se pide el correo; el enlace se abre en el navegador. Si el enlace es inválido, expiró o ya se usó, se muestra un error y se puede pedir otro. Si la contraseña elegida no sirve, el enlace sigue valiendo.
+Desde el login, el usuario pide recuperar su contraseña ingresando su correo. El sistema responde siempre lo mismo y sin esperar a saber si la cuenta existe; si existe y está activa, envía después un correo con un enlace de un solo uso válido 30 minutos que abre la pantalla de restablecer en el frontend web. Allí el usuario define una contraseña nueva (mínimo 8 caracteres, sin otras reglas); el sistema la guarda, invalida el enlace y todas las sesiones abiertas del usuario, levanta el bloqueo por intentos fallidos y le avisa por correo que la contraseña cambió. En mobile solo se pide el correo; el enlace se abre en el navegador. Si el enlace es inválido, expiró o ya se usó, se muestra un error y se puede pedir otro. Si la contraseña elegida no sirve, el enlace sigue valiendo.
 
 Depende de [HU-INICIAL-Base](HU-INICIAL-Base.md), de [HU-INICIAL-Login](HU-INICIAL-Login.md) (levantar el bloqueo) y de [HU-INICIAL-Refresh](HU-INICIAL-Refresh.md) (revocar sesiones). Requiere un servicio de correo: en desarrollo, Mailpit en el compose; en producción, un servidor SMTP cuya configuración es obligatoria para desplegar.
 
@@ -23,7 +23,7 @@ Depende de [HU-INICIAL-Base](HU-INICIAL-Base.md), de [HU-INICIAL-Login](HU-INICI
 2. El sistema responde con un mensaje genérico y envía el correo si corresponde.
 3. El usuario abre el enlace, ingresa y confirma la nueva contraseña.
 4. El sistema valida el token y la política, cambia la contraseña y cierra todas las sesiones.
-5. El usuario es llevado al login.
+5. El usuario es llevado al login y recibe un correo que avisa del cambio.
 
 **Reglas de negocio**
 
@@ -35,6 +35,7 @@ Depende de [HU-INICIAL-Base](HU-INICIAL-Base.md), de [HU-INICIAL-Login](HU-INICI
 - La contraseña nueva cumple la misma política que en [HU-INICIAL-Base](HU-INICIAL-Base.md) (mínimo 8 caracteres, nada más; máximo 72 bytes) y no puede coincidir con la actual.
 - Restablecer la contraseña levanta el bloqueo temporal por intentos fallidos, desde cualquier origen.
 - La dirección del enlace sale de la configuración del servidor, nunca de datos de la petición.
+- El aviso del cambio es el mismo que en [HU-INICIAL-CambiarPassword](HU-INICIAL-CambiarPassword.md): sale en el idioma de quien restablece, sin enlaces ni contraseñas, y si falla el cambio se mantiene.
 
 ---
 
@@ -58,12 +59,13 @@ Depende de [HU-INICIAL-Base](HU-INICIAL-Base.md), de [HU-INICIAL-Login](HU-INICI
 - **CA16:** Dado un restablecimiento exitoso de una cuenta bloqueada, el usuario debe poder iniciar sesión de inmediato desde cualquier IP.
 - **CA17:** Dado un despliegue de producción sin la configuración de correo o sin la dirección HTTPS de la web, la aplicación no debe arrancar.
 - **CA18:** Dados dos restablecimientos simultáneos con el mismo enlace, solo uno debe tener éxito.
+- **CA19:** Dado un restablecimiento exitoso, el sistema debe enviar a la cuenta un aviso de que la contraseña cambió, en el idioma de la petición, sin enlaces, tokens ni contraseñas. Un restablecimiento rechazado no debe enviarlo, y si el envío falla el cambio se mantiene y el fallo se registra sin datos sensibles.
 
 ## Seguridad
 
 - **Datos sensibles:** correo, contraseña nueva y token de restablecimiento.
 - **Quién puede hacerlo:** cualquiera puede pedir un enlace (sin sesión); solo quien tiene el token vigente cambia la contraseña, y solo la de su cuenta (RLS) (OWASP A01).
-- **Abuso previsible:** enumerar cuentas (CA02, CA09), inundar un buzón (CA06, CA12), adivinar o reutilizar tokens (CA04, CA07, CA18), conservar un acceso robado durante el cambio (CA03, CA13) y envenenar el enlace con cabeceras de la petición (la dirección sale de la configuración). Quien conozca un correo puede consumir su cupo de envíos durante una hora; se acepta.
+- **Abuso previsible:** cambiar la contraseña sin que la persona se entere (CA19), enumerar cuentas (CA02, CA09), inundar un buzón (CA06, CA12), adivinar o reutilizar tokens (CA04, CA07, CA18), conservar un acceso robado durante el cambio (CA03, CA13) y envenenar el enlace con cabeceras de la petición (la dirección sale de la configuración). Quien conozca un correo puede consumir su cupo de envíos durante una hora; se acepta.
 - Sin tokens ni contraseñas en logs ni en la URL de ninguna API (el token va en el fragmento del enlace y se envía por body al restablecer) (OWASP A07, A09).
 
 ## Estado de la validación
