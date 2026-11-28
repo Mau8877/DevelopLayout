@@ -47,6 +47,8 @@ interface AppHeaderProps {
   notifications?: NotificationsController
   /** Ver AppShellProps. */
   onLogout?: () => void
+  /** Ver AppShellProps. */
+  onChangePassword?: () => void
 }
 
 const EMPTY_NOTIFICATIONS: NotificationsController = {
@@ -84,7 +86,13 @@ function toggleSidebar() {
 const headerButtonClass =
   'text-header-foreground hover:bg-header-foreground/15 hover:text-header-foreground focus-visible:ring-header-foreground/40'
 
-export function AppHeader({ appName, user, notifications = EMPTY_NOTIFICATIONS, onLogout }: AppHeaderProps) {
+export function AppHeader({
+  appName,
+  user,
+  notifications = EMPTY_NOTIFICATIONS,
+  onLogout,
+  onChangePassword,
+}: AppHeaderProps) {
   const { t } = useTranslation('shared')
   const theme = useUiStore((s) => s.theme)
   const toggleTheme = useUiStore((s) => s.toggleTheme)
@@ -136,7 +144,7 @@ export function AppHeader({ appName, user, notifications = EMPTY_NOTIFICATIONS, 
                 <UserIcon />
                 {t('cabecera.miPerfil')}
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={onChangePassword}>
                 <KeyRoundIcon />
                 {t('cabecera.cambiarPassword')}
               </DropdownMenuItem>

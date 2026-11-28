@@ -1,4 +1,5 @@
 export * from './buscarSesionesSchema'
+export * from './cambiarPasswordSchema'
 export * from './forgotPasswordSchema'
 export * from './loginSchema'
 export * from './resetPasswordSchema'

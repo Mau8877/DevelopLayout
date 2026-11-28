@@ -1,5 +1,6 @@
 export * from './AceptarInvitacionPage'
 export * from './AceptarInvitacionScreen'
+export * from './CambiarPasswordScreen'
 export * from './ForgotPasswordScreen'
 export * from './LoginScreen'
 export * from './MisSesionesScreen'

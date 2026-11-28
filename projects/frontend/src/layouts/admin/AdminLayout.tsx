@@ -1,3 +1,4 @@
+import { useNavigate } from '@tanstack/react-router'
 import { AppShell } from '@/components/layout'
 import { useLogout } from '@/features/auth'
 import { APP_NAME_ADMIN } from '@/utils'
@@ -14,6 +15,7 @@ export function AdminLayout({
   children,
 }: AdminLayoutProps) {
   const logout = useLogout()
+  const navigate = useNavigate()
   const menu = useMenuTraducido(adminNavItems)
 
   return (
@@ -25,6 +27,7 @@ export function AdminLayout({
       user={user}
       notifications={notifications}
       onLogout={() => logout.mutate()}
+      onChangePassword={() => void navigate({ to: '/change-password' })}
     >
       {children}
     </AppShell>

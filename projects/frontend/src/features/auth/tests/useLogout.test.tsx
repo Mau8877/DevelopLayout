@@ -118,4 +118,29 @@ describe.each([
 
     await waitFor(() => expect(post).toHaveBeenCalledWith('/auth/logout', undefined, expect.anything()))
   })
+
+  it('"Cambiar contraseña" del menú abre su pantalla', async () => {
+    navigate.mockReset()
+    const raiz = createRootRoute()
+    const ruta = createRoute({
+      getParentRoute: () => raiz,
+      path: '/',
+      component: () => (
+        <Layout title="Panel" user={{ nombre: 'Ana', rol: 'Rol' }}>
+          contenido
+        </Layout>
+      ),
+    })
+    const router = createRouter({
+      routeTree: raiz.addChildren([ruta]),
+      history: createMemoryHistory({ initialEntries: ['/'] }),
+    })
+    const user = userEvent.setup()
+    render(<RouterProvider router={router} />, { wrapper: envolver(new QueryClient()) })
+
+    await user.click(await screen.findByRole('button', { name: /Ana/ }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Cambiar contraseña' }))
+
+    expect(navigate).toHaveBeenCalledWith({ to: '/change-password' })
+  })
 })
