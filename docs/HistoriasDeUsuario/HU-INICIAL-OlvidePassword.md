@@ -32,7 +32,7 @@ Depende de [HU-INICIAL-Base](HU-INICIAL-Base.md), de [HU-INICIAL-Login](HU-INICI
 - La respuesta a la solicitud es uniforme y no depende de la cuenta (ni en contenido ni en tiempo): todo lo que depende de ella ocurre después de responder.
 - Dos límites distintos. **Por IP:** al superarlo, 429. **Por correo:** 3 solicitudes por hora, contadas antes de saber si la cuenta existe; al superarlo se responde igual que siempre, no se envía nada y el último enlace sigue valiendo.
 - El envío no está garantizado: si el correo falla o el servidor se reinicia en ese momento, el usuario pide otro enlace.
-- La contraseña nueva cumple la misma política que en [HU-INICIAL-Base](HU-INICIAL-Base.md) (mínimo 8 caracteres, nada más; máximo 72 bytes) y no puede coincidir con la actual.
+- La contraseña nueva cumple la misma política que en [HU-INICIAL-Base](HU-INICIAL-Base.md) (mínimo 8 caracteres, máximo 72 bytes y que no sea una de las muy usadas) y no puede coincidir con la actual.
 - Restablecer la contraseña levanta el bloqueo temporal por intentos fallidos, desde cualquier origen.
 - La dirección del enlace sale de la configuración del servidor, nunca de datos de la petición.
 - El aviso del cambio es el mismo que en [HU-INICIAL-CambiarPassword](HU-INICIAL-CambiarPassword.md): sale en el idioma de quien restablece, sin enlaces ni contraseñas, y si falla el cambio se mantiene.
@@ -60,6 +60,7 @@ Depende de [HU-INICIAL-Base](HU-INICIAL-Base.md), de [HU-INICIAL-Login](HU-INICI
 - **CA17:** Dado un despliegue de producción sin la configuración de correo o sin la dirección HTTPS de la web, la aplicación no debe arrancar.
 - **CA18:** Dados dos restablecimientos simultáneos con el mismo enlace, solo uno debe tener éxito.
 - **CA19:** Dado un restablecimiento exitoso, el sistema debe enviar a la cuenta un aviso de que la contraseña cambió, en el idioma de la petición, sin enlaces, tokens ni contraseñas. Un restablecimiento rechazado no debe enviarlo, y si el envío falla el cambio se mantiene y el fallo se registra sin datos sensibles.
+- **CA20:** Dado que la contraseña nueva es una de las muy usadas, el sistema debe responder 400, explicarlo en el idioma pedido y no gastar el enlace.
 
 ## Seguridad
 

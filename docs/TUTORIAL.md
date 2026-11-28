@@ -26,6 +26,7 @@ PowerShell; donde cambian en Linux o macOS, se indica.
 | Español e inglés en web, app, respuestas y correos | Despliegue automático (no hay CD) |
 | Base de datos privada con seguridad por fila (RLS) | |
 | Pruebas, CI y `docker-compose` de producción | |
+| [Auditoría OWASP](seguridad/AUDITORIA_OWASP.md), con sus pendientes anotados | Doble factor y alertas de seguridad (no hay) |
 
 La administración de usuarios, las sesiones de otras personas y la bitácora están
 **en la web**. La app mobile tiene sesión, recuperación, cambio de contraseña,
@@ -310,6 +311,10 @@ Una carpeta por historia en `docs/UnidadesTrabajo/`, separada por backend, web y
 mobile, según [UNIDADES_DE_TRABAJO.md](../.claude/rules/UNIDADES_DE_TRABAJO.md).
 Cada tarea dice qué archivos toca, qué **no** hace y cómo se comprueba.
 
+Toda historia lleva además una **tarea de seguridad** en `UT-SEGURIDAD/`, que se
+hace al final y comprueba, con evidencia, que lo implementado cumple los tres
+estándares OWASP. Una prueba falla si falta esa carpeta.
+
 ### 7.3 Si trabajas con Claude Code
 
 Las reglas de `.claude/rules/` se aplican solas según la carpeta. Un flujo que
@@ -437,6 +442,8 @@ En `projects/mobile/lib/features/notas/`: `models/`, `services/`, `providers/`,
 
 - Las pruebas de cada capa que tocaste, en verde.
 - Casos de acceso **denegado**, no solo el camino feliz.
+- La tarea de seguridad hecha, sin ningún control en «No cumple». Para ver cómo
+  está la plantilla: [AUDITORIA_OWASP.md](seguridad/AUDITORIA_OWASP.md).
 - Textos en los dos idiomas.
 - Documentos al día: diagrama, errores, contrato y estado de la historia.
 - Si es un flujo clave, una prueba de navegador en `projects/frontend/e2e/`.
@@ -481,6 +488,10 @@ servidor ni con un proveedor de correo reales.** Necesitarás servidor, dominio,
 certificado y su renovación, un SMTP (con STARTTLS) con SPF y DKIM, programar
 los respaldos y llevarlos fuera del servidor. Todo está en
 [INFRAESTRUCTURA.md](INFRAESTRUCTURA.md#7c-docker-composeprodyml).
+
+Antes de publicar, repasa además los
+[pendientes de seguridad](seguridad/AUDITORIA_OWASP.md#pendientes): entre otros,
+las alertas, el doble factor y la firma de la app de Android.
 
 ## 10. Problemas comunes
 

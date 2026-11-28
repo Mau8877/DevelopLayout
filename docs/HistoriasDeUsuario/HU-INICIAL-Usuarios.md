@@ -67,6 +67,7 @@ Depende de [HU-INICIAL-Base](HU-INICIAL-Base.md), de [HU-INICIAL-Login](HU-INICI
 - **CA19:** Dado un alta, un reenvío, una aceptación, una desactivación o una reactivación, el sistema debe registrarlo en la bitácora con quién lo hizo y sobre qué cuenta, sin contraseñas, enlaces ni correos.
 - **CA20:** Dado una desactivación, el sistema debe pedir confirmación antes de ejecutarla y actualizar la lista después.
 - **CA21:** Dado cualquier respuesta de esta función, no debe incluir hashes, contraseñas, enlaces de invitación ni identificadores internos.
+- **CA22:** Dado que quien acepta una invitación elige una de las contraseñas muy usadas, el sistema debe responder 400, explicarlo y mantener la invitación pendiente.
 
 ## Seguridad
 

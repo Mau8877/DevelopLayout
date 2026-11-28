@@ -10,6 +10,7 @@ checklist de puesta en marcha y mantenimiento.
 | [INFRAESTRUCTURA.md](INFRAESTRUCTURA.md) | Docker, variables, producción y respaldos |
 | [BASE_DE_DATOS.mermaid](BASE_DE_DATOS.mermaid) | Diagrama de la base |
 | [errors/](errors/README.md) | Códigos de error de la API |
+| [seguridad/AUDITORIA_OWASP.md](seguridad/AUDITORIA_OWASP.md) | Estado frente a OWASP: controles, evidencia y pendientes |
 | [seguridad/RLS_EXCEPCIONES.md](seguridad/RLS_EXCEPCIONES.md) | Excepciones de seguridad en la base |
 | [HistoriasDeUsuario/](HistoriasDeUsuario/) y [UnidadesTrabajo/](UnidadesTrabajo/) | Qué se construyó y cómo |
 | [../scripts/README.md](../scripts/README.md) | Los scripts de la raíz |
@@ -71,6 +72,7 @@ curl http://localhost:8080/prometheus | head   # métricas en texto plano
 - [ ] Descripción de `README.md` y de `pubspec.yaml`, y el titular de `LICENSE`.
 - [ ] Íconos y pantalla de inicio: `android/.../mipmap-*`, `ios/Runner/Assets.xcassets`, `macos/Runner/Assets.xcassets`, `web/icons` y `windows/runner/resources`.
 - [ ] Solo si vas a publicar la app de escritorio: el nombre del ejecutable (`BINARY_NAME` en `linux/` y `windows/CMakeLists.txt`, `PRODUCT_NAME` en `macos/Runner/Configs/AppInfo.xcconfig` y los textos de `windows/runner/Runner.rc`).
+- [ ] **Seguridad:** revisa los [pendientes de la auditoría](seguridad/AUDITORIA_OWASP.md#pendientes) y decide cuáles resolver antes de publicar. El informe describe la plantilla: tu proyecto actualiza el suyo cuando cambie un control.
 - [ ] Colores de marca (`projects/frontend/src/index.css` y `projects/mobile/lib/core/theme/app_theme.dart`).
 - [ ] Reemplazá las pantallas de ejemplo por las tuyas: `routes/index.tsx` y `_authenticated/dashboard.tsx` en la web (sin dejar `_authenticated/` sin ninguna ruta hija: el build falla) y `lib/features/health/` en mobile. En la app, los shells por rol traen secciones de ejemplo (por ejemplo «Pedidos»): cámbialas por las tuyas.
 - [ ] Borrá la migración de ejemplo (`V1__init_schema.sql`) **antes** de crear tu primera base, si no la querés.
@@ -121,4 +123,6 @@ Estos comandos se corren en el proyecto ya renombrado, no en la plantilla — sa
 - **Reglas de seguridad** (OWASP Top 10, API Security Top 10, MASVS, base de datos privada con RLS): [`.claude/rules/SEGURIDAD_OWASP.md`](../.claude/rules/SEGURIDAD_OWASP.md) y [`.claude/rules/backend/BASE_DE_DATOS_PRIVADA_RLS.md`](../.claude/rules/backend/BASE_DE_DATOS_PRIVADA_RLS.md). Toda implementación nueva tiene que cumplirlas.
 - **CI** (`.github/workflows/ci.yml`, en cada Pull Request y push a `main`): lint + tests + build por proyecto, pruebas de scripts y de navegador, `gitleaks`, Trivy, `pnpm audit`, y la construcción y prueba de las imágenes de producción. Detalle en [`.claude/rules/CI_CD.md`](../.claude/rules/CI_CD.md).
 - **Producción**: `docker-compose.prod.yml` (HTTPS obligatorio, solo el proxy publica puertos, contenedores sin root). Variables extra, certificados y cómo levantarlo en [INFRAESTRUCTURA.md](INFRAESTRUCTURA.md#7c-docker-composeprodyml). No hay CD todavía: depende de decidir el destino del despliegue.
+- **Auditoría**: [seguridad/AUDITORIA_OWASP.md](seguridad/AUDITORIA_OWASP.md) dice qué se comprobó, qué se corrigió y qué falta. No es una certificación.
+- **Cada historia nueva** cierra con una [UT de seguridad](../.claude/rules/UNIDADES_DE_TRABAJO.md#toda-hu-termina-con-una-ut-de-seguridad).
 - **Errores de la API**: el catálogo de códigos vive en [`docs/errors/`](errors/README.md).

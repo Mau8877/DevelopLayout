@@ -32,7 +32,7 @@ Depende de [HU-INICIAL-Login](HU-INICIAL-Login.md) (límite de intentos), de [HU
 
 - Cada persona cambia solo su propia contraseña. Un administrador no puede cambiar la de otra.
 - La contraseña actual es obligatoria, aunque la sesión esté iniciada.
-- La contraseña nueva cumple la misma política que en el resto del sistema (mínimo 8 caracteres y máximo 72 bytes, sin otras reglas) y no puede ser igual a la actual.
+- La contraseña nueva cumple la misma política que en el resto del sistema (mínimo 8 caracteres, máximo 72 bytes y que no sea una de las muy usadas) y no puede ser igual a la actual.
 - Al cambiar la contraseña se cierran de inmediato todas las sesiones de la cuenta, también la actual. No se inicia una sesión nueva sola: hay que volver a entrar.
 - Solo una sesión que sigue activa puede hacer el cambio: si fue cerrada mientras tanto, no cambia nada.
 - Tras 5 intentos con la contraseña actual incorrecta en 15 minutos, el cambio queda bloqueado para esa cuenta durante 15 minutos. Este bloqueo no impide iniciar sesión ni cierra sesiones, y los fallos del inicio de sesión no lo activan.
@@ -73,6 +73,7 @@ Depende de [HU-INICIAL-Login](HU-INICIAL-Login.md) (límite de intentos), de [HU
 - **CA14:** Dados dos cambios simultáneos de la misma cuenta, solo uno debe tener éxito.
 - **CA15:** Dado un usuario con cualquier rol, la opción debe estar disponible en la web y en la app, en español y en inglés.
 - **CA16:** Dado un cambio en curso, el formulario no debe permitir enviarlo otra vez; al terminar bien, las contraseñas escritas no deben quedar disponibles en la pantalla ni al volver atrás.
+- **CA17:** Dado que la contraseña nueva es una de las muy usadas, el sistema debe responder 400, explicarlo en el idioma pedido y mantener la contraseña y las sesiones.
 
 ## Desarrollador
 

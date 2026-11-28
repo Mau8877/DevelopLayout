@@ -29,7 +29,7 @@ Es prerequisito de [HU-INICIAL-Login](HU-INICIAL-Login.md), [HU-INICIAL-Refresh]
 - Todas las tablas creadas (`usuario`, `rol`, `usuario_rol`) se mapean con un Model que extiende `BaseModel` (`id`, `codigo` UUID, `created_at`, `updated_at`, `deleted_at`), según [PERSISTENCIA_BD_BACKEND](../../.claude/rules/backend/PERSISTENCIA_BD_BACKEND.md). El correo es único solo entre filas no borradas (índice único parcial `WHERE deleted_at IS NULL`).
 - Un usuario puede tener varios roles activos a la vez (modelo relacional `Rol` + `UsuarioRol`, ver [SEGURIDAD_AUTH_BACKEND](../../.claude/rules/backend/SEGURIDAD_AUTH_BACKEND.md#roles-y-permisos)).
 - El identificador de acceso es el correo electrónico, único e insensible a mayúsculas.
-- Contraseñas con BCrypt; nunca en texto plano ni en logs. Política: **mínimo 8 caracteres y nada más** (sin obligar mayúsculas, números ni símbolos). Máximo 72 bytes por el límite de BCrypt.
+- Contraseñas con BCrypt; nunca en texto plano ni en logs. Política: **mínimo 8 caracteres**, sin obligar mayúsculas, números ni símbolos, y que **no sea una de las muy usadas** en filtraciones (CA10). Máximo 72 bytes por el límite de BCrypt.
 - El administrador inicial se crea desde variables de entorno (`INITIAL_ADMIN_EMAIL`, `INITIAL_ADMIN_PASSWORD`), nunca desde una migración, para no versionar una contraseña.
 - No existe endpoint de registro público en esta versión.
 - RLS en las tablas de autenticación: `usuario` solo es visible para la fila cuyo `codigo` coincide con `app.current_user` o cuyo correo coincide con `app.login_email` (contexto que fija el flujo de login/recuperación, una sola fila); `usuario_rol` por `usuario_codigo = app.current_user`; `rol` es catálogo (`RLS-OPT-OUT`, solo `SELECT` para `app_runtime`). Sin contexto no se ve ninguna fila.
@@ -51,6 +51,11 @@ Es prerequisito de [HU-INICIAL-Login](HU-INICIAL-Login.md), [HU-INICIAL-Refresh]
 - **CA07:** Dado que la aplicación está en ejecución, debe conectarse a PostgreSQL con el rol `app_runtime`, que no es superusuario ni tiene `BYPASSRLS`.
 - **CA08:** Dado que `app_runtime` intenta `UPDATE` o `DELETE` sobre `bitacora`, el sistema debe rechazarlo por falta de permisos.
 - **CA09:** Dado que se invoca `BitacoraService.registrar`, el sistema debe insertar una fila con acción, módulo, resultado, actor (si existe), IP y user agent, y sin datos sensibles en el detalle.
+- **CA10:** Dado que se fija una contraseña nueva (restablecer, aceptar una invitación, cambiar la propia o el administrador inicial) y es una de las muy usadas, sin importar las mayúsculas, el sistema debe rechazarla sin enviarla a ningún servicio externo (400 en la API; el administrador inicial impide arrancar). El inicio de sesión no aplica esta regla.
+- **CA11:** Dado que el sistema escribe un log, también con el registro detallado de la capa web o ante un error inesperado, no deben aparecer contraseñas, tokens, correos, direcciones IP ni los valores que rechazó la validación o la base de datos.
+- **CA12:** Dado que una petición se rechaza por falta de permiso (403) o por superar un límite (429), el sistema debe registrarlo sin datos personales.
+- **CA13:** Dado que alguien escribe una ruta de otra forma (codificada) o agrega una cabecera de otro tipo de cliente, ningún límite ni la protección CSRF deben dejar de aplicarse.
+- **CA14:** Dado que la base de datos o Redis no responden a tiempo, el sistema no debe esperar de forma indefinida.
 
 ## Seguridad
 

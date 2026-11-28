@@ -575,8 +575,13 @@ Grafana y Prometheus no tienen puertos: se consultan por túnel SSH o con
 - El bucket de MinIO es **privado**.
 - Imágenes con tag fijo (`prom/prometheus:v3.14.0`, `grafana/grafana:13.3.0`,
   `nginx:stable-alpine`).
-- nginx: `server_tokens off`, cabeceras de seguridad, `limit_req` en `/api/`
-  y `X-Forwarded-For` sobrescrito (no acumulado).
+- nginx: `server_tokens off`, cabeceras de seguridad, `limit_req` en `/api/`,
+  cuerpo máximo de **1 MB** y `X-Forwarded-For` sobrescrito (no acumulado). Un
+  endpoint que reciba archivos amplía el límite solo en su `location`.
+- El backend limita sus esperas: 30 s por consulta, 10 s para obtener o abrir una
+  conexión y 2 s en Redis (ver `PERSISTENCIA_BD_BACKEND.md`).
+- El estado frente a OWASP, con sus pendientes, está en
+  [seguridad/AUDITORIA_OWASP.md](seguridad/AUDITORIA_OWASP.md).
 - Config base del backend segura; lo cómodo (Swagger, `show-sql`, health
   detallado) solo en el perfil `dev`.
 
@@ -611,6 +616,9 @@ levantes el backend antes de restaurar.
 
 ## 8. Qué NO está implementado todavía (para que quede explícito, no ambiguo)
 
+- **Sin reglas de alerta** — Prometheus recibe las métricas, pero nadie recibe un
+  aviso (pendiente P-02 de la
+  [auditoría](seguridad/AUDITORIA_OWASP.md#pendientes)).
 - **Sin dashboards de Grafana** — solo el datasource de Prometheus está
   provisionado.
 - **Sin métricas de nada más que el backend** — frontend/postgres/redis/minio
