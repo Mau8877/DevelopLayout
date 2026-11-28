@@ -37,7 +37,8 @@ onSesionExpirada(() => {
 // * Errores que ningún componente atrapó: se registran por el logger (sin
 // * mostrar detalles técnicos al usuario).
 window.addEventListener('error', (event) => {
-  logger.error('Error no controlado', event.message)
+  // * Solo el tipo: el mensaje puede traer datos de la pantalla.
+  logger.error('Error no controlado', event.error instanceof Error ? event.error.name : 'desconocido')
 })
 window.addEventListener('unhandledrejection', (event) => {
   logger.error('Promesa rechazada sin controlar', event.reason instanceof Error ? event.reason.name : 'desconocido')
