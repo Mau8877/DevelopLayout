@@ -35,6 +35,11 @@ test('recuperar la contraseña con el enlace del correo, una sola vez', async ({
   await llenarLogin(page, { correo: cuenta.correo, password: nueva })
   await expect(page).toHaveURL(/\/dashboard$/)
 
+  // * Tras la invitación y el enlace llega el aviso de que la contraseña cambió.
+  const aviso = await esperarCorreo(cuenta.correo, { cantidad: 3 })
+  expect(aviso.asunto).toBe('Tu contraseña cambió')
+  expect(aviso.texto).not.toContain('http')
+
   const otro = await otroNavegador(browser)
   await otro.page.goto(enlace)
   await definirPassword(otro.page, nuevaPassword(), 'Cambiar contraseña')

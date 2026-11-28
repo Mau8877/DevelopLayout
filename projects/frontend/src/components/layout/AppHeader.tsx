@@ -5,9 +5,7 @@ import {
   SunIcon,
   MoonIcon,
   LogOutIcon,
-  UserIcon,
   KeyRoundIcon,
-  SettingsIcon,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -43,25 +41,12 @@ function iniciales(nombre: string) {
 interface AppHeaderProps {
   appName: string
   user: LayoutUser
-  /** Sin esto, la campanita no muestra "circulito" y el panel queda vacío. */
+  /** La campana solo aparece si hay una fuente de notificaciones que mostrar. */
   notifications?: NotificationsController
   /** Ver AppShellProps. */
   onLogout?: () => void
   /** Ver AppShellProps. */
   onChangePassword?: () => void
-}
-
-const EMPTY_NOTIFICATIONS: NotificationsController = {
-  items: [],
-  meta: undefined,
-  isLoading: false,
-  isLoadingMore: false,
-  unreadCount: 0,
-  onOpenChange: () => {},
-  onLoadMore: () => {},
-  onMarkAsRead: () => {},
-  onMarkAllAsRead: () => {},
-  onDeleteAll: () => {},
 }
 
 // * Un solo botón de menú controla el sidebar en ambos tamaños de pantalla
@@ -89,7 +74,7 @@ const headerButtonClass =
 export function AppHeader({
   appName,
   user,
-  notifications = EMPTY_NOTIFICATIONS,
+  notifications,
   onLogout,
   onChangePassword,
 }: AppHeaderProps) {
@@ -116,7 +101,9 @@ export function AppHeader({
       <div className="ml-auto flex items-center gap-3">
         <HeaderClock className="hidden text-xs text-header-foreground/60 xl:block" />
         <SelectorIdioma className={headerButtonClass} compacto />
-        <NotificationsMenu notifications={notifications} triggerClassName={headerButtonClass} />
+        {notifications && (
+          <NotificationsMenu notifications={notifications} triggerClassName={headerButtonClass} />
+        )}
 
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -140,10 +127,6 @@ export function AppHeader({
             <DropdownMenuGroup>
               <DropdownMenuLabel>{user.nombre}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <UserIcon />
-                {t('cabecera.miPerfil')}
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={onChangePassword}>
                 <KeyRoundIcon />
                 {t('cabecera.cambiarPassword')}
@@ -154,10 +137,6 @@ export function AppHeader({
               >
                 {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
                 {t('cabecera.cambiarTema')}
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <SettingsIcon />
-                {t('cabecera.configuracion')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" onClick={onLogout}>

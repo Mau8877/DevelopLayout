@@ -44,10 +44,8 @@
   },
   "cabecera": {
     "alternarMenu": "Mostrar u ocultar el menú",
-    "miPerfil": "Mi perfil",
     "cambiarPassword": "Cambiar contraseña",
     "cambiarTema": "Cambiar tema",
-    "configuracion": "Configuración",
     "cerrarSesion": "Cerrar sesión",
     "rutaActual": "Ruta actual",
     "formatoFecha": "dddd, D [de] MMMM [de] YYYY - HH:mm"
