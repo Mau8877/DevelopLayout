@@ -37,7 +37,7 @@ formato de esta rule aplica igual.
 
 Orden de implementación: `Base` → `Login` → `Refresh` → `Logout` →
 `OlvidePassword` → `SesionesAdmin` → `Bitacora` → `Sesiones` → `Usuarios` →
-`Roles` → `Convenciones` → `Idiomas` → `PruebasNavegador`. Cada una puede suponer ya implementadas las anteriores.
+`Roles` → `Convenciones` → `Idiomas` → `PruebasNavegador` → `CambiarPassword`. Cada una puede suponer ya implementadas las anteriores.
 
 ## Granularidad: una HU, un flujo
 
