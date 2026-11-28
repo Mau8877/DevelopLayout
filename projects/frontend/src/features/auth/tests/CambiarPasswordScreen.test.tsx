@@ -69,7 +69,7 @@ describe('CambiarPasswordScreen', () => {
     expect(await screen.findByText('pantalla de login')).toBeInTheDocument()
     expect(post).toHaveBeenCalledTimes(1)
     expect(post).toHaveBeenCalledWith('/auth/password/change', {
-      passwordActual: 'ClaveActual123',
+      passwordActual: 'ClaveActual123', // gitleaks:allow
       passwordNueva: 'ClaveNueva456',
     })
     expect(sesionDe(queryClient)).toBeNull()
