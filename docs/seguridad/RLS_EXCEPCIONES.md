@@ -6,6 +6,7 @@ criterios en `.claude/rules/backend/BASE_DE_DATOS_PRIVADA_RLS.md`.
 | Tabla | Razón | Fecha | Responsable |
 | --- | --- | --- | --- |
 | `flyway_schema_history` | Tabla técnica de Flyway, sin datos de negocio | — | — |
+| `public.system_metadata` | Tabla de ejemplo de `V1` (solo el nombre del proyecto). `app_runtime` no tiene permisos sobre ella. Esa migración ya está aplicada, así que no lleva el comentario `RLS-OPT-OUT` | 2026-11-28 | — |
 | `authentication.rol` | Catálogo de roles (`SUPER_ADMIN`, `USUARIO`), sin datos sensibles; `app_runtime` solo tiene `SELECT` | 2026-11-25 | Mau8877 |
 
 # Políticas abiertas a propósito
@@ -13,7 +14,6 @@ criterios en `.claude/rules/backend/BASE_DE_DATOS_PRIVADA_RLS.md`.
 | Objeto | Razón | Fecha | Responsable |
 | --- | --- | --- | --- |
 | `authentication.bitacora`, política `bitacora_insercion` (`FOR INSERT WITH CHECK (true)`) | El evento puede ocurrir sin usuario (p. ej. un login fallido) y la tabla es de solo inserción: `app_runtime` no tiene `UPDATE` ni `DELETE`, y `SELECT` exige `app.is_admin` | 2026-11-25 | Mau8877 |
-
 | `authentication.usuario`, política `usuario_lectura_admin` (`FOR SELECT` con `app.is_admin`) | El administrador busca usuarios para gestionar sus sesiones. Solo lectura; el contexto lo fija `RlsContext.usarAdmin()` tras la autorización | 2026-11-26 | Mau8877 |
 | `authentication.bitacora`, política `bitacora_purga_lectura` (solo el dueño, durante la purga) | Un dueño sin superusuario necesita leer las filas que purga. No aplica a `app_runtime` | 2026-11-26 | Mau8877 |
 | `authentication.usuario_rol`, política `usuario_rol_lectura_alta_inicial` (solo el dueño, con `app.alta_inicial`) | Un dueño sin superusuario necesita ver si ya existe un `SUPER_ADMIN` al arrancar. Solo lectura; el contexto lo fija `AdminInicialInitializer` dentro de la transacción del conteo. No aplica a `app_runtime` | 2026-11-27 | Mau8877 |
