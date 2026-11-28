@@ -1,4 +1,4 @@
-package com.example.backend.security;
+package com.example.backend.security.resolver;
 
 import java.util.UUID;
 
@@ -11,14 +11,15 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 import com.example.backend.common.exception.UnauthorizedException;
-import com.example.backend.features.auth.AuthErrorCodes;
+import com.example.backend.features.auth.constant.AuthErrorCodes;
+import com.example.backend.security.annotation.CurrentUserId;
 
-/** Resuelve @CurrentSessionId: el `sid` (codigo de la sesión) del token ya validado por el filtro. */
-public class CurrentSessionIdArgumentResolver implements HandlerMethodArgumentResolver {
+/** Resuelve @CurrentUserId: el `sub` (codigo) del token ya validado por el filtro. */
+public class CurrentUserIdArgumentResolver implements HandlerMethodArgumentResolver {
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.hasParameterAnnotation(CurrentSessionId.class)
+        return parameter.hasParameterAnnotation(CurrentUserId.class)
                 && UUID.class.equals(parameter.getParameterType());
     }
 
@@ -26,7 +27,7 @@ public class CurrentSessionIdArgumentResolver implements HandlerMethodArgumentRe
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
             NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getDetails() instanceof UUID codigo) {
+        if (auth != null && auth.getPrincipal() instanceof UUID codigo) {
             return codigo;
         }
         throw new UnauthorizedException(AuthErrorCodes.ERR_AUTH_07, "common.error.noAutenticado");

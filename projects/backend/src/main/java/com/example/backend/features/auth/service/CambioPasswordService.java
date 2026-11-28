@@ -11,13 +11,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import com.example.backend.common.bitacora.BitacoraService;
-import com.example.backend.common.bitacora.ResultadoBitacora;
+import com.example.backend.common.bitacora.service.BitacoraService;
+import com.example.backend.common.bitacora.enums.ResultadoBitacora;
 import com.example.backend.common.exception.LockedException;
 import com.example.backend.common.exception.UnauthorizedException;
 import com.example.backend.common.exception.ValidationException;
-import com.example.backend.features.auth.AuthAcciones;
-import com.example.backend.features.auth.AuthErrorCodes;
+import com.example.backend.features.auth.constant.AuthAcciones;
+import com.example.backend.features.auth.constant.AuthErrorCodes;
 import com.example.backend.features.auth.enums.EstadoSesion;
 import com.example.backend.features.auth.enums.MotivoRevocacion;
 import com.example.backend.features.auth.repository.SesionRepository;

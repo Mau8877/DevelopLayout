@@ -1,4 +1,4 @@
-package com.example.backend.security;
+package com.example.backend.security.jwt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -8,6 +8,9 @@ import static org.mockito.Mockito.when;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
+
+import com.example.backend.security.resolver.CurrentSessionIdArgumentResolver;
+import com.example.backend.security.resolver.CurrentUserIdArgumentResolver;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;

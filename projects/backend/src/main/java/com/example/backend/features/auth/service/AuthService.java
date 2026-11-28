@@ -15,14 +15,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import com.example.backend.common.bitacora.BitacoraService;
-import com.example.backend.common.bitacora.ResultadoBitacora;
+import com.example.backend.common.bitacora.service.BitacoraService;
+import com.example.backend.common.bitacora.enums.ResultadoBitacora;
 import com.example.backend.common.exception.ForbiddenException;
 import com.example.backend.common.exception.LockedException;
 import com.example.backend.common.exception.UnauthorizedException;
 import com.example.backend.common.util.Sha256;
-import com.example.backend.features.auth.AuthAcciones;
-import com.example.backend.features.auth.AuthErrorCodes;
+import com.example.backend.features.auth.constant.AuthAcciones;
+import com.example.backend.features.auth.constant.AuthErrorCodes;
 import com.example.backend.features.auth.dto.UsuarioSesionResponse;
 import com.example.backend.features.auth.enums.TipoCliente;
 import com.example.backend.features.usuarios.enums.EstadoUsuario;
@@ -30,9 +30,9 @@ import com.example.backend.features.usuarios.model.Rol;
 import com.example.backend.features.usuarios.model.Usuario;
 import com.example.backend.features.usuarios.repository.UsuarioRepository;
 import com.example.backend.features.usuarios.repository.UsuarioRolRepository;
-import com.example.backend.security.JwtService;
+import com.example.backend.security.jwt.JwtService;
 import com.example.backend.security.RlsContext;
-import com.example.backend.security.SesionRevocadaRegistry;
+import com.example.backend.security.jwt.SesionRevocadaRegistry;
 
 /**
  * Lógica de login, renovación, cierre de sesión y "quién soy".

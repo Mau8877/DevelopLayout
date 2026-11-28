@@ -1,4 +1,4 @@
-package com.example.backend.features.auth;
+package com.example.backend.features.auth.constant;
 
 /** Acciones de auditoría (bitácora) del módulo de autenticación. */
 public final class AuthAcciones {

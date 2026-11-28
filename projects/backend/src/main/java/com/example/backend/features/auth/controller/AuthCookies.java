@@ -1,4 +1,4 @@
-package com.example.backend.features.auth;
+package com.example.backend.features.auth.controller;
 
 import java.time.Duration;
 

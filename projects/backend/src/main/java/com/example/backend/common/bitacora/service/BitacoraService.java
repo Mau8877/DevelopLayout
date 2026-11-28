@@ -1,4 +1,4 @@
-package com.example.backend.common.bitacora;
+package com.example.backend.common.bitacora.service;
 
 import java.util.List;
 import java.util.Locale;
@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.example.backend.common.bitacora.enums.ResultadoBitacora;
 import com.example.backend.common.bitacora.repository.BitacoraRepository;
 
 import jakarta.servlet.http.HttpServletRequest;

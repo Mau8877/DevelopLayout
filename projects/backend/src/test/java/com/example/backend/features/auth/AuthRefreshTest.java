@@ -17,7 +17,7 @@ import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.example.backend.security.SesionRevocadaRegistry;
+import com.example.backend.security.jwt.SesionRevocadaRegistry;
 
 import jakarta.servlet.http.Cookie;
 

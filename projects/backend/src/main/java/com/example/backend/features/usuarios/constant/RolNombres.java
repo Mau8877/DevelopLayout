@@ -1,4 +1,4 @@
-package com.example.backend.features.usuarios;
+package com.example.backend.features.usuarios.constant;
 
 /**
  * Nombres de rol conocidos por el sistema.

@@ -1,4 +1,4 @@
-package com.example.backend.features.bitacora;
+package com.example.backend.features.bitacora.constant;
 
 /** Códigos de error del módulo de bitácora (docs/errors/bitacora/ERRORES_BITACORA.md). */
 public final class BitacoraErrorCodes {

@@ -13,9 +13,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.common.exception.UnauthorizedException;
-import com.example.backend.features.auth.AuthErrorCodes;
+import com.example.backend.features.auth.constant.AuthErrorCodes;
 import com.example.backend.features.auth.service.SesionService;
-import com.example.backend.features.usuarios.RolNombres;
+import com.example.backend.features.usuarios.constant.RolNombres;
 import com.example.backend.features.usuarios.enums.EstadoUsuario;
 import com.example.backend.features.usuarios.model.Rol;
 import com.example.backend.features.usuarios.repository.UsuarioRepository;

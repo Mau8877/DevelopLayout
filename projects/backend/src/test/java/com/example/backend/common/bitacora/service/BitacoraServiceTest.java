@@ -1,4 +1,4 @@
-package com.example.backend.common.bitacora;
+package com.example.backend.common.bitacora.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -17,6 +17,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.example.backend.common.bitacora.enums.ResultadoBitacora;
 import com.example.backend.support.PostgresRuntimeIntegrationTest;
 
 /**

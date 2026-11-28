@@ -1,4 +1,4 @@
-package com.example.backend.features.auth.dto;
+package com.example.backend.features.auth.validation;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.PARAMETER;

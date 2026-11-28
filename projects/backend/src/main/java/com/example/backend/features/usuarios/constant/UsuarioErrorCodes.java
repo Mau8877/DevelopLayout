@@ -1,4 +1,4 @@
-package com.example.backend.features.usuarios;
+package com.example.backend.features.usuarios.constant;
 
 /**
  * Catálogo de códigos de error del módulo de usuarios.

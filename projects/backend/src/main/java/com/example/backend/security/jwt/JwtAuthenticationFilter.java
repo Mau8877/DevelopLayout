@@ -1,4 +1,4 @@
-package com.example.backend.security;
+package com.example.backend.security.jwt;
 
 import java.io.IOException;
 import java.util.List;

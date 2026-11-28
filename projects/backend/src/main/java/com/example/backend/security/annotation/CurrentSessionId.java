@@ -1,4 +1,4 @@
-package com.example.backend.security;
+package com.example.backend.security.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

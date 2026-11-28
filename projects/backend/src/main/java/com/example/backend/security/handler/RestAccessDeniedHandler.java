@@ -1,4 +1,4 @@
-package com.example.backend.security;
+package com.example.backend.security.handler;
 
 import com.example.backend.common.idioma.Mensajes;
 import java.io.IOException;
@@ -8,7 +8,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 
-import com.example.backend.features.auth.AuthErrorCodes;
+import com.example.backend.features.auth.constant.AuthErrorCodes;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

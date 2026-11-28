@@ -1,4 +1,4 @@
-package com.example.backend.security;
+package com.example.backend.security.jwt;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.example.backend.common.exception.UnauthorizedException;
-import com.example.backend.features.auth.AuthErrorCodes;
+import com.example.backend.features.auth.constant.AuthErrorCodes;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;

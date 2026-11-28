@@ -1,4 +1,4 @@
-package com.example.backend.features.usuarios;
+package com.example.backend.features.usuarios.constant;
 
 /** Acciones de auditoría (bitácora) del módulo de usuarios. */
 public final class UsuarioAcciones {

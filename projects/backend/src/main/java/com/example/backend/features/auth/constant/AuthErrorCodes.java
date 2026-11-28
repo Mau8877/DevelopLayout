@@ -1,4 +1,4 @@
-package com.example.backend.features.auth;
+package com.example.backend.features.auth.constant;
 
 /**
  * Catálogo de códigos de error del módulo de autenticación.

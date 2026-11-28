@@ -1,4 +1,4 @@
-package com.example.backend.common.bitacora;
+package com.example.backend.common.bitacora.service;
 
 /**
  * IP y user agent de la petición que originó un evento, para registrarlo desde un

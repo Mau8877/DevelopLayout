@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.backend.common.bitacora.ResultadoBitacora;
+import com.example.backend.common.bitacora.enums.ResultadoBitacora;
 import com.example.backend.common.bitacora.repository.BitacoraConsultaRepository;
 import com.example.backend.common.response.ApiResponse;
 import com.example.backend.common.response.PageMeta;

@@ -6,7 +6,7 @@ import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import com.example.backend.common.bitacora.ResultadoBitacora;
+import com.example.backend.common.bitacora.enums.ResultadoBitacora;
 import com.example.backend.common.model.BaseModel;
 
 import jakarta.persistence.AttributeOverride;

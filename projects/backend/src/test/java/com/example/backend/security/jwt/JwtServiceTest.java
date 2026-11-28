@@ -1,4 +1,4 @@
-package com.example.backend.security;
+package com.example.backend.security.jwt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
