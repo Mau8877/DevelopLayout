@@ -49,6 +49,19 @@ proyecto).
 > agrega a un `.trivyignore`, no se baja la severidad del escaneo.
 > `scripts/dependencias/update-deps.*` hace la misma auditoría en local.
 
+## Contrato de la API
+
+`docs/api/openapi.json` y `shared/api/schema.d.ts` son **generados** y están
+marcados `linguist-generated` en `.gitattributes`: GitHub muestra sus cambios
+plegados en el PR. Plegado no es lo mismo que revisado: el diff del contrato se
+abre cuando un cambio toca la API.
+
+- La prueba `OpenApiContractTest` (job `backend`) falla si lo que publica la API
+  no coincide con `openapi.json`.
+- El job `frontend` regenera `schema.d.ts` y falla si difiere del commiteado.
+- Por eso un cambio en `openapi.json` activa los jobs `backend` y `frontend`
+  (y, por el primero, también `docker`).
+
 ## Prueba de producción de punta a punta
 
 `scripts/produccion/prod-smoke.mjs` comprueba arranque, puertos publicados, redirección y
@@ -182,7 +195,7 @@ sin nada adicional inventado solo para CI:
 | Job | Pasos |
 | --- | --- |
 | `backend` | `mvnw checkstyle:check` → `mvnw test` → `mvnw clean package` |
-| `frontend` | `pnpm install --frozen-lockfile` (desde la raíz, ver [docs/README.md](../../docs/README.md)) → `pnpm lint` → `pnpm test` → `pnpm build` → `pnpm audit --audit-level moderate` |
+| `frontend` | `pnpm install --frozen-lockfile` (desde la raíz, ver [docs/README.md](../../docs/README.md)) → tipos al día con el contrato → `pnpm lint` → `pnpm test` → `pnpm build` → `pnpm audit --audit-level moderate` |
 | `mobile` | `flutter pub get` → `flutter analyze` → `flutter test` |
 | `scripts` | `node --test "scripts/**/*.test.mjs"` |
 | `e2e` | `pnpm install --frozen-lockfile` → `playwright install --with-deps chromium` → `node scripts/e2e/e2e.mjs` |

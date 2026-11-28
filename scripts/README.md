@@ -100,9 +100,11 @@ pnpm openapi:sync --check   # falla si el backend en vivo ya no coincide con el 
   muestra exactamente qué cambió para frontend y mobile. Se normaliza (claves ordenadas, sin `servers`).
 - El test `OpenApiContractTest` (backend) falla si el contrato publicado difiere del snapshot:
   si cambiás un endpoint o un DTO, corré `openapi:sync` y commiteá el snapshot con el cambio.
-- `schema.d.ts` se **genera, no se edita a mano** (sí se commitea, para que el build y CI no dependan del backend) (reemplaza escribir a mano los
-  tipos de request/response del frontend). Mobile (Dart) no genera código: valida contra el
-  snapshot en sus tests de parsing cuando haga falta.
+- El CI regenera los tipos y falla si no coinciden con los commiteados. Los dos
+  archivos están marcados como generados en `.gitattributes`.
+- `schema.d.ts` se **genera, no se edita a mano**. Sí se commitea, para que el build y el
+  CI no dependan del backend, y reemplaza escribir a mano los tipos de request/response del
+  frontend. Mobile (Dart) no usa el contrato: sus modelos se escriben a mano.
 - Tests: `pnpm test:scripts`.
 
 ## `update-deps`: actualizar y validar las dependencias
