@@ -28,7 +28,7 @@ const DOMINIO = /(?<![A-Za-z0-9])com\.example(?![A-Za-z0-9])/g;
 // * No se tocan: el historial (historias y tareas ya escritas), la guía que explica
 // * los nombres de la plantilla, este script y sus pruebas, y los lockfiles.
 const EXCLUIDOS = [
-  'docs/HistoriasDeUsuario/', 'docs/UnidadesTrabajo/', 'docs/README.md',
+  'docs/HistoriasDeUsuario/', 'docs/UnidadesTrabajo/', 'docs/README.md', 'docs/TUTORIAL.md',
   'scripts/init-project.mjs', 'scripts/init-project.test.mjs', 'pnpm-lock.yaml', 'projects/mobile/pubspec.lock',
 ];
 

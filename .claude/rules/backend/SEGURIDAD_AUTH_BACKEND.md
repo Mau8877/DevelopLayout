@@ -57,7 +57,7 @@ El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
   | `Path` | `/api` | `/api/v1/auth` |
   | `Max-Age` | 15 minutos | 7 días |
   | La setea | login y refresh | login y refresh (rota) |
-  | La borra | logout (`Max-Age=0`) | logout (`Max-Age=0`) |
+  | La borra | logout y cambio de contraseña (`Max-Age=0`) | igual |
 
   Frontend y backend son same-site (puertos distintos en dev, mismo origen
   tras nginx en producción), por eso `SameSite=Strict` funciona con
@@ -103,8 +103,9 @@ El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
   refresh responde 401 o 403; sin red, con 429 o con 500 la conservan. En web
   las pestañas se coordinan con un candado compartido (ver
   [TANSTACK_QUERY_FRONTEND.md](../frontend/TANSTACK_QUERY_FRONTEND.md#renovación-de-sesión)).
-- Redis guarda los contadores de intentos de login y la lista de sesiones
-  revocadas, y los tokens y el límite por correo de la recuperación de contraseña. **No**
+- Redis guarda los contadores de intentos de login y de cambio de contraseña, la
+  lista de sesiones revocadas, y los tokens y límites de recuperación e
+  invitación. **No**
   guarda refresh tokens. Corre con `maxmemory-policy noeviction`: no puede
   desalojar esos datos. El rate limit vive en memoria, no en Redis.
 

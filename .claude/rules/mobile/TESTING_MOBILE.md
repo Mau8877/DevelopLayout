@@ -30,6 +30,14 @@ ya testeado). Escribir un widget test para cada pantalla del CRUD estándar
 no agrega valor proporcional al tiempo que toma, para el alcance de este
 proyecto.
 
+## Lo que ya está montado
+
+- `test/flutter_test_config.dart` precarga los textos antes de cada archivo.
+- Un widget con textos se monta con `AppDePrueba` (`test/support/`) dentro de un
+  `ProviderScope`; ahí también están el adaptador HTTP y el almacenamiento falsos.
+- **Los controles de idioma no son opcionales:** `test/shared/language/` falla si
+  falta una clave, difieren los idiomas, queda texto fijo o hay voseo.
+
 ## Cuando sí se escribe un test
 
 Se mantiene en verde — la diferencia con backend es **cuándo se exige

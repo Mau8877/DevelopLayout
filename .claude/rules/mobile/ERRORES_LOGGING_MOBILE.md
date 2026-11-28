@@ -15,8 +15,9 @@ muestra un error crudo, y ningún `catch` se traga un error en silencio.
   no JSON, `502/504`) llegan como `ApiException` con códigos propios del
   cliente (`CLIENT_NETWORK`, `CLIENT_TIMEOUT`, `CLIENT_UNKNOWN`) y mensaje
   genérico en el idioma vigente (ver [IDIOMAS_MOBILE.md](IDIOMAS_MOBILE.md)).
-- Una función única, `mensajeDeError(Object error)` (`core/network/`),
-  traduce cualquier error a un texto para el usuario. Las pantallas la usan; no
+- Una función única, `mensajeDeError(Object error)` (`core/network/`), devuelve
+  el mensaje del servidor o una clave de idioma. Las pantallas lo muestran con
+  `context.traducir(...)`; no
   hacen `error.toString()`, no leen `DioException.response` ni muestran el body.
 - `features/health/` (pantalla de diagnóstico) es la única excepción a esto, y
   desaparece cuando haya un mejor lugar para ese chequeo.

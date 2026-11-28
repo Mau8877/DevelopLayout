@@ -27,8 +27,8 @@ con el campo "Nombre corto de HU" de la tabla interna (ver abajo).
 ## HU iniciales (`HU-INICIAL-{Nombre}`)
 
 El layout trae HU ya redactadas para la autenticación, la administración de usuarios, los idiomas y las pruebas de navegador, en
-`docs/HistoriasDeUsuario/HU-INICIAL-{Nombre}.md` (`Base`, `Login`,
-`Refresh`, `Logout`, `OlvidePassword`). Van **fuera de la numeración**
+`docs/HistoriasDeUsuario/HU-INICIAL-{Nombre}.md` (la lista completa es la del
+orden de implementación, más abajo). Van **fuera de la numeración**
 `HU{NN}`: no consumen números, así que las HU propias de cada proyecto
 nuevo siguen empezando en `HU01`. Su Id es `HU-INICIAL-{NOMBRE}` y sus UT
 usan el código `UT-HUI-{NOMBRE}-{CAPA}-{NN}` (ej. `UT-HUI-LOGIN-BE-01`),
@@ -150,6 +150,12 @@ del archivo** — no se deja vacía "por si acaso".}
   de error). Cada CA debe ser verificable de forma binaria (pasa/no pasa),
   formato "Dado que \{contexto\}, el sistema debe \{resultado\}" — no una
   frase vaga tipo "el sistema debe funcionar bien".
+- Mientras no esté `Hecha`, puede llevar bajo la tabla una nota
+  `> **Avance:**` que diga qué falta. Al cerrarla se reemplaza por
+  `> **Validación:**` con cómo se comprobó. Una historia solo pasa a `Hecha` con
+  todos sus criterios comprobados; lo que no se pudo probar se escribe.
+- Un cambio de comportamiento en una historia ya escrita agrega un criterio
+  nuevo (sin renumerar) y su Unidad de Trabajo.
 - **`PHU`** (Puntos de Historia de Usuario) puede quedar vacío hasta que
   el equipo lo estime — no bloquea la creación de la HU, pero si sigue
   vacío al momento de planificar el sprint, se estima antes de empezar a

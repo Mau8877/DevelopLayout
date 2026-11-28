@@ -36,9 +36,9 @@ src/
 
 `shared/api/schema.d.ts` son tipos **generados** del contrato OpenAPI
 (`pnpm openapi:sync` + `pnpm openapi:types`, ver `scripts/README.md`). No se
-edita a mano; los tipos de request/response se toman de ahí. Es lo único que
-hay hoy en `shared/`: el resto se crea con el primer caso concreto que lo
-necesite (ver
+edita a mano; los tipos de request/response se toman de ahí. Además de
+`shared/api/` está `shared/language/` (textos comunes). Lo demás se crea con el
+primer caso concreto que lo necesite (ver
 [TANSTACK_QUERY_FRONTEND.md](frontend/TANSTACK_QUERY_FRONTEND.md#endpoints-usados-por-más-de-una-feature)).
 
 `utils/index.ts` es la lista de lo que hay en `utils/`. Dos piezas que conviene
@@ -50,8 +50,9 @@ menú guardan claves de idioma, no textos) — ver
 
 ## Estructura de un feature (`src/features/{feature}/`)
 
-`src/features/auth/` es la referencia real (`api/`, `schemas/`, `screens/`,
-`tests/`, `types/` e `index.ts`); `src/features/home/` es el scaffold vacío.
+`src/features/auth/` y `src/features/usuarios/` son las referencias reales
+(`api/`, `components/`, `language/`, `schemas/`, `screens/`, `tests/`,
+`types/` e `index.ts`); `src/features/home/` es el scaffold vacío.
 **Cualquier feature nueva sigue esta misma forma**:
 
 ```
@@ -132,3 +133,8 @@ Dos criterios distintos según dónde vive el código, ambos documentados en
 `lib/`, `utils/` y `shared/` — nunca al revés. Ninguna carpeta transversal
 (`store/`, `components/ui/`, etc.) importa nada de `features/`, porque
 dejaría de ser transversal (quedaría acoplada a una feature puntual).
+
+**Única excepción:** `layouts/`, que arma el shell de cada rol y por eso importa
+de `features/auth` el cierre de sesión (`useLogout`) y el tipo del usuario en
+sesión (`UsuarioSesion`), siempre por el barril. `components/layout/` no: recibe
+todo por props.

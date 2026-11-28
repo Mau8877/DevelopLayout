@@ -18,16 +18,25 @@ El schema de Zod de un recurso vive en `schemas/` dentro de la feature
 deriva del primero:
 
 ```ts
-// src/features/usuarios/schemas/usuarioSchema.ts
+// src/features/usuarios/schemas/crearUsuarioSchema.ts
 import { z } from 'zod'
 
 export const crearUsuarioSchema = z.object({
-  nombre: z.string().min(1, 'El nombre es obligatorio'),
-  email: z.string().min(1, 'El correo es obligatorio').email('El correo no es válido'),
+  email: z
+    .string()
+    .trim()
+    .min(1, 'usuarios:validacion.correoObligatorio')
+    .max(255, 'usuarios:validacion.correoLargo')
+    .pipe(z.email('usuarios:validacion.correoInvalido')),
+  roles: z.array(z.string()).min(1, 'usuarios:validacion.rolObligatorio'),
 })
 
 export type CrearUsuarioRequest = z.infer<typeof crearUsuarioSchema>
 ```
+
+Si el contrato ya está en `shared/api/schema.d.ts`, el tipo del request se
+comprueba contra él. El límite de 72 de una contraseña se mide en **bytes**, como
+en el backend (BCrypt), no en caracteres.
 
 Si el schema de creación y el de edición difieren (ej. edición no pide
 password), se definen como schemas separados pero uno puede derivar del otro
@@ -42,8 +51,7 @@ mensaje de cada regla es una **clave**, nunca una frase:
 z.string().min(1, 'auth:validacion.correoObligatorio')
 ```
 
-Los ejemplos de esta rule con frases escritas muestran la forma del schema, no el
-texto. Los errores se traducen al mostrarse y van **inline, debajo del campo
+Los errores se traducen al mostrarse y van **inline, debajo del campo
 correspondiente**, no en un aviso genérico que no indica qué campo falló.
 
 ## Integración con TanStack Form
@@ -55,7 +63,7 @@ paquete adapter intermedio):
 
 ```tsx
 const form = useForm({
-  defaultValues: { nombre: '', email: '' },
+  defaultValues: { email: '', roles: [] as string[] },
   validators: {
     onChange: crearUsuarioSchema,
   },

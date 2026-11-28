@@ -55,5 +55,6 @@ consumidor real, no de forma anticipada.
 - **Tokens:** `lib/core/storage/secure_token_storage.dart` (`SecureTokenStorage`)
   guarda access y refresh en el almacenamiento seguro del sistema
   (`flutter_secure_storage`). Nunca `shared_preferences`, nunca en logs.
-- **Cabeceras:** `ApiClient` manda siempre `X-Client-Type: mobile` y, si hay
+- **Cabeceras:** `ApiClient` manda siempre `X-Client-Type: mobile`,
+  `Accept-Language` (también en el cliente auxiliar de renovación) y, si hay
   token, `Authorization: Bearer`. Sin cookies.

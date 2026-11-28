@@ -20,8 +20,8 @@ segunda feature lo necesita": para UI, un widget genérico nace en `shared/widge
    vez de crear uno paralelo.
 2. **¿Conoce el dominio de una feature?** (usa modelos, providers o textos de
    negocio de esa feature) → `lib/features/{feature}/widgets/`. Solo en este caso.
-3. **Si es genérico** → `lib/shared/widgets/`. La carpeta se crea con el primer
-   widget genérico que hace falta (ya no se espera a un segundo consumidor).
+3. **Si es genérico** → `lib/shared/widgets/`, desde el primer uso (no se espera
+   a un segundo consumidor).
 
 Un widget de feature que otra feature necesita se importa de esa feature solo si
 la relación de negocio lo justifica (ver
@@ -29,6 +29,10 @@ la relación de negocio lo justifica (ver
 tenía dominio, se baja a `shared/widgets/`.
 
 ## Qué se componentiza siempre
+
+Ya existen en `shared/widgets/`: `AppTextField` (con `obscureText` también apaga
+el autocorrector y las sugerencias del teclado), `AppButton`, `EstadoError`,
+`pedirConfirmacion`, `mostrarError` (el `SnackBar` de error) y `SelectorIdioma`.
 
 - Campo de texto con label, error y estilo del tema (sobre `TextFormField`, ver
   [FORMULARIOS_MOBILE.md](FORMULARIOS_MOBILE.md)).

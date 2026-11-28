@@ -101,6 +101,19 @@ artefactos se renombraron con prefijo `testcontainers-` y la clase es
   `AuthCsrfCookieTest`): MockMvc sustituye el repositorio de CSRF y dejó pasar
   un defecto que borraba la cookie `XSRF-TOKEN`.
 
+## Carreras y concurrencia
+
+Todo flujo en el que dos peticiones puedan pisarse (cambiar una contraseña,
+cerrar sesiones, consumir un token) lleva una prueba que **fuerza el cruce**, no
+que confíe en la suerte: se detiene un paso intermedio con un `@MockitoSpyBean`
+(por ejemplo `PasswordEncoder`, que corre entre las dos transacciones) y una
+barrera o un `CountDownLatch`. Referencia: `CambioPasswordConcurrenciaTest`.
+
+Si el flujo toma conexiones, se suma un caso a `AuthPoolTest` (pool de 3).
+
+Una prueba que lee «el último correo» filtra por lo que busca: los avisos se
+envían en segundo plano y pueden colarse.
+
 ## Convenciones
 
 - Seguridad (obligatorio, ver [SEGURIDAD_OWASP.md](../SEGURIDAD_OWASP.md)):
@@ -109,7 +122,10 @@ artefactos se renombraron con prefijo `testcontainers-` y la clase es
   (404/403)**. Las tablas con RLS se prueban con el rol `app_runtime` (ver
   [BASE_DE_DATOS_PRIVADA_RLS.md](BASE_DE_DATOS_PRIVADA_RLS.md)).
 - Clases de test: `XxxServiceTest`, `XxxControllerTest` (sufijo `Test`, no
-  `Tests` ni `Spec`).
+  `Tests` ni `Spec`). Una base abstracta común puede llamarse
+  `XxxIntegrationTest`.
+- Un límite por IP o por cuenta se comparte entre las pruebas del mismo
+  contexto: cada prueba usa su propia IP y crea sus propias cuentas.
 - Nombre de métodos: describen condición + resultado esperado, ej.
   `crearUsuario_conEmailDuplicado_lanzaConflictException`.
 - Los tests de controller verifican también la forma del `ApiResponse`

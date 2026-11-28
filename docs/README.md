@@ -1,6 +1,18 @@
 # Documentación
 
-Documentación oficial del proyecto.
+Documentación oficial del proyecto. Si es la primera vez que usas la
+plantilla, el [tutorial](TUTORIAL.md) recorre todo paso a paso; esta guía es el
+checklist de puesta en marcha y mantenimiento.
+
+| Documento | Para qué |
+| --- | --- |
+| [TUTORIAL.md](TUTORIAL.md) | Usar la plantilla de principio a fin |
+| [INFRAESTRUCTURA.md](INFRAESTRUCTURA.md) | Docker, variables, producción y respaldos |
+| [BASE_DE_DATOS.mermaid](BASE_DE_DATOS.mermaid) | Diagrama de la base |
+| [errors/](errors/README.md) | Códigos de error de la API |
+| [seguridad/RLS_EXCEPCIONES.md](seguridad/RLS_EXCEPCIONES.md) | Excepciones de seguridad en la base |
+| [HistoriasDeUsuario/](HistoriasDeUsuario/) y [UnidadesTrabajo/](UnidadesTrabajo/) | Qué se construyó y cómo |
+| [../scripts/README.md](../scripts/README.md) | Los scripts de la raíz |
 
 ## Poniendo en marcha un proyecto nuevo a partir de esta plantilla
 
@@ -31,7 +43,7 @@ No necesita `pnpm install` (alcanza con Node y git: también sirve `node scripts
 
 - Ningún `.env` (tienen secretos). Se crean en el paso siguiente.
 - El rol de base `app_runtime` ni las propiedades `app.*`: son nombres internos, y el rol está en migraciones.
-- Las historias de usuario y sus tareas (`docs/HistoriasDeUsuario/`, `docs/UnidadesTrabajo/`) ni esta guía: son el registro de cómo se construyó la plantilla.
+- Las historias de usuario y sus tareas (`docs/HistoriasDeUsuario/`, `docs/UnidadesTrabajo/`), ni esta guía ni el [tutorial](TUTORIAL.md): describen la plantilla y cómo se construyó.
 
 > Si en la misma máquina corrés varios proyectos de esta plantilla, usá un slug distinto en cada uno: los volúmenes llevan ese prefijo, y dos proyectos con el mismo comparten base de datos.
 
@@ -43,6 +55,9 @@ pnpm setup:env   # crea los .env con secretos aleatorios (ver scripts/README.md)
 # Cambiá INITIAL_ADMIN_EMAIL en .env y en projects/backend/.env por un correo real.
 docker compose up
 ```
+
+La web queda en http://localhost:5173 y el correo de prueba (invitaciones,
+recuperación y avisos) en http://localhost:8025.
 
 `MINIO_ROOT_USER` necesita al menos 3 caracteres y `MINIO_ROOT_PASSWORD`, 8 (los generados ya cumplen). Si ya tenés un Postgres en el puerto 5432, descomentá `POSTGRES_HOST_PORT`. Confirmá el backend con:
 
@@ -57,7 +72,7 @@ curl http://localhost:8080/prometheus | head   # métricas en texto plano
 - [ ] Íconos y pantalla de inicio: `android/.../mipmap-*`, `ios/Runner/Assets.xcassets`, `macos/Runner/Assets.xcassets`, `web/icons` y `windows/runner/resources`.
 - [ ] Solo si vas a publicar la app de escritorio: el nombre del ejecutable (`BINARY_NAME` en `linux/` y `windows/CMakeLists.txt`, `PRODUCT_NAME` en `macos/Runner/Configs/AppInfo.xcconfig` y los textos de `windows/runner/Runner.rc`).
 - [ ] Colores de marca (`projects/frontend/src/index.css` y `projects/mobile/lib/core/theme/app_theme.dart`).
-- [ ] Reemplazá las pantallas de ejemplo por las tuyas: `routes/index.tsx` y `_authenticated/dashboard.tsx` en la web (sin dejar `_authenticated/` sin ninguna ruta hija: el build falla) y `lib/features/health/` en mobile. Quitá del menú los enlaces de ejemplo.
+- [ ] Reemplazá las pantallas de ejemplo por las tuyas: `routes/index.tsx` y `_authenticated/dashboard.tsx` en la web (sin dejar `_authenticated/` sin ninguna ruta hija: el build falla) y `lib/features/health/` en mobile. En la app, los shells por rol traen secciones de ejemplo (por ejemplo «Pedidos»): cámbialas por las tuyas.
 - [ ] Borrá la migración de ejemplo (`V1__init_schema.sql`) **antes** de crear tu primera base, si no la querés.
 
 Después de renombrar el identificador de la app, corré `flutter pub get` y reabrí el proyecto en Android Studio o Xcode para que regeneren sus archivos.
@@ -69,6 +84,9 @@ El scaffold ya trae configurado, sin nada más que hacer:
 - **Configuración segura por defecto**: sin credenciales por defecto fuera del perfil `dev`, sin `show-sql`, `/health` sin detalles, sin trazas de error hacia el cliente, y rate limit por IP sobre `/api/v1/**`. Lo cómodo para desarrollar vive solo en `application-dev.properties`.
 - **Métricas Prometheus** en `GET /prometheus`, ya scrapeadas por el servicio `prometheus` de `docker-compose.yml` y con el datasource de Grafana provisionado.
 - **CORS** habilitado vía `SecurityConfig` para los orígenes en `app.cors.allowed-origins` (property `CORS_ALLOWED_ORIGINS`).
+- **Cuentas completas:** inicio de sesión con bloqueo por intentos, renovación, cierre de sesión, recuperación y cambio de contraseña con aviso por correo, usuarios con invitación, roles, sesiones y bitácora.
+- **Español e inglés** en web, app y respuestas y correos del backend.
+- **Pruebas** de backend, web, mobile, scripts, navegador (`pnpm test:e2e`) y producción (`pnpm test:prod`).
 
 Si más adelante exponés otros endpoints de Actuator (`/metrics`, `/env`, `/beans`, etc.), agregalos a `management.endpoints.web.exposure.include` y decidí con cuidado si van en `permitAll()` en `SecurityConfig` — quedarían públicos sin autenticación si los dejás ahí sin querer.
 
@@ -101,6 +119,6 @@ Estos comandos se corren en el proyecto ya renombrado, no en la plantilla — sa
 ## Seguridad, CI y producción
 
 - **Reglas de seguridad** (OWASP Top 10, API Security Top 10, MASVS, base de datos privada con RLS): [`.claude/rules/SEGURIDAD_OWASP.md`](../.claude/rules/SEGURIDAD_OWASP.md) y [`.claude/rules/backend/BASE_DE_DATOS_PRIVADA_RLS.md`](../.claude/rules/backend/BASE_DE_DATOS_PRIVADA_RLS.md). Toda implementación nueva tiene que cumplirlas.
-- **CI** (`.github/workflows/ci.yml`): lint + tests + build por proyecto, más `gitleaks`, Trivy, `pnpm audit` y la construcción de las imágenes de producción. Detalle en [`.claude/rules/CI_CD.md`](../.claude/rules/CI_CD.md).
+- **CI** (`.github/workflows/ci.yml`, en cada Pull Request y push a `main`): lint + tests + build por proyecto, pruebas de scripts y de navegador, `gitleaks`, Trivy, `pnpm audit`, y la construcción y prueba de las imágenes de producción. Detalle en [`.claude/rules/CI_CD.md`](../.claude/rules/CI_CD.md).
 - **Producción**: `docker-compose.prod.yml` (HTTPS obligatorio, solo el proxy publica puertos, contenedores sin root). Variables extra, certificados y cómo levantarlo en [INFRAESTRUCTURA.md](INFRAESTRUCTURA.md#7c-docker-composeprodyml). No hay CD todavía: depende de decidir el destino del despliegue.
 - **Errores de la API**: el catálogo de códigos vive en [`docs/errors/`](errors/README.md).

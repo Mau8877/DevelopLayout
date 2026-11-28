@@ -6,7 +6,7 @@ globs: projects/frontend/**/*
 
 ## Setup (ya instalado)
 
-`@tanstack/router-plugin@1.168.35` está en `package.json` (devDependency) y
+`@tanstack/router-plugin` está en `package.json` (devDependency) y
 registrado en `vite.config.ts`, **antes** que `react()` en el array de
 `plugins` (orden requerido: el plugin de rutas genera `routeTree.gen.ts`
 antes de que el plugin de React procese los archivos):
@@ -45,8 +45,7 @@ plugins: [
 **Toda URL de la web va en inglés y en kebab-case** (`/users`, `/my-sessions`),
 aunque lo que se ve en la pantalla esté en el idioma de la persona: el título sale
 de los archivos de idioma y la URL no cambia con él. Como la URL la define el
-nombre del archivo, los archivos de `routes/` también van en inglés. Los ejemplos
-en español de esta rule describen el código anterior a la migración.
+nombre del archivo, los archivos de `routes/` también van en inglés.
 
 > La migración de lo escrito antes es
 > [HU-INICIAL-Convenciones](../../../docs/HistoriasDeUsuario/HU-INICIAL-Convenciones.md).
@@ -73,11 +72,12 @@ src/routes/
 ├── __root.tsx
 ├── _authenticated.tsx        # guard: valida sesión, si no hay -> redirect a /login
 ├── _authenticated/
-│   ├── usuarios/
-│   │   └── index.tsx
-│   └── pedidos/
-│       └── index.tsx
-└── login.tsx                 # pública
+│   ├── _admin.tsx            # solo SUPER_ADMIN
+│   ├── _admin/               # users.tsx, user-sessions.tsx, audit-log.tsx
+│   ├── dashboard.tsx
+│   ├── my-sessions.tsx
+│   └── change-password.tsx
+└── login.tsx                 # pública (como forgot-password, reset-password y accept-invitation)
 ```
 
 `_authenticated.tsx` usa el hook `beforeLoad` de TanStack Router para

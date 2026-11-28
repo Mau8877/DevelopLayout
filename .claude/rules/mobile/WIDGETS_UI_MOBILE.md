@@ -12,8 +12,8 @@ escribe un widget genérico) está en
 
 - Un widget que **conoce el dominio** de una feature vive en
   `lib/features/{feature}/widgets/` (subcarpeta que se agrega cuando hace falta).
-- Un widget **genérico** nace directo en `lib/shared/widgets/` (carpeta que se
-  crea con el primer widget genérico), sin esperar a un segundo consumidor.
+- Un widget **genérico** nace directo en `lib/shared/widgets/`, sin esperar a un
+  segundo consumidor.
 
 ## Tema (`ThemeData`)
 

@@ -6,7 +6,7 @@ globs: projects/frontend/**/*
 
 ## Setup (ya instalado)
 
-**Vitest** (4.x), configurado directo en `vite.config.ts` — no hay un
+**Vitest** (5.x), configurado directo en `vite.config.ts` — no hay un
 `vitest.config.ts` separado, se agrega un bloque `test` al mismo config de
 Vite (con `/// <reference types="vitest/config" />` arriba del archivo para
 que TypeScript reconozca esa propiedad):
@@ -20,8 +20,12 @@ export default defineConfig({
   // ...plugins, resolve, server...
   test: {
     environment: 'jsdom',
+    // `e2e/` son pruebas de Playwright, no de Vitest
+    include: ['src/**/*.test.{ts,tsx}'],
     globals: true,
     setupFiles: './src/setupTests.ts',
+    // el `localStorage` experimental de Node 25+ tapa el de jsdom
+    execArgv: ['--no-experimental-webstorage'],
   },
 })
 ```
@@ -33,7 +37,7 @@ export default defineConfig({
   `@testing-library/jest-dom/vitest` (la importación de la raíz solo trae
   los tipos de Jest y `tsc` no reconoce los matchers en Vitest).
 - Comando: `pnpm test` (= `vitest run`, corre una vez y termina — no queda
-  en modo watch, así sirve para el hook de pre-commit y para CI).
+  en modo watch, así sirve para CI).
 
 ## Dónde viven los tests
 

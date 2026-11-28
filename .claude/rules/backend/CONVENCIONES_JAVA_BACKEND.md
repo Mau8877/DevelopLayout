@@ -12,7 +12,9 @@ creado:
 ```
 com.example.backend
 ├── common/
+│   ├── bitacora/       # Registro de auditoría (ver BITACORA_BACKEND.md)
 │   ├── constant/       # Constantes compartidas entre módulos
+│   ├── idioma/         # Idioma de la petición y textos (ver IDIOMAS_BACKEND.md)
 │   ├── exception/       # BusinessException y jerarquía (ver EXCEPCIONES_BACKEND.md)
 │   ├── model/           # BaseModel (codigo UUID, timestamps, soft delete -- ver abajo)
 │   ├── response/        # ApiResponse, PageMeta (ver RESPONSES_BACKEND.md)
@@ -101,6 +103,12 @@ redefine la misma anotación en dos módulos — si dos features necesitan
   sobre los campos `private final` del `service`/`controller` — no se
   escribe el constructor a mano cuando Lombok puede generarlo (ver
   [Lombok](#lombok) abajo).
+- Un `record` que lleva contraseñas o tokens redefine `toString()` para no
+  mostrarlos: el generado incluye todos sus campos (ver `CambiarPasswordRequest`).
+  Rige para lo nuevo; **pendiente** en `LoginRequest`, `LoginResponse`,
+  `RefreshRequest`, `ResetPasswordRequest`, `AceptarInvitacionRequest` y los
+  `record` internos con tokens de los servicios de `auth`. Mientras tanto, ninguno
+  se loguea entero.
 - Los `record` de Java se prefieren para DTOs y para `ApiResponse`/`PageMeta`
   (inmutables, sin boilerplate) por sobre clases con Lombok/getters manuales
   — un DTO **no** se convierte en una clase con `@Getter`/`@Setter` de

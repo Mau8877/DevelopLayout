@@ -170,8 +170,11 @@ Vive en `apiClient.ts`; ninguna pantalla maneja un 401 por su cuenta.
 - `store/candadoSesion.ts` serializa refresh y logout **entre pestañas** con
   `navigator.locks` y, sin soporte (navegador viejo o `http://` fuera de
   localhost), con una reserva con vencimiento en `localStorage` (id y hora,
-  nunca tokens; no es atómica). Todo lo que rote o cierre la sesión usa
-  `conCandadoDeSesion`.
+  nunca tokens; no es atómica). El refresh y el logout usan `conCandadoDeSesion`.
+- ! **Una petición que pasa por el interceptor no se envuelve en el candado** si
+  ! este puede tener que renovar para completarla: la renovación pide el mismo
+  ! candado, que no es reentrante, y se bloquearía a sí misma. Es el caso de
+  ! `useCambiarPassword`; ahí el servidor serializa el cambio con la renovación.
 - La query de sesión usa la key `['auth', 'session']`. Al cerrar o expirar la
   sesión se limpia la caché y esa query queda en `null`.
 

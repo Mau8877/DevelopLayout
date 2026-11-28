@@ -36,8 +36,8 @@ lib/
 └── main.dart         # Entry point: ProviderScope + MaterialApp.router
 ```
 
-`core/` es la única carpeta de nivel superior con código transversal real
-además de `features/` — no hay una carpeta `common/`/`utils/` genérica
+El código transversal vive en `core/` (infraestructura) y en `shared/` (textos
+comunes y widgets genéricos) — no hay una carpeta `common/`/`utils/` genérica
 todavía; si aparece una necesidad concreta de utilidades puramente
 transversales (no ligadas a red, routing ni tema), se define esa carpeta
 en su momento, no se anticipa vacía.

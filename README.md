@@ -4,18 +4,27 @@ Plantilla base de arquitectura full-stack. Monorepo con tres proyectos
 independientes (backend, frontend, mobile) más la infraestructura de
 desarrollo que los conecta a todos.
 
+Trae resuelto lo que casi todo proyecto necesita: inicio de sesión y
+renovación, recuperación y cambio de contraseña, usuarios con invitación por
+correo, roles, sesiones, bitácora, español e inglés, y las pruebas y el CI que
+lo comprueban.
+
+> **¿Primera vez?** Empieza por el [tutorial](docs/TUTORIAL.md): crear tu
+> proyecto, levantarlo, recorrerlo y agregar tu primera función.
+
 ## Stack
 
 | Proyecto | Tecnología |
 | --- | --- |
-| **Backend** (`projects/backend`) | Java 21 + Spring Boot 4.2 (Maven), PostgreSQL + Flyway, Redis (caché), MinIO (archivos), JasperReports 7 (reportes) |
-| **Frontend** (`projects/frontend`) | React 19 + TypeScript + Vite, TanStack (Query/Router/Form/Table), Tailwind CSS 4 + shadcn |
+| **Backend** (`projects/backend`) | Java 21 + Spring Boot 4.2 (Maven), PostgreSQL + Flyway, Redis (límites de intentos, sesiones revocadas y tokens), MinIO (preparado para archivos; todavía sin código que lo use), JasperReports 7 (preparado para reportes) |
+| **Frontend** (`projects/frontend`) | React 19 + TypeScript + Vite, TanStack (Query/Router/Form/Table), Tailwind CSS 4 + shadcn, i18next; Playwright para las pruebas de navegador |
 | **Mobile** (`projects/mobile`) | Flutter/Dart, Riverpod (estado), `go_router` (navegación), `dio` (HTTP) |
-| **Infraestructura** (`infrastructure/`) | Docker Compose (desarrollo y producción): nginx (proxy), postgres, redis, minio, prometheus, grafana |
+| **Infraestructura** (`infrastructure/`) | Docker Compose (desarrollo y producción): nginx (proxy), postgres, redis, minio, prometheus, grafana y, en desarrollo, Mailpit (correo de prueba) |
 
 `pnpm-workspace.yaml` maneja `projects/*` como un workspace de pnpm
-(frontend y mobile comparten herramientas de raíz; el backend es un
-proyecto Maven independiente que vive dentro del mismo repo).
+(el paquete de Node es el frontend; el backend (Maven) y la app (Flutter)
+viven en el mismo repo con sus propias herramientas). En la raíz están los
+hooks de Git y los comandos comunes (`package.json`).
 
 ## Estructura del repo
 
@@ -26,12 +35,15 @@ DevelopLayout/
 │   ├── frontend/       # Panel web (React)
 │   └── mobile/         # App móvil (Flutter)
 ├── infrastructure/      # Config de nginx, postgres, redis, minio, prometheus, grafana
-├── scripts/             # update-deps (Windows y Linux): actualiza y valida las dependencias
+├── scripts/             # Inicializador, .env, respaldos, contrato, pruebas de navegador y de producción, update-deps
 ├── .github/             # CI (ci.yml) y Dependabot
 ├── docs/
+│   ├── TUTORIAL.md      # Cómo usar la plantilla, de principio a fin
 │   ├── README.md        # Checklist de puesta en marcha de un proyecto nuevo a partir de esta plantilla
 │   ├── INFRAESTRUCTURA.md  # Guía completa de la infraestructura Docker (servicios, volúmenes, variables de entorno)
 │   ├── errors/           # Catálogo de códigos de error de la API (ver más abajo)
+│   ├── api/              # Contrato OpenAPI versionado
+│   ├── BASE_DE_DATOS.mermaid  # Diagrama de la base
 │   ├── seguridad/        # Excepciones documentadas a las reglas de seguridad (RLS)
 │   ├── HistoriasDeUsuario/
 │   └── UnidadesTrabajo/
@@ -44,71 +56,49 @@ DevelopLayout/
 
 ## Puesta en marcha rápida
 
-### Opción A — Stack completo con Docker Compose
-
-Requiere Docker Desktop. Desde la raíz del repo:
+Requisitos: Docker Desktop, Node 22 o superior y pnpm 11. Para trabajar fuera
+de Docker, además JDK 21 y Flutter 3.44.8. Desde la raíz del repo:
 
 ```bash
-cp .env.example .env
-cp projects/backend/.env.example projects/backend/.env
-cp projects/frontend/.env.example projects/frontend/.env
-# Reemplazá cada CAMBIAME por una contraseña propia en los .env (no tienen default).
+pnpm install
+pnpm setup:env    # crea los .env con secretos aleatorios
+# Cambia INITIAL_ADMIN_EMAIL en .env y en projects/backend/.env.
 docker compose up
 ```
 
-Esto levanta todos los servicios en modo desarrollo (hot-reload incluido
-en frontend y backend):
+Entra a http://localhost:5173 con `INITIAL_ADMIN_EMAIL` y el
+`INITIAL_ADMIN_PASSWORD` que quedó en `.env`.
 
-| Servicio | Puerto | URL |
+| Servicio | URL o puerto |
+| --- | --- |
+| Web (Vite) | http://localhost:5173 |
+| Proxy (nginx) | http://localhost |
+| API | http://localhost:8080 (Swagger en `/swagger-ui/index.html`, solo en desarrollo) |
+| Correo de prueba (Mailpit) | http://localhost:8025 (SMTP en `1025`) |
+| MinIO (API / consola) | `9000` / http://localhost:9001 |
+| Prometheus / Grafana | http://localhost:9090 / http://localhost:3000 |
+| PostgreSQL / Redis | `5432` (configurable con `POSTGRES_HOST_PORT`) / `6379` |
+
+Todos los puertos se publican solo en `127.0.0.1`. Para comprobar el backend:
+`curl http://localhost:8080/health`.
+
+Para ejecutar cada proyecto fuera de Docker (el backend necesita que le pases
+las variables de su `.env`), ver el
+[tutorial](docs/TUTORIAL.md#6-el-día-a-día).
+
+### Comandos
+
+| Dónde | Comando | Qué hace |
 | --- | --- | --- |
-| Proxy (nginx) | `80` | http://localhost |
-| Frontend (Vite) | `5173` | http://localhost:5173 |
-| Backend (API) | `8080` | http://localhost:8080 |
-| PostgreSQL | `5432` (configurable con `POSTGRES_HOST_PORT`) | — |
-| Redis | `6379` | — |
-| MinIO (API / consola) | `9000` / `9001` | http://localhost:9001 |
-| Prometheus | `9090` | http://localhost:9090 |
-| Grafana | `3000` | http://localhost:3000 |
+| Raíz | `pnpm test:e2e` | Pruebas de navegador en un entorno desechable |
+| Raíz | `pnpm test:prod` | Levanta producción con datos desechables y la comprueba |
+| Raíz | `pnpm test:scripts` | Pruebas de los scripts |
+| `projects/backend` | `./mvnw test` · `./mvnw checkstyle:check` | Pruebas y estilo |
+| `projects/frontend` | `pnpm test` · `pnpm lint` · `pnpm build` | Pruebas, lint y compilación |
+| `projects/mobile` | `flutter test` · `flutter analyze` | Pruebas y análisis |
 
-Todos los puertos se publican solo en `127.0.0.1`.
-
-Verificación rápida de que el backend levantó bien:
-
-```bash
-curl http://localhost:8080/health        # {"status":"UP", ...}
-curl http://localhost:8080/prometheus | head   # métricas en texto plano
-```
-
-Swagger UI de la API (solo en desarrollo): http://localhost:8080/swagger-ui/index.html
-
-### Opción B — Cada proyecto por separado (sin Docker)
-
-**Backend** (`projects/backend`, necesita PostgreSQL/Redis/MinIO corriendo
-por su cuenta o vía `docker compose up postgres redis minio`):
-
-```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev   # correr en modo dev
-./mvnw test                                              # tests
-./mvnw clean package                                     # build
-```
-
-**Frontend** (`projects/frontend`):
-
-```bash
-pnpm dev       # servidor de desarrollo (Vite, puerto 5173)
-pnpm build     # build de producción
-pnpm lint      # ESLint
-pnpm test      # Vitest
-```
-
-**Mobile** (`projects/mobile`):
-
-```bash
-flutter pub get     # instalar dependencias
-flutter run          # correr en un emulador/dispositivo conectado
-flutter test          # tests
-flutter analyze       # análisis estático
-```
+El resto (inicializador, `.env`, respaldos y contrato de la API) está en
+[`scripts/README.md`](scripts/README.md).
 
 ## Arquitectura
 
@@ -136,8 +126,9 @@ PostgreSQL
 Toda la API responde con el mismo sobre JSON
 (`status`/`data`/`message`/`timestamp`/`error`/`meta`), y todo error de
 negocio catalogado trae un código fijo (`ERR_{MODULO}_{NUMERO}`) además
-del mensaje en español — ver [docs/errors/](docs/errors/README.md) para
-el listado completo de códigos que la API puede devolver hoy.
+del mensaje, que llega en español o inglés según `Accept-Language` — ver
+[docs/errors/](docs/errors/README.md) para el listado completo de códigos que
+la API puede devolver hoy.
 
 **Frontend** — Zustand para estado de UI, TanStack Query para todo lo que
 viene del backend (nunca mezclados), TanStack Router con file-based
@@ -146,6 +137,10 @@ routing y un guard único para rutas autenticadas.
 **Mobile** — mismo criterio conceptual que el frontend, pero con Riverpod
 para ambos casos (datos de API y estado de UI), distinguidos por
 convención de nombre (`{feature}ListProvider` vs. `{feature}UiProvider`).
+
+**Idiomas** — ningún texto visible va escrito en el código: la web, la app y
+el backend leen archivos de idioma por módulo, en español e inglés neutros.
+Las URL van en inglés. Ver [`IDIOMAS.md`](.claude/rules/IDIOMAS.md).
 
 ## Documentación y reglas del proyecto
 
@@ -181,8 +176,9 @@ Puntos de entrada útiles:
 - [`docs/INFRAESTRUCTURA.md`](docs/INFRAESTRUCTURA.md) — guía completa de
   los servicios, redes, volúmenes y variables de entorno de
   `docker-compose.yml`, y cómo levantar `docker-compose.prod.yml`.
-- [`scripts/README.md`](scripts/README.md) — el script que actualiza y
-  valida las dependencias de los tres proyectos.
+- [`docs/TUTORIAL.md`](docs/TUTORIAL.md) — cómo usar la plantilla, de crear
+  el proyecto a agregar una función.
+- [`scripts/README.md`](scripts/README.md) — todos los scripts de la raíz.
 
 ## Convenciones de Git (resumen)
 
@@ -204,14 +200,13 @@ Detalle completo en
 ## CI/CD
 
 Cada Pull Request contra `main` (y cada push directo a `main`) dispara
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml): un job
-independiente por proyecto (`backend`, `frontend`, `mobile`) que solo
-corre si cambió algo dentro de esa carpeta, y que hace lint + tests +
-build — los mismos comandos documentados arriba en "Puesta en marcha",
-no algo distinto inventado para CI. Además corren siempre un job de
-seguridad (`gitleaks` + `Trivy`) y, si cambia backend o frontend, la
-construcción de las imágenes de producción. Dependabot abre PRs semanales
-de actualización.
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml). Un push a otra rama no
+lo dispara. Los jobs `backend`, `frontend`, `mobile`, `scripts` y `e2e`
+(pruebas de navegador) corren solo si cambió algo que los afecta; `security`
+(`gitleaks` + `Trivy`) corre siempre; `docker`, si cambió el backend, la web o
+algo de producción, construye y escanea las imágenes y levanta el stack
+completo. Dependabot abre PRs semanales de
+actualización.
 
 Todavía no hay CD (despliegue automático) — depende de una decisión de
 infraestructura pendiente (dónde se aloja el backend/frontend en
