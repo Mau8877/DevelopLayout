@@ -8,4 +8,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @JsonIgnoreProperties(ignoreUnknown = false)
 public record RefreshRequest(String refreshToken) {
+    // ! Sin el token: un record lo incluiría en su toString.
+    @Override
+    public String toString() {
+        return "RefreshRequest[oculto]";
+    }
 }

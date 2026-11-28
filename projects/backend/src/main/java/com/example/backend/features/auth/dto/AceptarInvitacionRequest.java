@@ -17,4 +17,9 @@ public record AceptarInvitacionRequest(
         @Size(min = 8, max = 72, message = "{auth.validacion.passwordLargo}")
         @MaximoBytes(72)
         String password) {
+    // ! Sin el token ni la contraseña: un record los incluiría en su toString.
+    @Override
+    public String toString() {
+        return "AceptarInvitacionRequest[oculto]";
+    }
 }

@@ -19,4 +19,9 @@ public record LoginRequest(
         @NotBlank(message = "{auth.validacion.passwordObligatoria}")
         @Size(min = 8, max = 72, message = "{auth.validacion.passwordLargo}")
         String password) {
+    // ! Sin la contraseña: un record la incluiría en su toString.
+    @Override
+    public String toString() {
+        return "LoginRequest[oculto]";
+    }
 }

@@ -202,5 +202,10 @@ public class SesionService {
 
     /** El `refreshToken` es el valor en claro; no se loguea ni se persiste. */
     public record SesionCreada(Sesion sesion, String refreshToken) {
+        // ! Sin el token: un record lo incluiría en su toString.
+        @Override
+        public String toString() {
+            return "SesionCreada[oculto]";
+        }
     }
 }

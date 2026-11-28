@@ -88,10 +88,20 @@ public class AuthService {
     /** Datos del request que el controller pasa al service. */
     public record LoginCommand(String email, String password, TipoCliente tipoCliente, String ip,
             String userAgent) {
+        // ! Sin la contraseña: un record la incluiría en su toString.
+        @Override
+        public String toString() {
+            return "LoginCommand[oculto]";
+        }
     }
 
     /** Resultado interno: el controller decide si los tokens van en cookies o en el body. */
     public record LoginResult(UsuarioSesionResponse usuario, String accessToken, String refreshToken) {
+        // ! Sin los tokens: un record los incluiría en su toString.
+        @Override
+        public String toString() {
+            return "LoginResult[oculto]";
+        }
     }
 
     public LoginResult login(LoginCommand cmd) {

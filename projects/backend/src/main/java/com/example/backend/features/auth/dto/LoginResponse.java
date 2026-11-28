@@ -8,4 +8,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record LoginResponse(UsuarioSesionResponse usuario, String accessToken, String refreshToken) {
+    // ! Sin los tokens: un record los incluiría en su toString.
+    @Override
+    public String toString() {
+        return "LoginResponse[oculto]";
+    }
 }
