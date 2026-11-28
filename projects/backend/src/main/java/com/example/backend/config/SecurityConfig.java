@@ -47,14 +47,13 @@ public class SecurityConfig {
     private final JwtService jwtService;
     private final SesionRevocadaRegistry sesionRevocadaRegistry;
 
-    // * CSRF solo aplica a clientes web (cookies). Un request con Bearer o con
-    // * el header propio de mobile no depende de cookies del browser, y un
-    // * header custom obliga a preflight CORS, que falla para orígenes no
-    // * permitidos.
+    // * CSRF solo aplica a clientes web (cookies). El header propio de mobile obliga
+    // * a un preflight CORS, que falla para orígenes no permitidos, y con él el
+    // * filtro JWT solo mira el Bearer (nunca la cookie).
+    // ! La exención sigue al canal que autentica. Un `Authorization: Bearer` sin ese
+    // ! header NO exime: la identidad saldría de la cookie.
     private static boolean esClienteSinCookies(jakarta.servlet.http.HttpServletRequest request) {
-        String auth = request.getHeader("Authorization");
-        return (auth != null && auth.startsWith("Bearer "))
-                || "mobile".equalsIgnoreCase(request.getHeader("X-Client-Type"));
+        return "mobile".equalsIgnoreCase(request.getHeader("X-Client-Type"));
     }
 
     @Bean

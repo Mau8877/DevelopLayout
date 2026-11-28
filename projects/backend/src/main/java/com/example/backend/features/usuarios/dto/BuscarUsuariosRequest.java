@@ -15,4 +15,9 @@ public record BuscarUsuariosRequest(
         EstadoUsuario estado,
         @Size(max = 50, message = "{usuarios.validacion.rolInvalido}")
         String rol) {
+    // ! Datos personales: un record los incluiría en su toString.
+    @Override
+    public String toString() {
+        return "BuscarUsuariosRequest[oculto]";
+    }
 }

@@ -1,6 +1,7 @@
 package com.example.backend.features.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -21,7 +22,8 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 
 /**
- * Ningún secreto sale en los logs, ni con el registro más detallado de la capa web.
+ * Ningún secreto ni dato personal sale en los logs, ni con el registro más
+ * detallado de la capa web.
  *
  * * Es el escenario real de quien depura: con DEBUG, Spring escribe el `toString()`
  * * de cada body que lee y responde; con `log-resolved-exception` (lo activa
@@ -63,6 +65,20 @@ class SecretosEnLogsTest extends AuthSesionIntegrationTest {
         assertThat(salida.getAll()).contains("LoginRequest", "RefreshRequest", "ApiResponse");
         assertThat(salida.getAll()).doesNotContain(PASSWORD, primeros.access(), primeros.refresh(),
                 nuevos.access(), nuevos.refresh());
+    }
+
+    @Test
+    void datosPersonales_noSalenNiAlEnviarlosNiAlResponderlos(CapturedOutput salida) throws Exception {
+        Tokens sesion = loginMobile();
+        mvc.perform(get("/api/v1/auth/me").header("X-Client-Type", "mobile")
+                .header("Authorization", "Bearer " + sesion.access()));
+        mvc.perform(get("/api/v1/auth/sessions").header("X-Client-Type", "mobile")
+                .header("Authorization", "Bearer " + sesion.access()));
+        enviar("/api/v1/auth/password/forgot", "{\"email\":\"" + email + "\"}");
+
+        assertThat(salida.getAll()).contains("UsuarioSesionResponse[oculto]", "MiSesionResponse[oculto]",
+                "ForgotPasswordRequest[oculto]");
+        assertThat(salida.getAll()).doesNotContain(email, sesion.access(), sesion.refresh());
     }
 
     @Test

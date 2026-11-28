@@ -15,4 +15,9 @@ public record BuscarSesionesRequest(
         String email,
         Integer page,
         Integer pageSize) {
+    // ! Datos personales: un record los incluiría en su toString.
+    @Override
+    public String toString() {
+        return "BuscarSesionesRequest[oculto]";
+    }
 }

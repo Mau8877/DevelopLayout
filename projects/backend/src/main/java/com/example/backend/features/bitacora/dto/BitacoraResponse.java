@@ -9,4 +9,9 @@ import com.example.backend.common.bitacora.enums.ResultadoBitacora;
 /** Evento de auditoría, sin el `id` interno. */
 public record BitacoraResponse(UUID codigo, Instant fecha, UUID usuarioCodigo, String accion, String modulo,
         String entidad, UUID entidadCodigo, ResultadoBitacora resultado, String ip, Map<String, Object> detalle) {
+    // ! Datos personales: un record los incluiría en su toString.
+    @Override
+    public String toString() {
+        return "BitacoraResponse[oculto]";
+    }
 }

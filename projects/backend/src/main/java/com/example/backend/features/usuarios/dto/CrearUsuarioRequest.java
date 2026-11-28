@@ -19,4 +19,9 @@ public record CrearUsuarioRequest(
         @NotEmpty(message = "{usuarios.validacion.rolRequerido}")
         @Size(max = 20, message = "{usuarios.validacion.rolesDemasiados}")
         List<@NotBlank(message = "{usuarios.validacion.rolVacio}") String> roles) {
+    // ! Datos personales: un record los incluiría en su toString.
+    @Override
+    public String toString() {
+        return "CrearUsuarioRequest[oculto]";
+    }
 }

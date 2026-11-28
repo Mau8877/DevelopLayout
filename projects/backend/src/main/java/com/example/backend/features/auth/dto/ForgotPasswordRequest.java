@@ -12,4 +12,9 @@ public record ForgotPasswordRequest(
         @Email(message = "{auth.validacion.correoInvalido}")
         @Size(max = 255, message = "{auth.validacion.correoLargo}")
         String email) {
+    // ! Datos personales: un record los incluiría en su toString.
+    @Override
+    public String toString() {
+        return "ForgotPasswordRequest[oculto]";
+    }
 }

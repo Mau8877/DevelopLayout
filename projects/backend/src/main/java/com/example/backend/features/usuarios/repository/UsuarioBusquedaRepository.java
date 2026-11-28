@@ -37,6 +37,11 @@ public class UsuarioBusquedaRepository {
 
     /** Criterios opcionales que se combinan con Y; `texto` es parte del correo. */
     public record Filtro(String texto, EstadoUsuario estado, String rol) {
+        // ! Datos personales: un record los incluiría en su toString.
+        @Override
+        public String toString() {
+            return "Filtro[oculto]";
+        }
     }
 
     /** Del alta más reciente a la más antigua. */

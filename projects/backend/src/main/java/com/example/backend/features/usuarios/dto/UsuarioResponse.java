@@ -14,4 +14,9 @@ public record UsuarioResponse(
         EstadoUsuario estado,
         boolean invitacionPendiente,
         Instant creadoEn) {
+    // ! Datos personales: un record los incluiría en su toString.
+    @Override
+    public String toString() {
+        return "UsuarioResponse[oculto]";
+    }
 }

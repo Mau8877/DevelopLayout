@@ -8,4 +8,9 @@ import com.example.backend.features.auth.enums.TipoCliente;
 /** Sesión que ve el administrador. Sin `id` interno ni hashes del refresh token. */
 public record SesionResponse(UUID codigo, UUID usuarioCodigo, TipoCliente tipoCliente, String ip, String userAgent,
         Instant creadaEn, Instant ultimoUsoEn, Instant expiraEn) {
+    // ! Datos personales: un record los incluiría en su toString.
+    @Override
+    public String toString() {
+        return "SesionResponse[oculto]";
+    }
 }

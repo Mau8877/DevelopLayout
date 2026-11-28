@@ -5,8 +5,14 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -39,7 +45,19 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
 
+    private static final Logger LOG = LoggerFactory.getLogger(RateLimitFilter.class);
     private static final Duration INACTIVIDAD_MINIMA = Duration.ofMinutes(10);
+
+    // ! Las rutas se comparan como las compara Spring MVC (decodificadas). Con el texto
+    // ! crudo de la URL, `/auth/lo%67in` llegaba al login sin pasar por ningún límite.
+    private static final PathPatternRequestMatcher.Builder RUTAS = PathPatternRequestMatcher.withDefaults();
+    private static final RequestMatcher API = RUTAS.matcher("/api/v1/**");
+    private static final RequestMatcher LOGIN = post("login");
+    private static final RequestMatcher REFRESH = post("refresh");
+    private static final RequestMatcher FORGOT = post("password/forgot");
+    private static final RequestMatcher RESET = post("password/reset");
+    private static final RequestMatcher ACEPTAR = post("invitation/accept");
+    private static final RequestMatcher CAMBIAR = post("password/change");
 
     private final Cache<String, Bucket> buckets;
 
@@ -139,7 +157,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !request.getRequestURI().startsWith("/api/v1/");
+        return !API.matches(request);
     }
 
     @Override
@@ -151,27 +169,26 @@ public class RateLimitFilter extends OncePerRequestFilter {
         Bucket bucket = buckets.get(ip, k -> newBucket(capacity, refillPerMinute));
         boolean permitido = bucket.tryConsume(1);
 
-        if (permitido && esPost(request, "/api/v1/auth/login")) {
+        if (permitido && LOGIN.matches(request)) {
             permitido = loginBuckets.get(ip, k -> newBucket(loginCapacity, loginRefillPerMinute))
                     .tryConsume(1);
         }
-        if (permitido && esPost(request, "/api/v1/auth/refresh")) {
+        if (permitido && REFRESH.matches(request)) {
             permitido = refreshBuckets.get(ip, k -> newBucket(refreshCapacity, refreshRefillPerMinute))
                     .tryConsume(1);
         }
 
-        if (permitido && esPost(request, "/api/v1/auth/password/forgot")) {
+        if (permitido && FORGOT.matches(request)) {
             permitido = forgotBuckets.get(ip, k -> newBucket(forgotCapacity, forgotRefillPerMinute))
                     .tryConsume(1);
         }
         // * Aceptar una invitación es el mismo paso que restablecer: comparten límite.
-        if (permitido && (esPost(request, "/api/v1/auth/password/reset")
-                || esPost(request, "/api/v1/auth/invitation/accept"))) {
+        if (permitido && (RESET.matches(request) || ACEPTAR.matches(request))) {
             permitido = resetBuckets.get(ip, k -> newBucket(resetCapacity, resetRefillPerMinute))
                     .tryConsume(1);
         }
 
-        if (permitido && esPost(request, "/api/v1/auth/password/change")) {
+        if (permitido && CAMBIAR.matches(request)) {
             permitido = changeBuckets.get(ip, k -> newBucket(changeCapacity, changeRefillPerMinute))
                     .tryConsume(1);
         }
@@ -181,6 +198,10 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return;
         }
 
+        try (MDC.MDCCloseable ignored = MDC.putCloseable("module", "security")) {
+            LOG.warn("Límite de peticiones alcanzado metodo={} ruta={} errorCode=ERR_SYS_02", request.getMethod(),
+                    request.getRequestURI());
+        }
         writeTooManyRequests(request, response);
     }
 
@@ -212,8 +233,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 + forgotBuckets.estimatedSize() + resetBuckets.estimatedSize() + changeBuckets.estimatedSize();
     }
 
-    private static boolean esPost(HttpServletRequest request, String uri) {
-        return "POST".equalsIgnoreCase(request.getMethod()) && uri.equals(request.getRequestURI());
+    private static RequestMatcher post(String ruta) {
+        return RUTAS.matcher(HttpMethod.POST, "/api/v1/auth/" + ruta);
     }
 
     private static Bucket newBucket(int capacity, int refillPerMinute) {
