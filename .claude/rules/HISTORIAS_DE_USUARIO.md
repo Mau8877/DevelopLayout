@@ -27,8 +27,8 @@ con el campo "Nombre corto de HU" de la tabla interna (ver abajo).
 ## HU iniciales (`HU-INICIAL-{Nombre}`)
 
 El layout trae HU ya redactadas para la autenticación, la administración de usuarios, los idiomas y las pruebas de navegador, en
-`docs/HistoriasDeUsuario/HU-INICIAL-{Nombre}.md` (`Base`, `Login`,
-`Refresh`, `Logout`, `OlvidePassword`). Van **fuera de la numeración**
+`docs/HistoriasDeUsuario/HU-INICIAL-{Nombre}.md` (la lista completa es la del
+orden de implementación, más abajo). Van **fuera de la numeración**
 `HU{NN}`: no consumen números, así que las HU propias de cada proyecto
 nuevo siguen empezando en `HU01`. Su Id es `HU-INICIAL-{NOMBRE}` y sus UT
 usan el código `UT-HUI-{NOMBRE}-{CAPA}-{NN}` (ej. `UT-HUI-LOGIN-BE-01`),

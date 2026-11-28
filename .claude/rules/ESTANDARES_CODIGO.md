@@ -32,6 +32,9 @@ commit **se cancela**.
 | Java (backend) | Checkstyle | `projects/backend/checkstyle.xml` | `projects/backend/**/*.java` |
 | Dart (mobile) | `flutter analyze` | `projects/mobile/analysis_options.yaml` (`flutter_lints`) | `projects/mobile/**/*.dart` |
 
+`lint-staged` reparte los archivos en tandas (`--max-arg-length`): sin eso, en
+Windows un commit grande fallaba con «La línea de comandos es demasiado larga».
+
 **El pre-commit solo lintea, no corre tests.** Se evaluó agregar
 `vitest run`/`flutter test`/`mvn test` al mismo hook, pero se decidió que
 correr la suite de tests completa es responsabilidad de cada dev **antes**

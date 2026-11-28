@@ -9,7 +9,7 @@ globs: projects/backend/**/*
 Los logs se emiten en JSON, no en texto plano — para que Grafana/cualquier
 sistema de logs los pueda indexar y filtrar por campo.
 
-- Librería: **`logstash-logback-encoder`** (8.1) sobre Logback (el logger
+- Librería: **`logstash-logback-encoder`** (9.0) sobre Logback (el logger
   default de Spring Boot) — **ya agregada** en `pom.xml`, con
   `src/main/resources/logback-spring.xml` configurado con un `appender` que
   usa `net.logstash.logback.encoder.LogstashEncoder`. Confirmado en runtime:

@@ -6,7 +6,7 @@ globs: projects/frontend/**/*
 
 ## Setup (ya instalado)
 
-**Vitest** (4.x), configurado directo en `vite.config.ts` — no hay un
+**Vitest** (5.x), configurado directo en `vite.config.ts` — no hay un
 `vitest.config.ts` separado, se agrega un bloque `test` al mismo config de
 Vite (con `/// <reference types="vitest/config" />` arriba del archivo para
 que TypeScript reconozca esa propiedad):

@@ -1,7 +1,19 @@
 # Scripts
 
-Scripts de automatización del proyecto. Se corren en **tu máquina** (necesitan
-`pnpm`, `flutter` y Java; el backend usa el `mvnw` del repo).
+Scripts de automatización del proyecto. Se corren en **tu máquina**, desde la
+raíz del repo. Cada uno dice qué necesita; el backend usa el `mvnw` del repo y
+el Java de `JAVA_HOME`.
+
+| Comando | Para qué |
+| --- | --- |
+| `pnpm project:init` | Convertir la plantilla en un proyecto nuevo |
+| `pnpm setup:env` | Crear y comprobar los `.env` |
+| `pnpm db:backup` · `db:verify` · `db:restore` | Respaldar y restaurar Postgres |
+| `pnpm openapi:sync` · `openapi:types` | Contrato de la API |
+| `scripts/*/update-deps.*` | Actualizar dependencias |
+| `pnpm test:prod` | Probar producción de punta a punta |
+| `pnpm test:e2e` | Pruebas de navegador |
+| `pnpm test:scripts` | Pruebas de estos scripts |
 
 ## `project:init`: convertir la plantilla en un proyecto nuevo
 
@@ -139,7 +151,10 @@ Playwright y lo borra todo. No lee ningún `.env` ni usa tu base de desarrollo.
 
 Usa los puertos 25432, 26379, 21025, 28025, 28080 y 25173, solo en `127.0.0.1`.
 Si alguno está ocupado, o ya hay un contenedor con esos nombres, se detiene sin
-tocar nada. Si una ejecución se corta de golpe y quedan restos:
+tocar nada. Si lo interrumpes (Ctrl+C), limpia antes de salir; en Linux lo
+comprueba `e2e-interrupcion.test.mjs` con sustitutos de Docker, Java y el
+navegador. Si el proceso muere de golpe (o Docker termina de crear un
+contenedor después de la limpieza) y quedan restos:
 
 ```bash
 docker rm -f -v e2e-nav-postgres e2e-nav-redis e2e-nav-mailpit

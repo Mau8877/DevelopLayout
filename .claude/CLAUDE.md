@@ -11,7 +11,9 @@ proyectos independientes más la infraestructura de desarrollo:
   TanStack (Query/Router/Form/Table), Tailwind CSS 4 + shadcn.
 - **`projects/mobile`** — App en Flutter/Dart, Riverpod para estado,
   `go_router` para navegación, `dio` como cliente HTTP.
-- **`scripts/`** — `update-deps` para actualizar y validar dependencias (`linux/` y `windows/`).
+- **`scripts/`** — inicializador, `.env`, respaldos, contrato de la API, pruebas
+  de navegador y de producción, y `update-deps` (ver
+  [scripts/README.md](../scripts/README.md)).
 - **`infrastructure/`** — configuración de Docker Compose: nginx (proxy),
   postgres, redis, minio, prometheus, grafana. `docker-compose.yml` es solo
   desarrollo; `docker-compose.prod.yml` es la base de producción (TLS, sin
@@ -33,7 +35,11 @@ proyectos independientes más la infraestructura de desarrollo:
 pnpm dev       # servidor de desarrollo (Vite, puerto 5173)
 pnpm build     # build de producción
 pnpm lint      # ESLint
+pnpm test      # Vitest
 ```
+
+Desde la raíz: `pnpm test:e2e` (navegador), `pnpm test:prod` (producción) y
+`pnpm test:scripts`.
 
 ### Mobile (`projects/mobile`)
 
@@ -46,17 +52,15 @@ flutter analyze       # análisis estático
 
 ### Stack completo (Docker Compose)
 
-Desde la raíz del repo, con los `.env` ya creados a partir de sus
-`.env.example` correspondientes (raíz, `projects/backend/`,
-`projects/frontend/`) y cada `CAMBIAME` reemplazado por una contraseña
-propia (ninguna tiene valor por defecto):
+Desde la raíz del repo, con los `.env` ya creados (`pnpm setup:env` los crea
+con secretos aleatorios; ninguna contraseña tiene valor por defecto):
 
 ```bash
 docker compose up
 ```
 
 Levanta proxy (puerto 80), frontend (5173), backend (8080), postgres (5432),
-redis (6379), minio (9000/9001), prometheus (9090) y grafana (3000), todos
+redis (6379), minio (9000/9001), mailpit (8025/1025), prometheus (9090) y grafana (3000), todos
 publicados solo en `127.0.0.1`. Ver [docs/INFRAESTRUCTURA.md](../docs/INFRAESTRUCTURA.md)
 para el detalle de servicios y variables de entorno, y
 [docs/README.md](../docs/README.md) para el checklist de puesta en marcha de
@@ -72,6 +76,13 @@ privada y con RLS por defecto
 los reportes usan JasperReports 7
 ([REPORTES_JASPERREPORTS.md](rules/backend/REPORTES_JASPERREPORTS.md)).
 Toda HU y UT lleva su sección de Seguridad.
+
+## Idiomas y direcciones
+
+Ningún texto visible va escrito en el código: web, mobile y backend usan
+archivos de idioma en español e inglés neutros
+([IDIOMAS.md](rules/IDIOMAS.md)). Las URL van en inglés. El recorrido de uso de
+la plantilla está en [docs/TUTORIAL.md](../docs/TUTORIAL.md).
 
 ## Reglas del proyecto (`.claude/rules/`)
 

@@ -138,7 +138,7 @@ web, el backend, el propio script o las dependencias. Detalle de lo que cubre en
 
 El pipeline usa un job `changes` (con la acción `dorny/paths-filter`) que
 detecta qué carpetas cambiaron en el PR/push, y cada job de proyecto
-(`backend`, `frontend`, `mobile`, `scripts`) solo corre si `changes` marcó
+(`backend`, `frontend`, `mobile`, `scripts`, `e2e`) solo corre si `changes` marcó
 que sus rutas tuvieron cambios (un cambio en `ci.yml` los corre todos, para que
 el workflow no se fusione sin haberse probado; `backend` también con `infrastructure/redis/**`,
 porque un test verifica `redis.conf`; `scripts` también con
@@ -192,7 +192,7 @@ sin nada adicional inventado solo para CI:
   job falla en vez de instalar versiones distintas a las que se usan en
   desarrollo — evita el clásico "en mi máquina funciona" por un lockfile
   desactualizado que nadie commiteó.
-- Ninguno de los tres jobs necesita secretos/credenciales — son build +
+- Ninguno de esos jobs necesita secretos/credenciales — son build +
   lint + test contra código propio, sin tocar servicios externos reales
   (Postgres/Redis/MinIO de verdad, un backend desplegado, etc.).
 

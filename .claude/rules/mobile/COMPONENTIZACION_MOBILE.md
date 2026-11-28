@@ -20,8 +20,8 @@ segunda feature lo necesita": para UI, un widget genérico nace en `shared/widge
    vez de crear uno paralelo.
 2. **¿Conoce el dominio de una feature?** (usa modelos, providers o textos de
    negocio de esa feature) → `lib/features/{feature}/widgets/`. Solo en este caso.
-3. **Si es genérico** → `lib/shared/widgets/`. La carpeta se crea con el primer
-   widget genérico que hace falta (ya no se espera a un segundo consumidor).
+3. **Si es genérico** → `lib/shared/widgets/`, desde el primer uso (no se espera
+   a un segundo consumidor).
 
 Un widget de feature que otra feature necesita se importa de esa feature solo si
 la relación de negocio lo justifica (ver

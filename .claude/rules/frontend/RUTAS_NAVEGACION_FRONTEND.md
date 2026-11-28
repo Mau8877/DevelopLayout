@@ -6,7 +6,7 @@ globs: projects/frontend/**/*
 
 ## Setup (ya instalado)
 
-`@tanstack/router-plugin@1.168.35` está en `package.json` (devDependency) y
+`@tanstack/router-plugin` está en `package.json` (devDependency) y
 registrado en `vite.config.ts`, **antes** que `react()` en el array de
 `plugins` (orden requerido: el plugin de rutas genera `routeTree.gen.ts`
 antes de que el plugin de React procese los archivos):
@@ -73,11 +73,12 @@ src/routes/
 ├── __root.tsx
 ├── _authenticated.tsx        # guard: valida sesión, si no hay -> redirect a /login
 ├── _authenticated/
-│   ├── usuarios/
-│   │   └── index.tsx
-│   └── pedidos/
-│       └── index.tsx
-└── login.tsx                 # pública
+│   ├── _admin.tsx            # solo SUPER_ADMIN
+│   ├── _admin/               # users.tsx, user-sessions.tsx, audit-log.tsx
+│   ├── dashboard.tsx
+│   ├── my-sessions.tsx
+│   └── change-password.tsx
+└── login.tsx                 # pública (como forgot-password, reset-password y accept-invitation)
 ```
 
 `_authenticated.tsx` usa el hook `beforeLoad` de TanStack Router para
