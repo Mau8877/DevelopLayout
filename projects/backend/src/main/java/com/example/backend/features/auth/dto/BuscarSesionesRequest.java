@@ -9,9 +9,9 @@ import jakarta.validation.constraints.Size;
 /** El correo va en el body para que no quede en URLs ni en logs de acceso. */
 @JsonIgnoreProperties(ignoreUnknown = false)
 public record BuscarSesionesRequest(
-        @NotBlank(message = "El correo es obligatorio")
-        @Email(message = "El correo no es válido")
-        @Size(max = 255, message = "El correo es demasiado largo")
+        @NotBlank(message = "{auth.validacion.correoObligatorio}")
+        @Email(message = "{auth.validacion.correoInvalido}")
+        @Size(max = 255, message = "{auth.validacion.correoLargo}")
         String email,
         Integer page,
         Integer pageSize) {

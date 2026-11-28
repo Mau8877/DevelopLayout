@@ -30,7 +30,7 @@ class UsuarioBusquedaControllerTest extends AdminUsuariosIntegrationTest {
     private UsuarioAdminService servicio;
 
     private ResultActions buscar(String criterios) throws Exception {
-        return mvc.perform(como(admin, conJson(post("/api/v1/usuarios/buscar"), criterios)));
+        return mvc.perform(como(admin, conJson(post("/api/v1/users/search"), criterios)));
     }
 
     @Test
@@ -104,11 +104,11 @@ class UsuarioBusquedaControllerTest extends AdminUsuariosIntegrationTest {
     void sinSesion401_sinRol403_ySinCsrf403() throws Exception {
         Cuenta comun = conSesion(crearCuenta("comun", "USUARIO"));
 
-        mvc.perform(conJson(post("/api/v1/usuarios/buscar"), "{}").with(csrf()))
+        mvc.perform(conJson(post("/api/v1/users/search"), "{}").with(csrf()))
                 .andExpect(status().isUnauthorized());
-        mvc.perform(como(comun, conJson(post("/api/v1/usuarios/buscar"), "{}")))
+        mvc.perform(como(comun, conJson(post("/api/v1/users/search"), "{}")))
                 .andExpect(status().isForbidden());
-        mvc.perform(conJson(post("/api/v1/usuarios/buscar"), "{}")
+        mvc.perform(conJson(post("/api/v1/users/search"), "{}")
                         .cookie(new Cookie("accessToken", admin.access())))
                 .andExpect(status().isForbidden());
     }

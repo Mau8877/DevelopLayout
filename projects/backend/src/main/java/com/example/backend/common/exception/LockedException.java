@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 
 public class LockedException extends BusinessException {
 
-    public LockedException(String errorCode, String message) {
-        super(errorCode, HttpStatus.LOCKED, message);
+    public LockedException(String errorCode, String clave, Object... argumentos) {
+        super(errorCode, HttpStatus.LOCKED, clave, argumentos);
     }
 }

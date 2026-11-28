@@ -145,16 +145,16 @@ public class UsuarioAdminService {
             Usuario usuario = usuarioRepository.findByCodigo(codigo).orElseThrow(UsuarioAdminService::noExiste);
             if (usuario.getEstado() != EstadoUsuario.ACTIVO) {
                 throw new ConflictException(UsuarioErrorCodes.ERR_US_05,
-                        "La cuenta está inactiva: reactivala antes de reenviar la invitación");
+                        "usuarios.error.cuentaInactiva");
             }
             if (!usuario.isInvitacionPendiente()) {
-                throw new ConflictException(UsuarioErrorCodes.ERR_US_05, "La invitación ya fue aceptada");
+                throw new ConflictException(UsuarioErrorCodes.ERR_US_05, "usuarios.error.invitacionAceptada");
             }
             return usuario.getEmail();
         });
         if (!limiteReenvios.reservar(codigo)) {
             throw new ConflictException(UsuarioErrorCodes.ERR_US_06,
-                    "Ya reenviaste esta invitación varias veces. Probá de nuevo en una hora");
+                    "usuarios.error.limiteReenvios");
         }
         boolean enviada = invitaciones.enviar(codigo, email);
         bitacora.registrarEnTransaccionPropia(actor.codigo(), UsuarioAcciones.USUARIOS_INVITACION_REENVIADA,
@@ -176,7 +176,7 @@ public class UsuarioAdminService {
     public UsuarioResponse desactivar(Actor actor, UUID codigo) {
         guardia.exigirVigente(actor.codigo(), actor.sesion());
         if (codigo.equals(actor.codigo())) {
-            throw new ConflictException(UsuarioErrorCodes.ERR_US_04, "No podés desactivar tu propia cuenta");
+            throw new ConflictException(UsuarioErrorCodes.ERR_US_04, "usuarios.error.propiaCuenta");
         }
         Usuario usuario = usuarioRepository.bloquearParaCambio(codigo).orElseThrow(UsuarioAdminService::noExiste);
         if (usuario.getEstado() == EstadoUsuario.ACTIVO) {
@@ -232,7 +232,7 @@ public class UsuarioAdminService {
         }
         if (codigo.equals(actor.codigo()) && quitados.contains(RolNombres.SUPER_ADMIN)) {
             throw new ConflictException(UsuarioErrorCodes.ERR_US_07,
-                    "No podés quitarte tu propio rol de administrador");
+                    "usuarios.error.rolPropio");
         }
 
         aplicar(usuario, asignaciones, pedidos, agregados, quitados);
@@ -307,7 +307,7 @@ public class UsuarioAdminService {
                 .map(nombre -> rolRepository.findByNombre(nombre)
                         .filter(Rol::isActive)
                         .orElseThrow(() -> new ValidationException(UsuarioErrorCodes.ERR_US_03,
-                                "El campo roles tiene un rol que no existe")))
+                                "usuarios.error.rolInexistente")))
                 .toList();
     }
 
@@ -319,11 +319,11 @@ public class UsuarioAdminService {
 
     private static ConflictException correoRepetido() {
         return new ConflictException(UsuarioErrorCodes.ERR_US_02,
-                "Ya existe una cuenta con ese correo. Si está inactiva, reactivala");
+                "usuarios.error.correoRepetido");
     }
 
     private static NotFoundException noExiste() {
-        return new NotFoundException(UsuarioErrorCodes.ERR_US_01, "El usuario no existe");
+        return new NotFoundException(UsuarioErrorCodes.ERR_US_01, "usuarios.error.noExiste");
     }
 
     private Map<Long, List<String>> rolesDe(List<Usuario> usuarios) {

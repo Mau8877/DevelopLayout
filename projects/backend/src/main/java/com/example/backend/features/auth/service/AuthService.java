@@ -51,7 +51,7 @@ import com.example.backend.security.SesionRevocadaRegistry;
 public class AuthService {
 
     private static final Logger LOG = LoggerFactory.getLogger(AuthService.class);
-    private static final String MSG_CREDENCIALES = "Correo o contraseña incorrectos";
+    private static final String MSG_CREDENCIALES = "auth.error.credenciales";
 
     private final LoginAttemptService loginAttempts;
     private final SesionService sesionService;
@@ -109,7 +109,7 @@ public class AuthService {
                 bitacora.registrarEnTransaccionPropia(AuthAcciones.AUTH_CUENTA_BLOQUEADA, AuthAcciones.MODULO,
                         null, null, ResultadoBitacora.FALLO, Map.of("correoRef", emailHash, "alcance", alcance));
                 throw new LockedException(AuthErrorCodes.ERR_AUTH_02,
-                        "Demasiados intentos fallidos, intentá de nuevo más tarde");
+                        "auth.error.bloqueado");
             }
 
             Usuario usuario = lectura.execute(estado -> {
@@ -133,7 +133,7 @@ public class AuthService {
                 bitacora.registrarEnTransaccionPropia(usuario.getCodigo(), AuthAcciones.AUTH_LOGIN_FALLO,
                         AuthAcciones.MODULO, null, null, ResultadoBitacora.FALLO,
                         Map.of("correoRef", emailHash, "motivo", "USUARIO_NO_ACTIVO"));
-                throw new ForbiddenException(AuthErrorCodes.ERR_AUTH_03, "La cuenta no está activa");
+                throw new ForbiddenException(AuthErrorCodes.ERR_AUTH_03, "auth.error.cuentaInactiva");
             }
 
             LoginResult resultado =
@@ -190,7 +190,7 @@ public class AuthService {
                 LOG.warn("Renovación rechazada usuarioCodigo={} errorCode={}", codigoUsuario,
                         AuthErrorCodes.ERR_AUTH_04);
                 throw new UnauthorizedException(AuthErrorCodes.ERR_AUTH_04,
-                        "Tu sesión ya no es válida, iniciá sesión de nuevo");
+                        "auth.error.sesionInvalida");
             }
 
             String access = jwtService.emitir(codigoUsuario, roles, codigoSesion);
@@ -215,7 +215,7 @@ public class AuthService {
     public UsuarioSesionResponse me(UUID codigoUsuario) {
         rlsContext.usarUsuario(codigoUsuario);
         Usuario usuario = usuarioRepository.findByCodigo(codigoUsuario)
-                .orElseThrow(() -> new UnauthorizedException(AuthErrorCodes.ERR_AUTH_07, "No autenticado"));
+                .orElseThrow(() -> new UnauthorizedException(AuthErrorCodes.ERR_AUTH_07, "common.error.noAutenticado"));
         return new UsuarioSesionResponse(usuario.getCodigo(), usuario.getEmail(), rolesActivos(usuario));
     }
 

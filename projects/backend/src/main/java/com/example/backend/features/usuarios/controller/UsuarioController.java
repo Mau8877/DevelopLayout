@@ -1,5 +1,6 @@
 package com.example.backend.features.usuarios.controller;
 
+import com.example.backend.common.idioma.Mensajes;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,19 +35,20 @@ import jakarta.validation.Valid;
 
 /** Administración de usuarios. La autorización la hace el service. */
 @RestController
-@RequestMapping("/api/v1/usuarios")
+@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UsuarioController {
 
     private final UsuarioAdminService usuarios;
+    private final Mensajes mensajes;
 
-    @PostMapping("/buscar")
+    @PostMapping("/search")
     public ResponseEntity<ApiResponse<List<UsuarioResponse>>> buscarUsuarios(
             @Valid @RequestBody BuscarUsuariosRequest request) {
         Page<UsuarioResponse> pagina = usuarios.buscar(new UsuarioBusquedaRepository.Filtro(
                 texto(request.search()), request.estado(), texto(request.rol())),
                 Paginacion.de(request.page(), request.pageSize()));
-        return ResponseEntity.ok(ApiResponse.successList(pagina.getContent(), "Usuarios obtenidos",
+        return ResponseEntity.ok(ApiResponse.successList(pagina.getContent(), mensajes.de("usuarios.exito.obtenidos"),
                 PageMeta.de(pagina)));
     }
 
@@ -58,34 +60,34 @@ public class UsuarioController {
         UsuarioCreadoResponse creado = usuarios.crear(new UsuarioAdminService.Actor(actor, sesion),
                 request.email(), request.roles());
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(creado,
-                creado.invitacionEnviada() ? "Usuario creado e invitación enviada"
-                        : "Usuario creado, pero no se pudo enviar la invitación. Podés reenviarla"));
+                creado.invitacionEnviada() ? mensajes.de("usuarios.exito.creado")
+                        : mensajes.de("usuarios.exito.creadoSinCorreo")));
     }
 
-    @PostMapping("/{codigo}/reenviar-invitacion")
+    @PostMapping("/{codigo}/resend-invitation")
     public ResponseEntity<ApiResponse<ReenvioInvitacionResponse>> reenviarInvitacion(@PathVariable UUID codigo,
             @Parameter(hidden = true) @CurrentUserId UUID actor,
             @Parameter(hidden = true) @CurrentSessionId UUID sesion) {
         ReenvioInvitacionResponse reenvio = usuarios.reenviarInvitacion(
                 new UsuarioAdminService.Actor(actor, sesion), codigo);
         return ResponseEntity.ok(ApiResponse.success(reenvio, reenvio.invitacionEnviada()
-                ? "Invitación reenviada" : "No se pudo enviar la invitación. Probá de nuevo"));
+                ? mensajes.de("usuarios.exito.reenviada") : mensajes.de("usuarios.exito.reenvioFallido")));
     }
 
-    @PostMapping("/{codigo}/desactivar")
+    @PostMapping("/{codigo}/deactivate")
     public ResponseEntity<ApiResponse<UsuarioResponse>> desactivarUsuario(@PathVariable UUID codigo,
             @Parameter(hidden = true) @CurrentUserId UUID actor,
             @Parameter(hidden = true) @CurrentSessionId UUID sesion) {
         return ResponseEntity.ok(ApiResponse.success(
-                usuarios.desactivar(new UsuarioAdminService.Actor(actor, sesion), codigo), "Usuario desactivado"));
+                usuarios.desactivar(new UsuarioAdminService.Actor(actor, sesion), codigo), mensajes.de("usuarios.exito.desactivado")));
     }
 
-    @PostMapping("/{codigo}/reactivar")
+    @PostMapping("/{codigo}/reactivate")
     public ResponseEntity<ApiResponse<UsuarioResponse>> reactivarUsuario(@PathVariable UUID codigo,
             @Parameter(hidden = true) @CurrentUserId UUID actor,
             @Parameter(hidden = true) @CurrentSessionId UUID sesion) {
         return ResponseEntity.ok(ApiResponse.success(
-                usuarios.reactivar(new UsuarioAdminService.Actor(actor, sesion), codigo), "Usuario reactivado"));
+                usuarios.reactivar(new UsuarioAdminService.Actor(actor, sesion), codigo), mensajes.de("usuarios.exito.reactivado")));
     }
 
     @PutMapping("/{codigo}/roles")
@@ -94,7 +96,7 @@ public class UsuarioController {
             @Parameter(hidden = true) @CurrentUserId UUID actor,
             @Parameter(hidden = true) @CurrentSessionId UUID sesion) {
         return ResponseEntity.ok(ApiResponse.success(usuarios.cambiarRoles(
-                new UsuarioAdminService.Actor(actor, sesion), codigo, request.roles()), "Roles actualizados"));
+                new UsuarioAdminService.Actor(actor, sesion), codigo, request.roles()), mensajes.de("usuarios.exito.rolesActualizados")));
     }
 
     // * Vacío o solo espacios es «sin filtrar».

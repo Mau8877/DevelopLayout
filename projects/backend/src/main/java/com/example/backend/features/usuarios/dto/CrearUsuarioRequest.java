@@ -12,11 +12,11 @@ import jakarta.validation.constraints.Size;
 /** ! Solo correo y roles: el cliente no elige estado, contraseña ni código. */
 @JsonIgnoreProperties(ignoreUnknown = false)
 public record CrearUsuarioRequest(
-        @NotBlank(message = "El correo es obligatorio")
-        @Email(message = "El correo no es válido")
-        @Size(max = 255, message = "El correo es demasiado largo")
+        @NotBlank(message = "{auth.validacion.correoObligatorio}")
+        @Email(message = "{auth.validacion.correoInvalido}")
+        @Size(max = 255, message = "{auth.validacion.correoLargo}")
         String email,
-        @NotEmpty(message = "Elegí al menos un rol en el campo roles")
-        @Size(max = 20, message = "El campo roles tiene demasiados elementos")
-        List<@NotBlank(message = "El campo roles tiene un rol vacío") String> roles) {
+        @NotEmpty(message = "{usuarios.validacion.rolRequerido}")
+        @Size(max = 20, message = "{usuarios.validacion.rolesDemasiados}")
+        List<@NotBlank(message = "{usuarios.validacion.rolVacio}") String> roles) {
 }

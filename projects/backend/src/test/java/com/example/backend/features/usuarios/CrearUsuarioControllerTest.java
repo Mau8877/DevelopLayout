@@ -148,9 +148,9 @@ class CrearUsuarioControllerTest extends InvitacionesIntegrationTest {
         Cuenta comun = conSesion(crearCuenta("comun", "USUARIO"));
         String cuerpo = "{\"email\":\"ajena." + marca + "@test.local\",\"roles\":[\"USUARIO\"]}";
 
-        mvc.perform(conJson(post("/api/v1/usuarios"), cuerpo).with(csrf())).andExpect(status().isUnauthorized());
+        mvc.perform(conJson(post("/api/v1/users"), cuerpo).with(csrf())).andExpect(status().isUnauthorized());
         crear(comun, cuerpo).andExpect(status().isForbidden());
-        mvc.perform(conJson(post("/api/v1/usuarios"), cuerpo).cookie(new Cookie("accessToken", admin.access())))
+        mvc.perform(conJson(post("/api/v1/users"), cuerpo).cookie(new Cookie("accessToken", admin.access())))
                 .andExpect(status().isForbidden());
         assertThat(cuentasCon("ajena." + marca + "@test.local")).isZero();
     }

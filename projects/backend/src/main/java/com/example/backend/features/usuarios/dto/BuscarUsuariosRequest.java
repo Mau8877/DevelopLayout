@@ -10,9 +10,9 @@ import jakarta.validation.constraints.Size;
 public record BuscarUsuariosRequest(
         Integer page,
         Integer pageSize,
-        @Size(max = 255, message = "La búsqueda es demasiado larga")
+        @Size(max = 255, message = "{usuarios.validacion.busquedaLarga}")
         String search,
         EstadoUsuario estado,
-        @Size(max = 50, message = "El rol no es válido")
+        @Size(max = 50, message = "{usuarios.validacion.rolInvalido}")
         String rol) {
 }

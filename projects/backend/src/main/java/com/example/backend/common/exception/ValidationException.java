@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 
 public class ValidationException extends BusinessException {
 
-    public ValidationException(String errorCode, String message) {
-        super(errorCode, HttpStatus.BAD_REQUEST, message);
+    public ValidationException(String errorCode, String clave, Object... argumentos) {
+        super(errorCode, HttpStatus.BAD_REQUEST, clave, argumentos);
     }
 }

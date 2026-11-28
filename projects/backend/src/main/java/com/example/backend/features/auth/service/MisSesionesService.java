@@ -63,7 +63,7 @@ public class MisSesionesService {
     public void cerrar(UUID usuario, UUID sesionActual, UUID codigo) {
         if (codigo.equals(sesionActual)) {
             throw new ValidationException(AuthErrorCodes.ERR_AUTH_10,
-                    "Para cerrar la sesión actual usá «Cerrar sesión»");
+                    "auth.error.sesionActual");
         }
         List<Sesion> activas = bloquearExigiendoLaActual(usuario, sesionActual);
         activas.stream().filter(s -> s.getCodigo().equals(codigo)).findFirst().ifPresentOrElse(
@@ -71,7 +71,7 @@ public class MisSesionesService {
                 // * Propia y ya cerrada: nada que hacer. Ajena o inexistente: el mismo 404.
                 () -> sesionRepository.findByCodigo(codigo)
                         .filter(s -> s.getUsuarioCodigo().equals(usuario))
-                        .orElseThrow(() -> new NotFoundException(AuthErrorCodes.ERR_AUTH_09, "La sesión no existe")));
+                        .orElseThrow(() -> new NotFoundException(AuthErrorCodes.ERR_AUTH_09, "auth.error.sesionNoExiste")));
     }
 
     /**
@@ -99,7 +99,7 @@ public class MisSesionesService {
         List<Sesion> activas = sesionRepository.bloquearPorUsuarioYEstado(usuario, EstadoSesion.ACTIVA);
         if (activas.stream().noneMatch(s -> s.getCodigo().equals(sesionActual))) {
             throw new UnauthorizedException(AuthErrorCodes.ERR_AUTH_04,
-                    "Tu sesión ya no es válida, iniciá sesión de nuevo");
+                    "auth.error.sesionInvalida");
         }
         return activas;
     }

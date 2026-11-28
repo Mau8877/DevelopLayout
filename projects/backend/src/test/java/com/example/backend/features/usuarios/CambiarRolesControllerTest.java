@@ -25,7 +25,7 @@ class CambiarRolesControllerTest extends AdminUsuariosIntegrationTest {
     private static final String AMBOS = "{\"roles\":[\"USUARIO\",\"SUPER_ADMIN\",\"USUARIO\"]}";
 
     private static String ruta(UUID codigo) {
-        return "/api/v1/usuarios/" + codigo + "/roles";
+        return "/api/v1/users/" + codigo + "/roles";
     }
 
     private ResultActions cambiar(Cuenta actor, UUID codigo, String cuerpo) throws Exception {

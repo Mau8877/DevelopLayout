@@ -34,7 +34,7 @@ abstract class InvitacionesIntegrationTest extends AdminUsuariosIntegrationTest 
     }
 
     protected ResultActions crear(Cuenta actor, String json) throws Exception {
-        return mvc.perform(como(actor, conJson(post("/api/v1/usuarios"), json)));
+        return mvc.perform(como(actor, conJson(post("/api/v1/users"), json)));
     }
 
     protected ResultActions invitar(String email) throws Exception {

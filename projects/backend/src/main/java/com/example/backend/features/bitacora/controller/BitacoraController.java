@@ -1,5 +1,6 @@
 package com.example.backend.features.bitacora.controller;
 
+import com.example.backend.common.idioma.Mensajes;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -23,26 +24,27 @@ import com.example.backend.features.bitacora.service.BitacoraQueryService;
 
 /** Consulta de la bitácora. Solo lectura; la autorización la hace el service. */
 @RestController
-@RequestMapping("/api/v1/bitacora")
+@RequestMapping("/api/v1/audit-log")
 @RequiredArgsConstructor
 public class BitacoraController {
 
     private final BitacoraQueryService bitacora;
+    private final Mensajes mensajes;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<BitacoraResponse>>> listar(
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer pageSize,
-            @RequestParam(name = "filter[accion]", required = false) String accion,
-            @RequestParam(name = "filter[modulo]", required = false) String modulo,
-            @RequestParam(name = "filter[resultado]", required = false) ResultadoBitacora resultado,
-            @RequestParam(name = "filter[usuarioCodigo]", required = false) UUID usuarioCodigo,
-            @RequestParam(required = false) Instant desde,
-            @RequestParam(required = false) Instant hasta) {
+            @RequestParam(name = "filter[action]", required = false) String accion,
+            @RequestParam(name = "filter[module]", required = false) String modulo,
+            @RequestParam(name = "filter[result]", required = false) ResultadoBitacora resultado,
+            @RequestParam(name = "filter[userCode]", required = false) UUID usuarioCodigo,
+            @RequestParam(name = "from", required = false) Instant desde,
+            @RequestParam(name = "to", required = false) Instant hasta) {
         Page<BitacoraResponse> pagina = bitacora.consultar(
                 new BitacoraConsultaRepository.Filtro(accion, modulo, resultado, usuarioCodigo, desde, hasta),
                 Paginacion.de(page, pageSize));
-        return ResponseEntity.ok(ApiResponse.successList(pagina.getContent(), "Bitácora obtenida",
+        return ResponseEntity.ok(ApiResponse.successList(pagina.getContent(), mensajes.de("bitacora.exito.obtenida"),
                 PageMeta.de(pagina)));
     }
 }

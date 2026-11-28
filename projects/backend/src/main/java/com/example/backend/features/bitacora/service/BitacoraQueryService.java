@@ -27,7 +27,7 @@ public class BitacoraQueryService {
     public Page<BitacoraResponse> consultar(BitacoraConsultaRepository.Filtro filtro, Pageable pageable) {
         if (filtro.desde() != null && filtro.hasta() != null && filtro.desde().isAfter(filtro.hasta())) {
             throw new ValidationException(BitacoraErrorCodes.ERR_BIT_01,
-                    "La fecha inicial no puede ser posterior a la final");
+                    "bitacora.error.rangoFechas");
         }
         rlsContext.usarAdmin();
         return repositorio.buscar(filtro, pageable).map(BitacoraQueryService::aRespuesta);

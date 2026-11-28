@@ -23,7 +23,7 @@ import jakarta.servlet.http.Cookie;
 /** Mis sesiones (HU-INICIAL-Sesiones). La app corre como app_runtime: RLS aplica de verdad. */
 class MisSesionesControllerTest extends AuthSesionIntegrationTest {
 
-    private static final String RUTA = "/api/v1/auth/sesiones";
+    private static final String RUTA = "/api/v1/auth/sessions";
 
     // ---------------------------------------------------------------- apoyo
 
@@ -41,7 +41,7 @@ class MisSesionesControllerTest extends AuthSesionIntegrationTest {
     }
 
     private MvcResult cerrarOtras(Tokens tokens) throws Exception {
-        return mvc.perform(con(post(RUTA + "/cerrar-otras"), tokens)).andReturn();
+        return mvc.perform(con(post(RUTA + "/revoke-others"), tokens)).andReturn();
     }
 
     private static int estado(MvcResult res) {
@@ -141,7 +141,7 @@ class MisSesionesControllerTest extends AuthSesionIntegrationTest {
         assertThat(estado(mvc.perform(delete(RUTA + "/" + otra).with(csrf())).andReturn())).isEqualTo(401);
         assertThat(estado(mvc.perform(delete(RUTA + "/" + otra).cookie(new Cookie("accessToken", web.access())))
                 .andReturn())).isEqualTo(403);
-        assertThat(estado(mvc.perform(post(RUTA + "/cerrar-otras").cookie(new Cookie("accessToken", web.access())))
+        assertThat(estado(mvc.perform(post(RUTA + "/revoke-others").cookie(new Cookie("accessToken", web.access())))
                 .andReturn())).isEqualTo(403);
         assertThat(activas()).isEqualTo(2);
         assertThat(estado(mvc.perform(delete(RUTA + "/" + otra).with(csrf())

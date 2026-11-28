@@ -27,7 +27,7 @@ class ReenvioInvitacionControllerTest extends InvitacionesIntegrationTest {
     private InvitacionTokenService tokens;
 
     private static String ruta(UUID codigo) {
-        return "/api/v1/usuarios/" + codigo + "/reenviar-invitacion";
+        return "/api/v1/users/" + codigo + "/resend-invitation";
     }
 
     private ResultActions reenviar(UUID codigo) throws Exception {

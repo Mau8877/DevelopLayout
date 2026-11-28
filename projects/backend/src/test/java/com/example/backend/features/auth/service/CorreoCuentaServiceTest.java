@@ -1,5 +1,6 @@
 package com.example.backend.features.auth.service;
 
+import com.example.backend.common.idioma.Mensajes;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -19,13 +20,13 @@ class CorreoCuentaServiceTest {
     private final JavaMailSender mail = mock(JavaMailSender.class);
 
     private CorreoCuentaService servicio(String servidor, String remitente, String url) {
-        return new CorreoCuentaService(mail, servidor, remitente, url);
+        return new CorreoCuentaService(mail, servidor, remitente, url, new Mensajes(Mensajes.crearFuente()));
     }
 
     @Test
     void enviarRecuperacion_poneElTokenEnElFragmentoDeUnCorreoDeTexto() {
         servicio("smtp.test", "no-reply@test.local", "https://app.test/")
-                .enviarRecuperacion("persona@test.local", "abc123");
+                .enviarRecuperacion("persona@test.local", "abc123", Mensajes.ESPANOL);
 
         ArgumentCaptor<SimpleMailMessage> enviado = ArgumentCaptor.forClass(SimpleMailMessage.class);
         verify(mail).send(enviado.capture());
@@ -38,7 +39,7 @@ class CorreoCuentaServiceTest {
     @Test
     void enviarInvitacion_llevaAlEnlaceDeAceptacionYAvisaLaVigencia() {
         servicio("smtp.test", "no-reply@test.local", "https://app.test")
-                .enviarInvitacion("persona@test.local", "abc123");
+                .enviarInvitacion("persona@test.local", "abc123", Mensajes.ESPANOL);
 
         ArgumentCaptor<SimpleMailMessage> enviado = ArgumentCaptor.forClass(SimpleMailMessage.class);
         verify(mail).send(enviado.capture());

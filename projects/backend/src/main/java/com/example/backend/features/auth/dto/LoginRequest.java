@@ -12,11 +12,11 @@ import jakarta.validation.constraints.Size;
  */
 @JsonIgnoreProperties(ignoreUnknown = false)
 public record LoginRequest(
-        @NotBlank(message = "El correo es obligatorio")
-        @Email(message = "El correo no es válido")
-        @Size(max = 255, message = "El correo es demasiado largo")
+        @NotBlank(message = "{auth.validacion.correoObligatorio}")
+        @Email(message = "{auth.validacion.correoInvalido}")
+        @Size(max = 255, message = "{auth.validacion.correoLargo}")
         String email,
-        @NotBlank(message = "La contraseña es obligatoria")
-        @Size(min = 8, max = 72, message = "La contraseña debe tener entre 8 y 72 caracteres")
+        @NotBlank(message = "{auth.validacion.passwordObligatoria}")
+        @Size(min = 8, max = 72, message = "{auth.validacion.passwordLargo}")
         String password) {
 }
