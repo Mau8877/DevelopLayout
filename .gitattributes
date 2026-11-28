@@ -12,3 +12,7 @@
 *.ico binary
 
 *.pdf binary
+
+# Generados (pnpm openapi:sync / openapi:types): GitHub muestra plegados sus cambios en los PR.
+docs/api/openapi.json linguist-generated
+projects/frontend/src/shared/api/schema.d.ts linguist-generated
