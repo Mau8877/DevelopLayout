@@ -37,7 +37,7 @@ pnpm project:init --nombre "Acme Tienda" --slug acme-tienda --paquete com.acme -
 pnpm project:init --nombre "Acme Tienda" --slug acme-tienda --paquete com.acme
 ```
 
-No necesita `pnpm install` (alcanza con Node y git: también sirve `node scripts/init-project.mjs`). Edita los archivos, mueve las carpetas de Java y de Kotlin y renombra la clase principal. Se usa **una sola vez**: se niega si ya se ejecutó o si hay cambios sin commitear. Revisá el resultado con `git status` y `git diff`; para deshacerlo, `git checkout -- . && git clean -fd`.
+No necesita `pnpm install` (alcanza con Node y git: también sirve `node scripts/proyecto/init-project.mjs`). Edita los archivos, mueve las carpetas de Java y de Kotlin y renombra la clase principal. Se usa **una sola vez**: se niega si ya se ejecutó o si hay cambios sin commitear. Revisá el resultado con `git status` y `git diff`; para deshacerlo, `git checkout -- . && git clean -fd`.
 
 **A propósito, no cambia:**
 
@@ -113,7 +113,7 @@ Estos comandos se corren en el proyecto ya renombrado, no en la plantilla — sa
 
 ### Todo junto: scripts y Dependabot
 
-- `scripts/windows/update-deps.ps1` y `scripts/linux/update-deps.sh` actualizan y verifican los tres proyectos de una vez (dependencias, `pnpm audit`, lint, tests, build, `flutter analyze`, `mvnw verify`) y escriben todo en `update-deps.log` en la raíz (ignorado por git). Detalle en [scripts/README.md](../scripts/README.md).
+- `scripts/dependencias/update-deps.ps1` y `scripts/dependencias/update-deps.sh` actualizan y verifican los tres proyectos de una vez (dependencias, `pnpm audit`, lint, tests, build, `flutter analyze`, `mvnw verify`) y escriben todo en `update-deps.log` en la raíz (ignorado por git). Detalle en [scripts/README.md](../scripts/README.md).
 - `.github/dependabot.yml` abre una PR semanal por ecosistema (Maven, npm, pub, Docker y GitHub Actions).
 
 ## Seguridad, CI y producción

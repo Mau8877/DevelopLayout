@@ -95,13 +95,13 @@ Si usaste «Use this template», ya tienes ese primer commit: no borres `.git`.
 Primero mira qué va a cambiar, sin escribir nada:
 
 ```powershell
-node scripts/init-project.mjs --nombre "Acme Tienda" --slug acme-tienda --paquete com.acme --dry-run
+node scripts/proyecto/init-project.mjs --nombre "Acme Tienda" --slug acme-tienda --paquete com.acme --dry-run
 ```
 
 Si está bien, aplícalo:
 
 ```powershell
-node scripts/init-project.mjs --nombre "Acme Tienda" --slug acme-tienda --paquete com.acme
+node scripts/proyecto/init-project.mjs --nombre "Acme Tienda" --slug acme-tienda --paquete com.acme
 ```
 
 | Dato | Qué es |
