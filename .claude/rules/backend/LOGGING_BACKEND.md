@@ -75,6 +75,8 @@ No basta con no escribir `LOG.info(password)`: el framework también registra.
 | Capa web en `DEBUG` | El `toString()` de cada body que lee y responde | `toString()` oculto en todo `record` con secretos (ver [CONVENCIONES_JAVA_BACKEND.md](CONVENCIONES_JAVA_BACKEND.md#estilo-general)) |
 | Excepción resuelta (con `devtools` sale en `WARN`, sin activar nada) | El **valor rechazado** por la validación, aunque el `toString()` esté oculto | `ExceptionHandlerExceptionResolver` en `OFF` en `application.properties` |
 
+| Mensajes de la base y de las librerías | Repiten el dato que falló (un correo repetido, un valor mal formado) | Ver abajo |
+
 - ! **No se vuelve a encender ese logger.** Si hace falta ver por qué falla una
   petición, se usa el depurador o la respuesta de la API.
 - `SecretosEnLogsTest` comprueba las dos vías. Un endpoint nuevo que reciba o
@@ -82,6 +84,18 @@ No basta con no escribir `LOG.info(password)`: el framework también registra.
 - ! El `DEBUG` de la capa web **sigue mostrando datos personales** (correos de
   otros DTO): es solo para un equipo de desarrollo con datos de prueba, nunca
   en producción.
+
+### Excepciones que no son nuestras
+
+- ! **Nunca `LOG.error("...", e)` con una excepción de la base o de una
+  librería.** Se escribe `LOG.error("...", ExcepcionSinMensajes.de(e))`: conserva
+  clases, traza, causas, SQLState y restricción, sin los mensajes. Si basta con
+  el tipo, `e.getClass().getSimpleName()`.
+- El logger `org.hibernate.orm.jdbc.error` está en `OFF` (escribe el mensaje de
+  Postgres tal cual) y la conexión usa `logServerErrorDetail=false`.
+- `DatosEnErroresInesperadosTest` lo comprueba con errores reales de la base.
+- Para identificar a una persona en un log se usa su `codigo`, **nunca el correo**
+  (tampoco al crear el administrador inicial).
 
 Si un DTO/Model que se loguea completo (ej. para debug) puede contener
 alguno de estos campos, se excluye explícitamente antes de loguear (no se

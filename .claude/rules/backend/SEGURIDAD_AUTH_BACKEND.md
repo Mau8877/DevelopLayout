@@ -109,6 +109,19 @@ El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
   guarda refresh tokens. Corre con `maxmemory-policy noeviction`: no puede
   desalojar esos datos. El rate limit vive en memoria, no en Redis.
 
+## Contraseñas nuevas
+
+- De 8 caracteres a 72 **bytes** (`@MaximoBytes`).
+- **Ninguna de las muy usadas** (`@PasswordNoComun`, en `common/validation/`):
+  lista local de filtraciones, sin distinguir mayúsculas y sin enviar nada fuera
+  (origen y licencia en `resources/security/ORIGEN.md`). Vale para restablecer,
+  aceptar una invitación, cambiar la propia y el administrador inicial.
+- ! Va **solo en el campo de la contraseña nueva**: nunca en el login ni en la
+  contraseña actual, o quien ya tiene una quedaría fuera.
+- Todo flujo nuevo que fije una contraseña lleva la anotación y se agrega a
+  `PasswordComunTest`.
+- La lista es una foto: no consulta filtraciones en vivo.
+
 ## Límite de intentos de login
 
 `LoginAttemptService`:

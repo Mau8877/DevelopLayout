@@ -106,7 +106,8 @@ falla de infraestructura (DB caída, etc.), cae en el handler genérico del
 - Un `@ExceptionHandler(Exception.class)` catch-all → `500`, con un código
   genérico (ej. `ERR_SYS_00`), **sin** exponer el mensaje/stacktrace real al
   cliente (el mensaje de negocio es genérico: "Ocurrió un error inesperado"),
-  pero logueando el detalle completo del lado del servidor.
+  y se registra del lado del servidor con `ExcepcionSinMensajes`: la traza
+  completa, sin los mensajes (ver [LOGGING_BACKEND.md](LOGGING_BACKEND.md#excepciones-que-no-son-nuestras)).
 
 ## Catálogo de códigos de error
 

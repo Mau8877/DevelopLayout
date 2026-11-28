@@ -49,6 +49,24 @@ se mezclan:
 > `@Table` lleva `schema = "..."` explícito. Ver
 > [SCHEMAS_BD_BACKEND.md](SCHEMAS_BD_BACKEND.md).
 
+## Tiempos de espera
+
+Ninguna espera es indefinida (API4). Están en `application.properties` y los
+comprueba `EsperasLimitadasTest`:
+
+| Qué | Límite |
+| --- | --- |
+| Pedir una conexión al pool | 10 s |
+| Abrir la conexión | 10 s |
+| Una consulta (`app.db.statement-timeout-ms`) | 30 s; la cancela Postgres |
+| Red sin respuesta (`socketTimeout`) | 330 s |
+| Redis: conectar y cada orden | 2 s; se falla cerrado |
+
+- Una tarea que de verdad necesita más lo amplía **solo en su transacción**
+  (`SET LOCAL statement_timeout`), como `BitacoraPurgaJob` (5 min), sin pasar del
+  `socketTimeout`. No se sube el límite general.
+- Flyway usa otra conexión y no tiene límite de consulta.
+
 ## Nombres de migraciones Flyway
 
 Formato obligatorio: **`V{yyyyMMddHHmmss}__descripcion.sql`**, ej.:

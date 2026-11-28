@@ -17,7 +17,8 @@ com.example.backend
 │   ├── exception/       # BusinessException y jerarquía (ver EXCEPCIONES_BACKEND.md)
 │   ├── model/           # BaseModel (codigo UUID, timestamps, soft delete -- ver abajo)
 │   ├── response/        # ApiResponse, PageMeta (ver RESPONSES_BACKEND.md)
-│   └── util/            # Utilidades genéricas sin estado
+│   ├── util/            # Utilidades genéricas sin estado
+│   └── validation/      # Anotaciones de validación que usan 2+ módulos
 ├── config/               # Configuración de Spring (SecurityConfig, etc.)
 ├── security/
 │   ├── annotation/       # @CurrentUserId, @CurrentSessionId
