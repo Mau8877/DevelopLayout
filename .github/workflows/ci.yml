@@ -50,6 +50,9 @@ jobs:
               - 'infrastructure/nginx/Dockerfile'
               - 'projects/frontend/Dockerfile'
               - 'package.json'
+              # Una prueba recorre la plantilla entera (project:init).
+              - 'projects/**'
+              - 'infrastructure/**'
             produccion:
               - 'infrastructure/**'
               - 'docker-compose.prod.yml'
