@@ -12,7 +12,8 @@
     "passwordCorta": "The password must be at least 8 characters long",
     "passwordLarga": "The password is too long",
     "repetirPassword": "Repeat the password",
-    "passwordsDistintas": "The passwords do not match"
+    "passwordsDistintas": "The passwords do not match",
+    "passwordActualObligatoria": "The current password is required"
   },
   "login": {
     "titulo": "Sign in",
@@ -95,5 +96,16 @@
     "tituloTodas": "Close all sessions",
     "avisoTodas": "The user will lose access on all their devices. If it is your account, you will have to sign in again.",
     "avisoUna": "The device will lose access immediately. If it is your current session, you will have to sign in again."
+  },
+  "cambiarPassword": {
+    "titulo": "Change password",
+    "aviso": "All your sessions will be closed, including this one, and you will have to sign in again.",
+    "actual": "Current password",
+    "nueva": "New password",
+    "confirmacion": "Repeat the new password",
+    "boton": "Change password",
+    "error": "We could not change the password. Try again.",
+    "exitoTitulo": "Password changed",
+    "exitoTexto": "Sign in with your new password"
   }
 }

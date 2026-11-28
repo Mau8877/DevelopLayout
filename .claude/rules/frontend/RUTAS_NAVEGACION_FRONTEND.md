@@ -128,7 +128,8 @@ para el esquema de roles del lado del backend — el frontend usa el mismo
   manda a `/dashboard` a quien no es `SUPER_ADMIN` y monta `AdminLayout`. El título
   de cada pantalla es el `staticData.breadcrumb` de su ruta. Toda pantalla de
   administrador va dentro de `_authenticated/_admin/`.
-- **Pantallas comunes a todos los roles** (`/dashboard`, `/my-sessions`): usan
+- **Pantallas comunes a todos los roles** (`/dashboard`, `/my-sessions`,
+  `/change-password`): usan
   `layouts/LayoutPorRol.tsx`, que elige el layout según el usuario. Es solo para
   ellas; una pantalla de un solo rol se agrupa bajo el layout de ese rol.
 - El menú lateral navega con `Link` (sin recargar la app).

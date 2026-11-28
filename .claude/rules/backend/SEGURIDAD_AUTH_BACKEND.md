@@ -11,7 +11,7 @@ globs: projects/backend/**/*
 | Login, `/me`, refresh, logout y token CSRF | Implementado (HU Base, Login, Refresh) |
 | Cierre de sesión | Backend y web probados; falta la validación mobile en emulador (HU Logout) |
 | Recuperación de contraseña y envío de correo | Backend y web probados; falta la validación mobile en emulador (HU OlvidePassword) |
-| Cambio de contraseña con sesión iniciada | **No implementado** (sin HU) |
+| Cambio de contraseña con sesión iniciada | Backend y web probados; falta la validación mobile en emulador (HU CambiarPassword) |
 | Administrar sesiones y consultar la bitácora | Implementado, solo `SUPER_ADMIN` (HU SesionesAdmin, Bitacora) |
 | Mis sesiones (cada usuario las suyas) | Backend y web probados; falta la validación mobile en emulador (HU Sesiones) |
 | Administrar usuarios e invitaciones, solo `SUPER_ADMIN` (HU Usuarios) | Implementado (backend y web) |
@@ -135,6 +135,24 @@ El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
   nada. Bloquear solo la que se cierra permitiría que dos sesiones se cierren una
   a otra y queden las dos fuera. Un flujo nuevo en el que una sesión actúe sobre
   otras sigue el mismo patrón.
+
+## Cambio de contraseña con sesión
+
+`CambioPasswordService`; `POST /auth/password/change`. Reglas que **no se relajan**:
+
+- La cuenta y la sesión salen del token; el body solo trae las dos contraseñas.
+- **La contraseña actual incorrecta es un 400**, nunca un 401: el cliente daría la
+  sesión por vencida.
+- **Límite propio por cuenta** (`CambioPasswordIntentosService`: 5 en 15 minutos,
+  423), reservado antes de comparar y separado del de login. Más el límite por IP.
+- **Cierra todas las sesiones, también la actual** (`CAMBIO_PASSWORD`); en web se
+  borran las cookies.
+- Mismos bloqueos que la recuperación (fila del usuario y luego sus sesiones
+  `ACTIVA`, exigiendo que la actual esté entre ellas y que el hash no haya
+  cambiado).
+- Los enlaces de recuperación e invitación se anulan **antes de confirmar**; las
+  sesiones se revocan al final, porque la lista de Redis no se deshace.
+- El aviso por correo va por el ejecutor acotado, con el idioma de la petición.
 
 ## Administración de usuarios
 
@@ -311,7 +329,8 @@ intentar de más).
   "greedy" (los tokens se regeneran continuo, no en ráfagas cada N segundos).
 - **Límites propios por IP**, además del global: solicitar recuperación (ráfaga
   de 5, 1/min) y restablecer o aceptar una invitación (ráfaga de 10, 5/min,
-  compartida); login 10/min
+  compartida); cambiar la contraseña con sesión (ráfaga de 10, 5/min,
+  `app.ratelimit.change-*`); login 10/min
   (`app.ratelimit.login-*`) y refresh 30/min (`app.ratelimit.refresh-*`).
 - **Config** (`application.properties`, sobreescribible por env var):
   `app.ratelimit.capacity` (default `100`) y

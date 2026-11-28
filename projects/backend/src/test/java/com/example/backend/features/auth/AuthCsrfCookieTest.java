@@ -63,6 +63,29 @@ class AuthCsrfCookieTest extends PostgresRuntimeIntegrationTest {
         assertThat(enviar(browser, cookies, "POST", "/logout", null).statusCode()).isEqualTo(200);
     }
 
+    // * Contra el servidor real: sin la cabecera CSRF el cambio de contraseña no pasa.
+    // ! No cambia la contraseña del administrador: la base la comparten otras pruebas.
+    @Test
+    void cambioDePassword_sinCabeceraCsrf_responde403_yConElla_llegaAlServicio() throws Exception {
+        CookieManager cookies = new CookieManager();
+        HttpClient browser = HttpClient.newBuilder().cookieHandler(cookies).build();
+        enviar(browser, cookies, "GET", "/csrf", null);
+        assertThat(enviar(browser, cookies, "POST", "/login",
+                "{\"email\":\"admin@test.local\",\"password\":\"TestAdmin12345\"}").statusCode()).isEqualTo(200);
+        String cuerpo = "{\"passwordActual\":\"ClaveEquivocada1\",\"passwordNueva\":\"OtraClaveNueva456\"}";
+
+        HttpResponse<String> sinCsrf = browser.send(HttpRequest
+                .newBuilder(URI.create("http://localhost:" + port + "/api/v1/auth/password/change"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(cuerpo)).build(), HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> conCsrf = enviar(browser, cookies, "POST", "/password/change", cuerpo);
+
+        assertThat(sinCsrf.statusCode()).isEqualTo(403);
+        assertThat(conCsrf.statusCode()).isEqualTo(400);
+        assertThat(conCsrf.body()).contains("ERR_AUTH_12");
+        enviar(browser, cookies, "POST", "/logout", null);
+    }
+
     /** Como axios: copia la cookie XSRF-TOKEN vigente en el header X-XSRF-TOKEN. */
     private HttpResponse<String> enviar(HttpClient browser, CookieManager cookies, String metodo, String ruta,
             String json) throws Exception {

@@ -39,8 +39,8 @@
 
 - **HTTP:** 400
 - **Excepción:** `ValidationException`
-- **Significado:** la contraseña nueva es igual a la actual. El enlace sigue sirviendo.
-- **Dónde se lanza:** `RecuperacionService.restablecer()`
+- **Significado:** la contraseña nueva es igual a la actual. Al restablecer, el enlace sigue sirviendo; al cambiarla con sesión, no se cierra ninguna.
+- **Dónde se lanza:** `RecuperacionService.restablecer()`, `CambioPasswordService.cambiar()`
 
 ## `ERR_AUTH_07`
 
@@ -76,3 +76,17 @@
 - **Excepción:** `ValidationException`
 - **Significado:** la invitación no sirve: venció, ya se usó, fue reemplazada o anulada, o la cuenta está inactiva.
 - **Dónde se lanza:** `InvitacionService.aceptar()`
+
+## `ERR_AUTH_12`
+
+- **HTTP:** 400
+- **Excepción:** `ValidationException`
+- **Significado:** al cambiar la contraseña con la sesión iniciada, la contraseña actual no es correcta. Es un 400 a propósito: la sesión sigue siendo válida.
+- **Dónde se lanza:** `CambioPasswordService.cambiar()`
+
+## `ERR_AUTH_13`
+
+- **HTTP:** 423
+- **Excepción:** `LockedException`
+- **Significado:** el cambio de contraseña está bloqueado porque la cuenta agotó los intentos con la contraseña actual. No impide iniciar sesión.
+- **Dónde se lanza:** `CambioPasswordService.cambiar()`

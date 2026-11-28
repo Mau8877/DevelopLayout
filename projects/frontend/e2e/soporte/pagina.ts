@@ -37,3 +37,16 @@ export async function esperarSesionCerrada(page: Page) {
 export async function confirmar(page: Page, boton: string) {
   await page.getByRole('alertdialog').getByRole('button', { name: boton, exact: true }).click()
 }
+
+export async function abrirCambioDePassword(page: Page, correo: string) {
+  await page.getByRole('banner').getByRole('button', { name: correo }).click()
+  await page.getByRole('menuitem', { name: 'Cambiar contraseña' }).click()
+  await expect(page).toHaveURL(/\/change-password$/)
+}
+
+export async function llenarCambioDePassword(page: Page, actual: string, nueva: string) {
+  await page.getByLabel('Contraseña actual').fill(actual)
+  await page.getByLabel('Contraseña nueva', { exact: true }).fill(nueva)
+  await page.getByLabel('Repite la contraseña nueva').fill(nueva)
+  await page.getByRole('button', { name: 'Cambiar contraseña' }).click()
+}

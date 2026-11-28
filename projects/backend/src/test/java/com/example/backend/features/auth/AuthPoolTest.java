@@ -95,6 +95,31 @@ class AuthPoolTest extends AuthSesionIntegrationTest {
         assertThat(aLaVez(requests)).hasSize(requests.size()).isSubsetOf(200, 400, 401);
     }
 
+    @Test
+    void cambiosDePasswordSimultaneos_noAgotanElPool() throws Exception {
+        List<RequestBuilder> requests = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            prepararUsuario();
+            Tokens sesion = loginMobile();
+            String ip = "10.77.0." + (i + 1);
+            for (int j = 0; j < 3; j++) {
+                // * Una actual incorrecta (bitácora en su transacción) y dos correctas a la vez.
+                String actual = j == 0 ? "ClaveEquivocada1" : PASSWORD;
+                requests.add(post("/api/v1/auth/password/change").header("X-Client-Type", "mobile")
+                        .header("Authorization", "Bearer " + sesion.access())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"passwordActual\":\"" + actual + "\",\"passwordNueva\":\"OtraClaveNueva" + j + "56\"}")
+                        .with(r -> {
+                            r.setRemoteAddr(ip);
+                            return r;
+                        }));
+            }
+        }
+
+        // * Gana un cambio por cuenta; los demás llegan tarde (401) o fallan (400). Nunca 500.
+        assertThat(aLaVez(requests)).hasSize(requests.size()).isSubsetOf(200, 400, 401);
+    }
+
     private static RequestBuilder publico(String ruta, String cuerpo) {
         return post("/api/v1/auth/" + ruta).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(cuerpo);
     }

@@ -18,6 +18,9 @@ public final class AuthAcciones {
 
     public static final String AUTH_INVITACION_ACEPTADA = "AUTH_INVITACION_ACEPTADA";
 
+    public static final String AUTH_PASSWORD_CAMBIADA = "AUTH_PASSWORD_CAMBIADA";
+    public static final String AUTH_PASSWORD_CAMBIO_FALLIDO = "AUTH_PASSWORD_CAMBIO_FALLIDO";
+
     private AuthAcciones() {
     }
 }

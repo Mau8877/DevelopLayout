@@ -7,6 +7,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import java.util.Locale;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -47,6 +49,23 @@ class CorreoCuentaServiceTest {
         assertThat(enviado.getValue().getText())
                 .contains("https://app.test/accept-invitation#token=abc123", "24 horas", "administrador")
                 .doesNotContain("?token=");
+    }
+
+    @ParameterizedTest
+    @CsvSource(delimiter = '|', value = {
+        "es | Tu contraseña cambió      | Olvidaste tu contraseña",
+        "en | Your password was changed | Forgot your password",
+    })
+    void enviarAvisoCambioPassword_vaEnElIdiomaPedidoYSinEnlaces(String idioma, String asunto, String ayuda) {
+        servicio("smtp.test", "no-reply@test.local", "https://app.test")
+                .enviarAvisoCambioPassword("persona@test.local", Locale.forLanguageTag(idioma));
+
+        ArgumentCaptor<SimpleMailMessage> enviado = ArgumentCaptor.forClass(SimpleMailMessage.class);
+        verify(mail).send(enviado.capture());
+        assertThat(enviado.getValue().getTo()).containsExactly("persona@test.local");
+        assertThat(enviado.getValue().getFrom()).isEqualTo("no-reply@test.local");
+        assertThat(enviado.getValue().getSubject()).isEqualTo(asunto);
+        assertThat(enviado.getValue().getText()).contains(ayuda).doesNotContain("http", "token", "{0}");
     }
 
     @ParameterizedTest

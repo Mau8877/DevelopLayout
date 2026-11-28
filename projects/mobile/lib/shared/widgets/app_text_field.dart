@@ -33,6 +33,9 @@ class AppTextField extends StatelessWidget {
       validator: validator,
       keyboardType: keyboardType,
       obscureText: obscureText,
+      // * Lo que se oculta tampoco se corrige ni se sugiere.
+      autocorrect: !obscureText,
+      enableSuggestions: !obscureText,
       autofillHints: autofillHints,
       textInputAction: textInputAction,
       enabled: enabled,

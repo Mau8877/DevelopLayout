@@ -46,6 +46,16 @@ class AuthNotifier extends AsyncNotifier<UsuarioSesion?> {
     }
   }
 
+  /// Cambia la contraseña. Solo si tiene éxito se descartan los tokens: el
+  /// servidor ya cerró las sesiones, así que no hace falta cerrar sesión. Si
+  /// falla, relanza el error y la sesión sigue igual.
+  Future<void> cambiarPassword(String actual, String nueva) async {
+    final service = ref.read(authServiceProvider);
+    await service.cambiarPassword(actual, nueva);
+    await service.descartarTokens();
+    state = const AsyncData(null);
+  }
+
   /// Inicia sesión. Si falla, relanza el error (la pantalla lo muestra) y el
   /// estado de sesión no cambia.
   Future<void> login(String email, String password) async {

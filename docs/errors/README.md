@@ -55,6 +55,8 @@ docs/errors/
 - [`ERR_AUTH_09`](auth/ERRORES_AUTH.md#err_auth_09) — La sesión a cerrar no existe (404)
 - [`ERR_AUTH_10`](auth/ERRORES_AUTH.md#err_auth_10) — La sesión actual no se cierra desde «Mis sesiones» (400)
 - [`ERR_AUTH_11`](auth/ERRORES_AUTH.md#err_auth_11) — La invitación no es válida (400)
+- [`ERR_AUTH_12`](auth/ERRORES_AUTH.md#err_auth_12) — La contraseña actual no es correcta (400)
+- [`ERR_AUTH_13`](auth/ERRORES_AUTH.md#err_auth_13) — Cambio de contraseña bloqueado por intentos (423)
 
 ### Bitácora (`BIT`)
 

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -24,7 +26,8 @@ String? validarPassword(String? value) {
   final texto = value ?? '';
   if (texto.isEmpty) return 'auth:validacion.passwordObligatoria';
   if (texto.length < 8) return 'auth:validacion.passwordCorta';
-  if (texto.codeUnits.length > 72) return 'auth:validacion.passwordLarga';
+  // * Bytes y no caracteres, como en la web y el backend (límite de BCrypt).
+  if (utf8.encode(texto).length > 72) return 'auth:validacion.passwordLarga';
   return null;
 }
 

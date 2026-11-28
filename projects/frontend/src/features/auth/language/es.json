@@ -12,7 +12,8 @@
     "passwordCorta": "La contraseña debe tener al menos 8 caracteres",
     "passwordLarga": "La contraseña es demasiado larga",
     "repetirPassword": "Repite la contraseña",
-    "passwordsDistintas": "Las contraseñas no coinciden"
+    "passwordsDistintas": "Las contraseñas no coinciden",
+    "passwordActualObligatoria": "La contraseña actual es obligatoria"
   },
   "login": {
     "titulo": "Iniciar sesión",
@@ -95,5 +96,16 @@
     "tituloTodas": "Cerrar todas las sesiones",
     "avisoTodas": "El usuario perderá el acceso en todos sus dispositivos. Si es tu cuenta, tendrás que iniciar sesión de nuevo.",
     "avisoUna": "El dispositivo perderá el acceso de inmediato. Si es tu sesión actual, tendrás que iniciar sesión de nuevo."
+  },
+  "cambiarPassword": {
+    "titulo": "Cambiar contraseña",
+    "aviso": "Al cambiarla se cerrarán todas tus sesiones, también esta, y tendrás que iniciar sesión de nuevo.",
+    "actual": "Contraseña actual",
+    "nueva": "Contraseña nueva",
+    "confirmacion": "Repite la contraseña nueva",
+    "boton": "Cambiar contraseña",
+    "error": "No pudimos cambiar la contraseña. Inténtalo de nuevo.",
+    "exitoTitulo": "Contraseña cambiada",
+    "exitoTexto": "Inicia sesión con la contraseña nueva"
   }
 }

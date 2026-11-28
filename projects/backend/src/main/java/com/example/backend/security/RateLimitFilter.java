@@ -55,6 +55,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final Cache<String, Bucket> forgotBuckets;
     private final Cache<String, Bucket> resetBuckets;
 
+    // * Cambio de contraseña con sesión: además del límite por cuenta.
+    private final Cache<String, Bucket> changeBuckets;
+
+    private final int changeCapacity;
+    private final int changeRefillPerMinute;
     private final int forgotCapacity;
     private final int forgotRefillPerMinute;
     private final int resetCapacity;
@@ -78,10 +83,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
             @Value("${app.ratelimit.forgot-refill-per-minute:1}") int forgotRefillPerMinute,
             @Value("${app.ratelimit.reset-capacity:10}") int resetCapacity,
             @Value("${app.ratelimit.reset-refill-per-minute:5}") int resetRefillPerMinute,
-            @Value("${app.ratelimit.max-clients:100000}") int maxClientes, Mensajes mensajes) {
+            @Value("${app.ratelimit.max-clients:100000}") int maxClientes,
+            @Value("${app.ratelimit.change-capacity:10}") int changeCapacity,
+            @Value("${app.ratelimit.change-refill-per-minute:5}") int changeRefillPerMinute, Mensajes mensajes) {
         this(capacity, refillPerMinute, loginCapacity, loginRefillPerMinute, refreshCapacity,
                 refreshRefillPerMinute, forgotCapacity, forgotRefillPerMinute, resetCapacity,
-                resetRefillPerMinute, maxClientes, Ticker.systemTicker(), mensajes);
+                resetRefillPerMinute, maxClientes, Ticker.systemTicker(), changeCapacity, changeRefillPerMinute,
+                mensajes);
     }
 
     /** Para las pruebas: reloj del sistema y mensajes por defecto. */
@@ -98,12 +106,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
             int resetCapacity, int resetRefillPerMinute, int maxClientes, Ticker reloj) {
         this(capacity, refillPerMinute, loginCapacity, loginRefillPerMinute, refreshCapacity, refreshRefillPerMinute,
                 forgotCapacity, forgotRefillPerMinute, resetCapacity, resetRefillPerMinute, maxClientes, reloj,
-                new Mensajes(Mensajes.crearFuente()));
+                10, 5, new Mensajes(Mensajes.crearFuente()));
     }
 
     private RateLimitFilter(int capacity, int refillPerMinute, int loginCapacity, int loginRefillPerMinute,
             int refreshCapacity, int refreshRefillPerMinute, int forgotCapacity, int forgotRefillPerMinute,
-            int resetCapacity, int resetRefillPerMinute, int maxClientes, Ticker reloj, Mensajes mensajes) {
+            int resetCapacity, int resetRefillPerMinute, int maxClientes, Ticker reloj, int changeCapacity,
+            int changeRefillPerMinute, Mensajes mensajes) {
         this.mensajes = mensajes;
         if (maxClientes < 1) {
             throw new IllegalStateException("app.ratelimit.max-clients debe ser 1 o más");
@@ -113,6 +122,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
         this.refreshBuckets = nuevaCache(inactividad(refreshCapacity, refreshRefillPerMinute), maxClientes, reloj);
         this.forgotBuckets = nuevaCache(inactividad(forgotCapacity, forgotRefillPerMinute), maxClientes, reloj);
         this.resetBuckets = nuevaCache(inactividad(resetCapacity, resetRefillPerMinute), maxClientes, reloj);
+        this.changeBuckets = nuevaCache(inactividad(changeCapacity, changeRefillPerMinute), maxClientes, reloj);
+        this.changeCapacity = changeCapacity;
+        this.changeRefillPerMinute = changeRefillPerMinute;
         this.forgotCapacity = forgotCapacity;
         this.forgotRefillPerMinute = forgotRefillPerMinute;
         this.resetCapacity = resetCapacity;
@@ -159,6 +171,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
                     .tryConsume(1);
         }
 
+        if (permitido && esPost(request, "/api/v1/auth/password/change")) {
+            permitido = changeBuckets.get(ip, k -> newBucket(changeCapacity, changeRefillPerMinute))
+                    .tryConsume(1);
+        }
+
         if (permitido) {
             filterChain.doFilter(request, response);
             return;
@@ -190,8 +207,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
         refreshBuckets.cleanUp();
         forgotBuckets.cleanUp();
         resetBuckets.cleanUp();
+        changeBuckets.cleanUp();
         return buckets.estimatedSize() + loginBuckets.estimatedSize() + refreshBuckets.estimatedSize()
-                + forgotBuckets.estimatedSize() + resetBuckets.estimatedSize();
+                + forgotBuckets.estimatedSize() + resetBuckets.estimatedSize() + changeBuckets.estimatedSize();
     }
 
     private static boolean esPost(HttpServletRequest request, String uri) {

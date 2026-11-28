@@ -8,7 +8,10 @@
     "correoInvalido": "The email is not valid",
     "passwordObligatoria": "Password is required",
     "passwordCorta": "The password must be at least 8 characters long",
-    "passwordLarga": "The password is too long"
+    "passwordLarga": "The password is too long",
+    "passwordActualObligatoria": "The current password is required",
+    "repetirPassword": "Repeat the password",
+    "passwordsDistintas": "The passwords do not match"
   },
   "login": {
     "titulo": "Sign in",
@@ -40,5 +43,14 @@
     "appMovil": "Mobile app",
     "desconocido": "Unknown device",
     "navegadorEn": "{{navegador}} on {{sistema}}"
+  },
+  "cambiarPassword": {
+    "titulo": "Change password",
+    "aviso": "All your sessions will be closed, including this one, and you will have to sign in again.",
+    "actual": "Current password",
+    "nueva": "New password",
+    "confirmacion": "Repeat the new password",
+    "boton": "Change password",
+    "exito": "Password changed. Sign in with the new one."
   }
 }

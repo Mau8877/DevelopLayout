@@ -35,7 +35,7 @@ erDiagram
         timestamptz expira_en
         timestamptz ultimo_uso_en
         timestamptz revocada_en
-        varchar motivo_revocacion
+        varchar motivo_revocacion "LOGOUT | USUARIO | ADMIN | REUSO | RESET_PASSWORD | CAMBIO_PASSWORD"
     }
     bitacora {
         BaseModel base "id, codigo_bitacora, created_at, updated_at, deleted_at"

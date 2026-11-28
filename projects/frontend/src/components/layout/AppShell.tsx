@@ -14,6 +14,8 @@ interface AppShellProps {
   notifications?: NotificationsController
   /** Acción "Cerrar sesión" del menú de usuario. */
   onLogout?: () => void
+  /** Acción "Cambiar contraseña" del menú de usuario. El shell no conoce rutas. */
+  onChangePassword?: () => void
   children: ReactNode
 }
 
@@ -29,11 +31,18 @@ export function AppShell({
   user,
   notifications,
   onLogout,
+  onChangePassword,
   children,
 }: AppShellProps) {
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background">
-      <AppHeader appName={appName} user={user} notifications={notifications} onLogout={onLogout} />
+      <AppHeader
+        appName={appName}
+        user={user}
+        notifications={notifications}
+        onLogout={onLogout}
+        onChangePassword={onChangePassword}
+      />
 
       {/* * p-4 acá es lo que crea el espacio real entre el sidebar y el
           header -- el sidebar es una tarjeta flotante (bordes redondeados

@@ -190,6 +190,15 @@ class RateLimitFilterTest {
     }
 
     @Test
+    void cambioDePassword_tieneSuLimitePorIp() throws Exception {
+        RateLimitFilter filter = new RateLimitFilter(100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100000);
+
+        assertThat(estadosDePost(filter, "/api/v1/auth/password/change", 11))
+                .containsExactly(200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 429);
+        assertThat(estadosDePost(filter, "/api/v1/auth/password/reset", 1)).containsExactly(200);
+    }
+
+    @Test
     void aceptarInvitacion_comparteElLimitePorIpDelRestablecimiento() throws Exception {
         RateLimitFilter filter = new RateLimitFilter(100, 100, 100, 100, 100, 100, 100, 100, 3, 1, 100000);
 

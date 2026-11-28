@@ -1,5 +1,8 @@
 package com.example.backend.features.auth.controller;
 
+import com.example.backend.security.CurrentSessionId;
+import com.example.backend.features.auth.service.CambioPasswordService;
+import com.example.backend.features.auth.dto.CambiarPasswordRequest;
 import com.example.backend.common.idioma.Mensajes;
 import lombok.RequiredArgsConstructor;
 
@@ -41,6 +44,7 @@ public class AuthController {
     private final AuthService authService;
     private final AuthCookies authCookies;
     private final RecuperacionService recuperacion;
+    private final CambioPasswordService cambioPassword;
     private final InvitacionService invitacion;
     private final Mensajes mensajes;
 
@@ -123,6 +127,25 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> restablecerPassword(@Valid @RequestBody ResetPasswordRequest request) {
         recuperacion.restablecer(request.token(), request.password());
         return ResponseEntity.ok(ApiResponse.success(null, mensajes.de("auth.exito.passwordActualizada")));
+    }
+
+    /**
+     * Cambia la propia contraseña. Cierra todas las sesiones, también esta: en web
+     * se borran las cookies.
+     */
+    @PostMapping("/password/change")
+    public ResponseEntity<ApiResponse<Void>> cambiarPassword(
+            @Parameter(hidden = true) @CurrentUserId java.util.UUID usuario,
+            @Parameter(hidden = true) @CurrentSessionId java.util.UUID sesionActual,
+            @Valid @RequestBody CambiarPasswordRequest request, HttpServletRequest http) {
+        cambioPassword.cambiar(usuario, sesionActual, request.passwordActual(), request.passwordNueva());
+
+        HttpHeaders headers = new HttpHeaders();
+        if (!esMobile(http)) {
+            authCookies.agregarBorrado(headers);
+        }
+        return ResponseEntity.ok().headers(headers)
+                .body(ApiResponse.success(null, mensajes.de("auth.exito.passwordCambiada")));
     }
 
     /** La credencial es el token de la invitación: quien acepta no tiene contraseña. */

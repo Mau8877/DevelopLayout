@@ -5,5 +5,6 @@ public enum MotivoRevocacion {
     USUARIO,
     ADMIN,
     REUSO,
-    RESET_PASSWORD
+    RESET_PASSWORD,
+    CAMBIO_PASSWORD
 }

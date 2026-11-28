@@ -1,3 +1,4 @@
+import { useNavigate } from '@tanstack/react-router'
 import { AppShell } from '@/components/layout'
 import { useLogout } from '@/features/auth'
 import { APP_NAME } from '@/utils'
@@ -14,6 +15,7 @@ export function UsuarioLayout({
   children,
 }: UsuarioLayoutProps) {
   const logout = useLogout()
+  const navigate = useNavigate()
   const menu = useMenuTraducido(usuarioNavItems)
 
   return (
@@ -25,6 +27,7 @@ export function UsuarioLayout({
       user={user}
       notifications={notifications}
       onLogout={() => logout.mutate()}
+      onChangePassword={() => void navigate({ to: '/change-password' })}
     >
       {children}
     </AppShell>
