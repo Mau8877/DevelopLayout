@@ -1,15 +1,11 @@
 package com.example.backend.features.auth.service;
 
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Executor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.task.TaskRejectedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -20,8 +16,6 @@ import com.example.backend.common.bitacora.ResultadoBitacora;
 import com.example.backend.common.exception.LockedException;
 import com.example.backend.common.exception.UnauthorizedException;
 import com.example.backend.common.exception.ValidationException;
-import com.example.backend.common.idioma.Mensajes;
-import com.example.backend.config.RecuperacionEjecutorConfig;
 import com.example.backend.features.auth.AuthAcciones;
 import com.example.backend.features.auth.AuthErrorCodes;
 import com.example.backend.features.auth.enums.EstadoSesion;
@@ -48,7 +42,7 @@ public class CambioPasswordService {
     private final CambioPasswordIntentosService intentos;
     private final PasswordResetTokenService recuperaciones;
     private final InvitacionTokenService invitaciones;
-    private final CorreoCuentaService correo;
+    private final AvisoCambioPassword aviso;
     private final SesionService sesionService;
     private final SesionRepository sesionRepository;
     private final LoginAttemptService loginAttempts;
@@ -56,21 +50,18 @@ public class CambioPasswordService {
     private final PasswordEncoder passwordEncoder;
     private final RlsContext rlsContext;
     private final BitacoraService bitacora;
-    private final Mensajes mensajes;
-    private final Executor ejecutor;
     private final TransactionTemplate lectura;
     private final TransactionTemplate escritura;
 
     public CambioPasswordService(CambioPasswordIntentosService intentos, PasswordResetTokenService recuperaciones,
-            InvitacionTokenService invitaciones, CorreoCuentaService correo, SesionService sesionService,
+            InvitacionTokenService invitaciones, AvisoCambioPassword aviso, SesionService sesionService,
             SesionRepository sesionRepository, LoginAttemptService loginAttempts, UsuarioRepository usuarioRepository,
-            PasswordEncoder passwordEncoder, RlsContext rlsContext, BitacoraService bitacora, Mensajes mensajes,
-            @Qualifier(RecuperacionEjecutorConfig.EJECUTOR) Executor ejecutor,
+            PasswordEncoder passwordEncoder, RlsContext rlsContext, BitacoraService bitacora,
             PlatformTransactionManager transacciones) {
         this.intentos = intentos;
         this.recuperaciones = recuperaciones;
         this.invitaciones = invitaciones;
-        this.correo = correo;
+        this.aviso = aviso;
         this.sesionService = sesionService;
         this.sesionRepository = sesionRepository;
         this.loginAttempts = loginAttempts;
@@ -78,8 +69,6 @@ public class CambioPasswordService {
         this.passwordEncoder = passwordEncoder;
         this.rlsContext = rlsContext;
         this.bitacora = bitacora;
-        this.mensajes = mensajes;
-        this.ejecutor = ejecutor;
         this.lectura = new TransactionTemplate(transacciones);
         this.lectura.setReadOnly(true);
         this.escritura = new TransactionTemplate(transacciones);
@@ -100,7 +89,7 @@ public class CambioPasswordService {
             }
             String correoDelDueno = aplicar(usuario, sesionActual, hashActual, passwordEncoder.encode(passwordNueva));
             levantarBloqueoDeLogin(usuario, correoDelDueno);
-            avisar(usuario, correoDelDueno);
+            aviso.enviar(usuario, correoDelDueno);
             LOG.info("Contraseña cambiada usuarioCodigo={}", usuario);
         }
     }
@@ -170,30 +159,6 @@ public class CambioPasswordService {
             // * La contraseña ya cambió: el bloqueo vence solo.
             LOG.error("No se pudo levantar el bloqueo de login usuarioCodigo={} causa={}", usuario,
                     e.getClass().getSimpleName());
-        }
-    }
-
-    // * Fuera de la petición: un SMTP lento no retrasa la respuesta.
-    private void avisar(UUID usuario, String email) {
-        // * El idioma se captura acá: el hilo del ejecutor no tiene petición.
-        Locale idioma = mensajes.idiomaActual();
-        try {
-            ejecutor.execute(() -> enviarAviso(usuario, email, idioma));
-        } catch (TaskRejectedException e) {
-            LOG.warn("Aviso de cambio de contraseña descartado: cola de envío llena usuarioCodigo={}", usuario);
-        }
-    }
-
-    // * Corre en un hilo del ejecutor: nada puede escapar de acá.
-    private void enviarAviso(UUID usuario, String email, Locale idioma) {
-        try (MDC.MDCCloseable ignored = MDC.putCloseable("module", "auth")) {
-            try {
-                correo.enviarAvisoCambioPassword(email, idioma);
-            } catch (RuntimeException e) {
-                // ! Sin el mensaje de la excepción: el de SMTP puede incluir el correo.
-                LOG.error("No se pudo enviar el aviso de cambio de contraseña usuarioCodigo={} causa={}", usuario,
-                        e.getClass().getSimpleName());
-            }
         }
     }
 

@@ -31,7 +31,8 @@ import com.example.backend.features.usuarios.repository.UsuarioRepository;
 import com.example.backend.security.RlsContext;
 
 /**
- * Recuperación de contraseña: pedir el enlace y cambiarla.
+ * Recuperación de contraseña: pedir el enlace y cambiarla. Al cambiarla se avisa
+ * por correo.
  *
  * ! Ningún método público es @Transactional: ni BCrypt ni el SMTP corren con una
  * ! conexión tomada, y nunca se pide una segunda teniendo ya una.
@@ -47,6 +48,7 @@ public class RecuperacionService {
     private final PasswordResetTokenService tokens;
     private final InvitacionTokenService invitaciones;
     private final CorreoCuentaService correo;
+    private final AvisoCambioPassword aviso;
     private final SesionService sesionService;
     private final LoginAttemptService loginAttempts;
     private final UsuarioRepository usuarioRepository;
@@ -61,13 +63,14 @@ public class RecuperacionService {
     public RecuperacionService(SolicitudesRecuperacion solicitudes, PasswordResetTokenService tokens,
             InvitacionTokenService invitaciones, CorreoCuentaService correo, SesionService sesionService, LoginAttemptService loginAttempts,
             UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, RlsContext rlsContext,
-            BitacoraService bitacora, Mensajes mensajes,
+            BitacoraService bitacora, Mensajes mensajes, AvisoCambioPassword aviso,
             @Qualifier(RecuperacionEjecutorConfig.EJECUTOR) Executor ejecutor,
             PlatformTransactionManager transacciones) {
         this.solicitudes = solicitudes;
         this.tokens = tokens;
         this.invitaciones = invitaciones;
         this.correo = correo;
+        this.aviso = aviso;
         this.sesionService = sesionService;
         this.loginAttempts = loginAttempts;
         this.usuarioRepository = usuarioRepository;
@@ -187,6 +190,7 @@ public class RecuperacionService {
                 LOG.error("No se pudo levantar el bloqueo de login usuarioCodigo={} causa={}", codigo,
                         e.getClass().getSimpleName());
             }
+            aviso.enviar(codigo, email);
             LOG.info("Contraseña restablecida usuarioCodigo={}", codigo);
         }
     }
