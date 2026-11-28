@@ -118,12 +118,12 @@ No se redefine la misma anotación en dos módulos — si dos features necesitan
   sobre los campos `private final` del `service`/`controller` — no se
   escribe el constructor a mano cuando Lombok puede generarlo (ver
   [Lombok](#lombok) abajo).
-- Un `record` que lleva contraseñas o tokens redefine `toString()` para no
-  mostrarlos: el generado incluye todos sus campos (ver `CambiarPasswordRequest`).
-  Rige para lo nuevo; **pendiente** en `LoginRequest`, `LoginResponse`,
-  `RefreshRequest`, `ResetPasswordRequest`, `AceptarInvitacionRequest` y los
-  `record` internos con tokens de los servicios de `auth`. Mientras tanto, ninguno
-  se loguea entero.
+- **Obligatorio:** un `record` que lleva contraseñas o tokens redefine
+  `toString()` y devuelve solo `"NombreDelRecord[oculto]"`. El generado incluye
+  todos sus campos, y Spring lo escribe al depurar. Vale también para los
+  `record` internos de un service. El componente se nombra como lo que es
+  (`password`, `token`, `secret`, `clave`, `credencial`): así
+  `RecordsConSecretosTest` lo reconoce y falla si falta el `toString()`.
 - Los `record` de Java se prefieren para DTOs y para `ApiResponse`/`PageMeta`
   (inmutables, sin boilerplate) por sobre clases con Lombok/getters manuales
   — un DTO **no** se convierte en una clase con `@Getter`/`@Setter` de

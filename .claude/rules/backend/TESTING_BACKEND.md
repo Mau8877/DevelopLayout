@@ -114,6 +114,12 @@ Si el flujo toma conexiones, se suma un caso a `AuthPoolTest` (pool de 3).
 Una prueba que lee «el último correo» filtra por lo que busca: los avisos se
 envían en segundo plano y pueden colarse.
 
+## Niveles de log en una prueba
+
+El nivel de un logger es de toda la JVM. Una prueba que lo cambia lo hace en
+`@BeforeEach` y lo **restaura** en `@AfterEach`; con `logging.level.*` como
+propiedad quedaría activo para las pruebas siguientes (ver `SecretosEnLogsTest`).
+
 ## Convenciones
 
 - Seguridad (obligatorio, ver [SEGURIDAD_OWASP.md](../SEGURIDAD_OWASP.md)):
