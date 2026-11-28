@@ -52,6 +52,11 @@ class _UsuarioShellState extends ConsumerState<UsuarioShell> {
             onPressed: () => context.push(rutaMisSesiones),
           ),
           IconButton(
+            icon: const Icon(Icons.password),
+            tooltip: context.t('shared:navegacion.cambiarPassword'),
+            onPressed: () => context.push(rutaCambiarPassword),
+          ),
+          IconButton(
             icon: const Icon(Icons.logout),
             tooltip: context.t('shared:cabecera.cerrarSesion'),
             onPressed: () => ref.read(authProvider.notifier).logout(),

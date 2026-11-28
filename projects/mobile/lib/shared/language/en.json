@@ -24,7 +24,8 @@
     "usuarios": "Users",
     "pedidos": "Orders",
     "perfil": "Profile",
-    "misSesiones": "My sessions"
+    "misSesiones": "My sessions",
+    "cambiarPassword": "Change password"
   },
   "layout": {
     "ejemplo": "Sample screen. The content of \"{{seccion}}\" will go here once that feature exists."

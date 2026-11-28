@@ -28,6 +28,14 @@ class AuthService {
     await _dio.post<dynamic>('/auth/password/forgot', data: {'email': email});
   }
 
+  /// `POST /auth/password/change`. El backend cierra todas las sesiones.
+  Future<void> cambiarPassword(String actual, String nueva) async {
+    await _dio.post<dynamic>(
+      '/auth/password/change',
+      data: {'passwordActual': actual, 'passwordNueva': nueva},
+    );
+  }
+
   /// `GET /auth/me`: el usuario de la sesión actual según el backend.
   Future<UsuarioSesion> me() async {
     final response = await _dio.get<Map<String, dynamic>>('/auth/me');

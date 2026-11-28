@@ -24,7 +24,8 @@
     "usuarios": "Usuarios",
     "pedidos": "Pedidos",
     "perfil": "Perfil",
-    "misSesiones": "Mis sesiones"
+    "misSesiones": "Mis sesiones",
+    "cambiarPassword": "Cambiar contraseña"
   },
   "layout": {
     "ejemplo": "Pantalla de ejemplo. Aquí irá el contenido de «{{seccion}}» cuando exista esa función."
