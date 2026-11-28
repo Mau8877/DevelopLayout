@@ -107,5 +107,10 @@
     "error": "No pudimos cambiar la contraseña. Inténtalo de nuevo.",
     "exitoTitulo": "Contraseña cambiada",
     "exitoTexto": "Inicia sesión con la contraseña nueva"
+  },
+  "dispositivo": {
+    "appMovil": "App móvil",
+    "desconocido": "Dispositivo desconocido",
+    "navegadorEn": "{{navegador}} en {{sistema}}"
   }
 }

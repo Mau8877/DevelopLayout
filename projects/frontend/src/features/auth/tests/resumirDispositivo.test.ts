@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { resumirDispositivo } from './resumirDispositivo'
+import { resumirDispositivo } from '../utils'
 
 const WIN = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
 

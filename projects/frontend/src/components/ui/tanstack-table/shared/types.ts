@@ -86,7 +86,7 @@ declare module '@tanstack/react-table' {
 }
 
 // Espejo de `PageMeta` del backend (ver .claude/rules/backend/RESPONSES_BACKEND.md).
-// Se define acá en vez de importar el tipo `meta` de `src/store/apiClient.ts`
+// Se define acá en vez de importar el tipo `meta` de `src/store/http/apiClient.ts`
 // para que este paquete de `components/ui/` no dependa de `store/` -- sigue
 // siendo un sistema de diseño transversal, reusable sin acoplarse al cliente
 // HTTP concreto de esta app.

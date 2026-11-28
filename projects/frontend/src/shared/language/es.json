@@ -82,10 +82,5 @@
     "eliminar": "Eliminar notificaciones",
     "confirmarTitulo": "¿Eliminar todas las notificaciones?",
     "confirmarTexto": "Se eliminan de forma permanente, no solo se marcan como leídas. Esta acción no se puede deshacer."
-  },
-  "dispositivo": {
-    "appMovil": "App móvil",
-    "desconocido": "Dispositivo desconocido",
-    "navegadorEn": "{{navegador}} en {{sistema}}"
   }
 }

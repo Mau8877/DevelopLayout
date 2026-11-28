@@ -82,10 +82,5 @@
     "eliminar": "Delete notifications",
     "confirmarTitulo": "Delete all notifications?",
     "confirmarTexto": "They are permanently deleted, not just marked as read. This action cannot be undone."
-  },
-  "dispositivo": {
-    "appMovil": "Mobile app",
-    "desconocido": "Unknown device",
-    "navegadorEn": "{{navegador}} on {{sistema}}"
   }
 }
