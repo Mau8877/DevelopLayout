@@ -57,7 +57,7 @@ curl http://localhost:8080/prometheus | head   # métricas en texto plano
 - [ ] Íconos y pantalla de inicio: `android/.../mipmap-*`, `ios/Runner/Assets.xcassets`, `macos/Runner/Assets.xcassets`, `web/icons` y `windows/runner/resources`.
 - [ ] Solo si vas a publicar la app de escritorio: el nombre del ejecutable (`BINARY_NAME` en `linux/` y `windows/CMakeLists.txt`, `PRODUCT_NAME` en `macos/Runner/Configs/AppInfo.xcconfig` y los textos de `windows/runner/Runner.rc`).
 - [ ] Colores de marca (`projects/frontend/src/index.css` y `projects/mobile/lib/core/theme/app_theme.dart`).
-- [ ] Reemplazá las pantallas de ejemplo por las tuyas: `routes/index.tsx` y `_authenticated/panel.tsx` en la web (sin dejar `_authenticated/` sin ninguna ruta hija: el build falla) y `lib/features/health/` en mobile. Quitá del menú los enlaces de ejemplo.
+- [ ] Reemplazá las pantallas de ejemplo por las tuyas: `routes/index.tsx` y `_authenticated/dashboard.tsx` en la web (sin dejar `_authenticated/` sin ninguna ruta hija: el build falla) y `lib/features/health/` en mobile. Quitá del menú los enlaces de ejemplo.
 - [ ] Borrá la migración de ejemplo (`V1__init_schema.sql`) **antes** de crear tu primera base, si no la querés.
 
 Después de renombrar el identificador de la app, corré `flutter pub get` y reabrí el proyecto en Android Studio o Xcode para que regeneren sus archivos.
