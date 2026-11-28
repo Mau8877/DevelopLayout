@@ -412,8 +412,8 @@ Usadas por Vite (`import.meta.env.VITE_*`, solo las que empiezan con
 
 | Variable | Para qué | Default |
 | --- | --- | --- |
-| `VITE_API_BASE_URL` | URL base de la API que usa `apiClient` (`src/store/apiClient.ts`) | `http://localhost:8080/api/v1` |
-| `VITE_ENABLE_API_LOGS` | Prende/apaga el logging de requests HTTP en consola (`src/store/createBaseApi.ts`) | `false` |
+| `VITE_API_BASE_URL` | URL base de la API que usa `apiClient` (`src/store/http/apiClient.ts`) | `http://localhost:8080/api/v1` |
+| `VITE_ENABLE_API_LOGS` | Prende/apaga el logging de requests HTTP en consola (`src/store/http/createBaseApi.ts`) | `false` |
 
 > Nota: `VITE_API_BASE_URL` apunta **directo al backend** (`:8080`), no al
 > proxy (`:80`) — el frontend en desarrollo bypasea nginx para las
