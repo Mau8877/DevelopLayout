@@ -119,12 +119,13 @@ No se redefine la misma anotación en dos módulos — si dos features necesitan
   sobre los campos `private final` del `service`/`controller` — no se
   escribe el constructor a mano cuando Lombok puede generarlo (ver
   [Lombok](#lombok) abajo).
-- **Obligatorio:** un `record` que lleva contraseñas o tokens redefine
+- **Obligatorio:** un `record` que lleva **secretos o datos personales** redefine
   `toString()` y devuelve solo `"NombreDelRecord[oculto]"`. El generado incluye
   todos sus campos, y Spring lo escribe al depurar. Vale también para los
-  `record` internos de un service. El componente se nombra como lo que es
-  (`password`, `token`, `secret`, `clave`, `credencial`): así
-  `RecordsConSecretosTest` lo reconoce y falla si falta el `toString()`.
+  `record` internos. El componente se nombra como lo que es: `password`, `token`,
+  `secret`, `clave`, `credencial`, o `email`, `correo`, `ip`, `userAgent`,
+  `search`, `texto`. Así `RecordsConDatosSensiblesTest` lo reconoce y falla si
+  falta el `toString()`. Un dato personal con otro nombre se agrega a esa prueba.
 - Los `record` de Java se prefieren para DTOs y para `ApiResponse`/`PageMeta`
   (inmutables, sin boilerplate) por sobre clases con Lombok/getters manuales
   — un DTO **no** se convierte en una clase con `@Getter`/`@Setter` de

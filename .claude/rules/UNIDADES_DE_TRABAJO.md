@@ -37,11 +37,16 @@ docs/UnidadesTrabajo/
     │   ├── README.md
     │   ├── UT-HU{NN}-FE-01.md
     │   └── ...
+    ├── UT-SEGURIDAD/                <- SIEMPRE, y se ejecuta al final
+    │   ├── README.md
+    │   └── UT-HU{NN}-SEG-01.md
     └── UT-MOBILE/                   <- solo si la HU también toca mobile
         ├── README.md
         └── UT-HU{NN}-MOB-01.md
 ```
 
+- Además, **siempre** `UT-SEGURIDAD/` (ver
+  [su regla](#toda-hu-termina-con-una-ut-de-seguridad)).
 - Una subcarpeta **por capa** (`UT-BACKEND`, `UT-FRONTEND`, `UT-MOBILE`),
   nunca mezcladas en una sola carpeta — cada capa tiene su propio
   `README.md` índice y su propia numeración independiente.
@@ -49,13 +54,100 @@ docs/UnidadesTrabajo/
   UI), esa subcarpeta directamente no se crea — no se deja una carpeta
   vacía "por si acaso".
 
+## Toda HU termina con una UT de seguridad
+
+**Obligatorio, sin excepciones:** cada historia tiene **una UT de seguridad** que
+se ejecuta **al final** y comprueba que **toda la implementación de esa HU**
+cumple los estándares de [SEGURIDAD_OWASP.md](SEGURIDAD_OWASP.md): OWASP Top
+10:2025, API Security Top 10:2023 y MASVS 2.1.0.
+
+```
+docs/UnidadesTrabajo/HU{NN} - {Nombre corto}/UT-SEGURIDAD/
+├── README.md
+└── UT-HU{NN}-SEG-01.md
+```
+
+- Es **una por historia**, no una por capa, y **depende de todas las demás UT**.
+- No reemplaza la sección `Seguridad` de cada UT: la comprueba.
+- Una historia de una sola capa, o que parezca inofensiva, **también** la lleva.
+  Lo que no corresponda se marca `No aplica` con su motivo.
+- `scripts/seguridad/ut-seguridad.test.mjs` falla si una carpeta
+  `HU{NN} - ...` no la tiene.
+- Las `HU-INICIAL-*` son anteriores a esta regla: su verificación es
+  [docs/seguridad/AUDITORIA_OWASP.md](../../docs/seguridad/AUDITORIA_OWASP.md).
+  Una UT nueva que cambie una de ellas incluye su propia comprobación.
+
+### Qué se comprueba
+
+Se revisa **el código y el comportamiento**, no que alguien haya escrito «cumple».
+La ficha tiene una tabla con **todas** estas filas:
+
+| Estándar | Filas |
+| --- | --- |
+| OWASP Top 10:2025 | A01 a A10 |
+| API Security Top 10:2023 | API1 a API10 (si la HU toca el backend) |
+| MASVS 2.1.0 | STORAGE, CRYPTO, AUTH, NETWORK, PLATFORM, CODE, RESILIENCE, PRIVACY (si toca mobile) |
+
+y cada una con `Estado` y `Evidencia`:
+
+| Estado | Cuándo | Evidencia obligatoria |
+| --- | --- | --- |
+| `Cumple` | Comprobado | Nombre de la prueba, comando y resultado, o archivo y línea |
+| `No aplica` | La HU no tiene ese flujo | El motivo concreto |
+| `No cumple` | Falla | Cómo reproducirlo |
+| `No verificado` | No se pudo comprobar | Qué falta (dispositivo, servidor, herramienta) |
+
+- ! **La historia no pasa a `Hecha` con un `No cumple`.** Con un `No verificado`
+  tampoco, salvo que la persona responsable acepte ese riesgo por escrito en la
+  ficha, con su nombre y la fecha.
+- Una fuga se **reproduce con una prueba que falla**, se corrige y la prueba se
+  queda. La corrección se limita al código de esa HU; si el problema es de otra
+  parte del sistema, se avisa y se trata aparte.
+- Una afirmación sin evidencia es `No verificado`.
+
+### Comprobaciones mínimas de este proyecto
+
+Salen de fallos reales ya corregidos; se revisan siempre que la HU toque eso:
+
+| Si la HU... | Se comprueba |
+| --- | --- |
+| Agrega o cambia un endpoint | 401 sin sesión, 403 sin rol y 404 o 403 sobre un dato ajeno |
+| Pone un límite o un filtro por ruta | Que no se evita **codificando la URL** (contra un servidor real) y que compara la ruta como Spring |
+| Toca la autenticación o el CSRF | Que cada exención sigue al canal que **autentica**, no a una cabecera cualquiera |
+| Recibe o devuelve secretos o datos personales | Que no salen en los logs, con `DEBUG` y con un dato rechazado (`SecretosEnLogsTest`) |
+| Puede fallar con datos de una persona | Que el log del error no los repite (`ExcepcionSinMensajes`) |
+| Fija una contraseña | `@PasswordNoComun` y su caso en `PasswordComunTest` |
+| Crea tablas | RLS forzado, probado con `app_runtime`, o su excepción registrada |
+| Rechaza accesos | Que el rechazo queda registrado, sin datos personales |
+| Espera a la base, Redis o un tercero | Que la espera tiene límite |
+| Toca mobile | Tokens solo en almacenamiento seguro, sin datos en logs ni copias |
+
+### Formato de `UT-HU{NN}-SEG-01.md`
+
+Usa el formato normal de una UT (abajo), con `Alcance` = revisar lo que
+construyeron las demás UT y agregar las pruebas de abuso que falten, y suma:
+
+```markdown
+## Resultado de la verificación
+
+| Control | Estado | Evidencia |
+| --- | --- | --- |
+| A01 | Cumple | `NotaControllerTest.notaAjena_es404` |
+| A07 | No aplica | La HU no toca la autenticación |
+| ... | ... | ... |
+
+**Hallazgos:** {qué se encontró, cómo se reprodujo y cómo se corrigió, o «ninguno»}
+**Sin verificar:** {lo pendiente y quién aceptó el riesgo, o «nada»}
+```
+
 ## Nomenclatura de código
 
 **`UT-HU{NN}-{CAPA}-{NN}`**, ej. `UT-HU01-BE-03`, `UT-HU02-FE-01`.
 
 - `HU{NN}`: mismo número que la Historia de Usuario de origen (dos
   dígitos, `01`, `02`...).
-- `{CAPA}`: `BE` (backend), `FE` (frontend), `MOB` (mobile).
+- `{CAPA}`: `BE` (backend), `FE` (frontend), `MOB` (mobile), `SEG` (la
+  verificación de seguridad de la historia).
 - `{NN}`: secuencial dentro de esa HU+capa, empieza en `01`. No se reusa
   un número aunque una UT se elimine durante la planificación.
 

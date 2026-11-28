@@ -44,7 +44,7 @@ DevelopLayout/
 │   ├── errors/           # Catálogo de códigos de error de la API (ver más abajo)
 │   ├── api/              # Contrato OpenAPI versionado
 │   ├── BASE_DE_DATOS.mermaid  # Diagrama de la base
-│   ├── seguridad/        # Excepciones documentadas a las reglas de seguridad (RLS)
+│   ├── seguridad/        # Auditoría OWASP y excepciones de RLS
 │   ├── HistoriasDeUsuario/
 │   └── UnidadesTrabajo/
 ├── .claude/
@@ -165,6 +165,8 @@ Puntos de entrada útiles:
   OWASP Top 10, API Security Top 10 y MASVS: toda implementación nueva
   tiene que cumplirlos. La base de datos es siempre privada y con RLS
   ([`BASE_DE_DATOS_PRIVADA_RLS.md`](.claude/rules/backend/BASE_DE_DATOS_PRIVADA_RLS.md)).
+- [`docs/seguridad/AUDITORIA_OWASP.md`](docs/seguridad/AUDITORIA_OWASP.md) —
+  qué se comprobó frente a OWASP, qué se corrigió y qué falta.
 - [`.claude/rules/CI_CD.md`](.claude/rules/CI_CD.md) — qué hace el CI,
   los controles de seguridad y por qué todavía no hay CD.
 - [`docs/errors/README.md`](docs/errors/README.md) — catálogo vivo de

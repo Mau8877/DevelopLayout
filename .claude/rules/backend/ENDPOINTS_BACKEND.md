@@ -29,6 +29,12 @@ globs: projects/backend/**/*
   sub-recurso con un verbo: `POST /api/v1/orders/{code}/approve`. No se
   usan verbos como query param (`?action=approve`).
 
+## Tamaño del body
+
+El proxy acepta como máximo **1 MB** (`client_max_body_size`). Un endpoint que
+reciba archivos amplía el límite **solo en su `location`** de nginx, con su
+propia validación de tamaño y tipo en el backend, y justificado en su UT.
+
 ## Query params de listados (obligatorio en TODO `GET` de colección)
 
 ```

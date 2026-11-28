@@ -68,9 +68,12 @@ El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
   `CsrfTokenRequestAttributeHandler`). El backend setea la cookie
   `XSRF-TOKEN` (legible por JS, no es una credencial) y el cliente la
   devuelve en el header `X-XSRF-TOKEN` en todo `POST/PUT/PATCH/DELETE`
-  (axios lo hace solo con `xsrfCookieName`/`xsrfHeaderName`). Las
-  peticiones con `Authorization: Bearer` (mobile) no usan cookies y quedan
-  exentas. Además, `CORS` limita los orígenes a `CORS_ALLOWED_ORIGINS`.
+  (axios lo hace solo con `xsrfCookieName`/`xsrfHeaderName`). Solo las
+  peticiones con `X-Client-Type: mobile` quedan exentas: con ese header el filtro
+  mira únicamente el Bearer, nunca la cookie.
+  ! **La exención sigue al canal que autentica.** Un `Authorization: Bearer` sin
+  ese header no exime, porque la identidad saldría de la cookie
+  (`EvasionHttpTest`). Además, `CORS` limita los orígenes a `CORS_ALLOWED_ORIGINS`.
   `SecurityConfig` desactiva la rotación del token CSRF por autenticación
   (`NullAuthenticatedSessionStrategy`): sin sesión de servidor, cada request
   con JWT cuenta como un inicio de sesión y borraba la cookie `XSRF-TOKEN`.
@@ -339,6 +342,10 @@ intentar de más).
   `/api/v1/**` que ni siquiera existe todavía (un 404) — no hace falta que
   el feature esté implementado para que el rate limit ya esté activo sobre
   su futura ruta.
+- ! **Las rutas se comparan con `PathPatternRequestMatcher`**, como Spring MVC.
+  Nunca con el texto de `getRequestURI()`: la URL codificada (`lo%67in`) llega al
+  mismo controller y se saltaba todos los límites. Vale para cualquier filtro que
+  decida algo según la ruta, y se prueba contra un servidor real.
 - **Algoritmo**: token bucket vía **Bucket4j** (`com.bucket4j:bucket4j_jdk11-core`,
   no `bucket4j-core` — esa coordinada vieja ya no es la que resuelve Maven
   Central; se verificó contra el índice de Maven Central antes de fijar la
@@ -361,6 +368,8 @@ intentar de más).
   exista un `DispatcherServlet`/`@RestControllerAdvice` que pueda intervenir.
   Igual respeta el contrato exacto del sobre para que el cliente (frontend/
   mobile) lo trate igual que cualquier otro error de la API.
+- Cada rechazo se registra en `WARN` (método, ruta y código, sin datos
+  personales), igual que los 403 en `RestAccessDeniedHandler`.
 - **Identificación del cliente**: `request.getRemoteAddr()`. Alcanza hoy
   porque nginx es el único proxy delante del backend dentro de la red de
   Docker. Si en el futuro hay más de un proxy en la cadena, hay que leer

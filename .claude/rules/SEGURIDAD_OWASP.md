@@ -83,3 +83,9 @@ terminada si incumple un punto de acá. Si una regla más específica
 2. Hay tests de autorización (acceso permitido **y** denegado) para cada endpoint nuevo.
 3. No se agregó ningún secreto, `:latest`, puerto público ni `permitAll` nuevo sin justificarlo por escrito en la UT.
 4. La auditoría de dependencias de CI pasa.
+5. La [UT de seguridad](UNIDADES_DE_TRABAJO.md#toda-hu-termina-con-una-ut-de-seguridad)
+   de la historia está hecha, con evidencia por cada control.
+
+El estado de la plantilla frente a los tres estándares, con sus pendientes, está
+en [docs/seguridad/AUDITORIA_OWASP.md](../../docs/seguridad/AUDITORIA_OWASP.md).
+Un cambio que mejora o empeora un control actualiza ese informe.

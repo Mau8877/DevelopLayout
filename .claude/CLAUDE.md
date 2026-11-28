@@ -84,7 +84,9 @@ privada y con RLS por defecto
 ([BASE_DE_DATOS_PRIVADA_RLS.md](rules/backend/BASE_DE_DATOS_PRIVADA_RLS.md));
 los reportes usan JasperReports 7
 ([REPORTES_JASPERREPORTS.md](rules/backend/REPORTES_JASPERREPORTS.md)).
-Toda HU y UT lleva su sección de Seguridad.
+Toda HU y UT lleva su sección de Seguridad, y toda HU termina con una UT de
+seguridad. El estado actual y los pendientes están en
+[AUDITORIA_OWASP.md](../docs/seguridad/AUDITORIA_OWASP.md).
 
 ## Idiomas y direcciones
 
@@ -100,7 +102,9 @@ la plantilla está en [docs/TUTORIAL.md](../docs/TUTORIAL.md).
 2. Unidades de Trabajo por capa
    ([UNIDADES_DE_TRABAJO.md](rules/UNIDADES_DE_TRABAJO.md)).
 3. Código con sus pruebas, incluido el caso de acceso **denegado**.
-4. En el mismo cambio, lo que corresponda de la tabla de abajo.
+4. La **UT de seguridad** de la historia, siempre y al final: comprueba con
+   evidencia que todo lo implementado cumple los tres estándares OWASP.
+5. En el mismo cambio, lo que corresponda de la tabla de abajo.
 
 | Si cambia... | Se actualiza también |
 | --- | --- |
@@ -108,6 +112,7 @@ la plantilla está en [docs/TUTORIAL.md](../docs/TUTORIAL.md).
 | La base (migración nueva, nunca una ya aplicada) | `docs/BASE_DE_DATOS.mermaid` |
 | Un código de error | `docs/errors/` |
 | Una excepción o política abierta de RLS | `docs/seguridad/RLS_EXCEPCIONES.md` |
+| Un control de seguridad | `docs/seguridad/AUDITORIA_OWASP.md` |
 | Un texto visible | Los archivos `es` y `en`, y las pruebas de navegador que lo busquen |
 | Un módulo con textos | Sus registros (ver la regla de idiomas de cada capa) |
 | La instalación, los comandos o el uso | `docs/TUTORIAL.md`, `scripts/README.md` y el README que toque |

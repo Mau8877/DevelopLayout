@@ -154,6 +154,8 @@ del archivo** — no se deja vacía "por si acaso".}
   `> **Avance:**` que diga qué falta. Al cerrarla se reemplaza por
   `> **Validación:**` con cómo se comprobó. Una historia solo pasa a `Hecha` con
   todos sus criterios comprobados; lo que no se pudo probar se escribe.
+  Además, su [UT de seguridad](UNIDADES_DE_TRABAJO.md#toda-hu-termina-con-una-ut-de-seguridad)
+  debe estar hecha, sin ningún `No cumple`.
 - Un cambio de comportamiento en una historia ya escrita agrega un criterio
   nuevo (sin renumerar) y su Unidad de Trabajo.
 - **`PHU`** (Puntos de Historia de Usuario) puede quedar vacío hasta que

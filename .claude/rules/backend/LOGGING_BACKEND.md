@@ -58,6 +58,12 @@ fallando (no un caso aislado esperable), **se investiga y se soluciona** en
 la medida de lo posible — no se "acostumbra" el equipo a verlo en los logs.
 Un `WARN` recurrente que nadie revisa es indistinguible de no tener logging.
 
+## Rechazos
+
+Los 403 (`RestAccessDeniedHandler`, con el código del usuario) y los 429
+(`RateLimitFilter`) se registran en `WARN` con `module=security`. Llevan método y
+ruta, **nunca** la consulta de la URL, el body ni la IP.
+
 ## Nunca loguear
 
 - Passwords (ni hasheadas ni en texto plano).
@@ -72,7 +78,7 @@ No basta con no escribir `LOG.info(password)`: el framework también registra.
 
 | Vía | Qué escribe | Protección |
 | --- | --- | --- |
-| Capa web en `DEBUG` | El `toString()` de cada body que lee y responde | `toString()` oculto en todo `record` con secretos (ver [CONVENCIONES_JAVA_BACKEND.md](CONVENCIONES_JAVA_BACKEND.md#estilo-general)) |
+| Capa web en `DEBUG` | El `toString()` de cada body que lee y responde | `toString()` oculto en todo `record` con secretos o datos personales (ver [CONVENCIONES_JAVA_BACKEND.md](CONVENCIONES_JAVA_BACKEND.md#estilo-general)) |
 | Excepción resuelta (con `devtools` sale en `WARN`, sin activar nada) | El **valor rechazado** por la validación, aunque el `toString()` esté oculto | `ExceptionHandlerExceptionResolver` en `OFF` en `application.properties` |
 
 | Mensajes de la base y de las librerías | Repiten el dato que falló (un correo repetido, un valor mal formado) | Ver abajo |
@@ -81,9 +87,9 @@ No basta con no escribir `LOG.info(password)`: el framework también registra.
   petición, se usa el depurador o la respuesta de la API.
 - `SecretosEnLogsTest` comprueba las dos vías. Un endpoint nuevo que reciba o
   devuelva un secreto se agrega ahí.
-- ! El `DEBUG` de la capa web **sigue mostrando datos personales** (correos de
-  otros DTO): es solo para un equipo de desarrollo con datos de prueba, nunca
-  en producción.
+- ! El `DEBUG` de la capa web sigue siendo **solo para desarrollo con datos de
+  prueba**, nunca en producción: un dato con un nombre que no se reconozca
+  podría salir.
 
 ### Excepciones que no son nuestras
 

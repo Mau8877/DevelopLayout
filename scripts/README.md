@@ -26,7 +26,7 @@ Por tema, con cada script junto a su prueba:
 | `api/` | `openapi-sync` |
 | `e2e/` | Pruebas de navegador, incluida la de interrupción |
 | `produccion/` | `prod-smoke` |
-| `seguridad/` | Pruebas que vigilan el CI, los compose y las rutas de los scripts |
+| `seguridad/` | Pruebas que vigilan el CI, los compose, las rutas de los scripts y la UT de seguridad de cada historia |
 | `dependencias/` | `update-deps` para Windows y para Linux/macOS |
 
 Un script nuevo va en la carpeta de su tema (o en una nueva). Para encontrar la

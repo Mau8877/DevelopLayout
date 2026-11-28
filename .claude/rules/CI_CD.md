@@ -168,7 +168,8 @@ que sus rutas tuvieron cambios (un cambio en `ci.yml` los corre todos, para que
 el workflow no se fusione sin haberse probado; `backend` también con `infrastructure/redis/**`,
 porque un test verifica `redis.conf`; `scripts` también con
 `docker-compose*.yml` y los `Dockerfile` de nginx, que
-`compose-seguridad.test.mjs` revisa, y con cualquier cambio en `projects/` o
+`compose-seguridad.test.mjs` revisa; con `docs/UnidadesTrabajo/**`, por la prueba
+de la UT de seguridad; y con cualquier cambio en `projects/` o
 `infrastructure/`, porque `init-project.test.mjs` recorre la plantilla entera).
 Esto es deliberado por dos razones:
 
