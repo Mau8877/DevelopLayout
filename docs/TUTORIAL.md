@@ -495,6 +495,7 @@ los respaldos y llevarlos fuera del servidor. Todo está en
 | El backend suelto no arranca por una variable | No cargaste su `.env` (ver [Backend fuera de Docker](#backend-fuera-de-docker)) |
 | `flutter analyze`: `asset_does_not_exist` | Falta `projects/mobile/.env`: `pnpm setup:env` |
 | Las pruebas de backend salen «skipped» | Docker no está accesible; en Windows, revisa «Allow the default Docker socket to be used» en Docker Desktop |
+| «Esa contraseña es demasiado común», o el backend no arranca por `INITIAL_ADMIN_PASSWORD` | Las contraseñas muy usadas en filtraciones se rechazan, aunque cumplan el largo. Elige otra, por ejemplo una frase de varias palabras |
 | `pnpm test:e2e` se niega a arrancar | Hay un puerto ocupado o quedaron restos: el mensaje dice cuál. Ver [scripts/README.md](../scripts/README.md) |
 | `pnpm test:prod` se niega a arrancar | Tu stack está encendido: `docker compose down` (sin `-v`) |
 | El CI falla en `gitleaks` por un texto de prueba | Si de verdad es inventado, márcalo como dice [CI_CD.md](../.claude/rules/CI_CD.md#falsos-positivos-de-gitleaks). **Si es un secreto real, cámbialo** |
