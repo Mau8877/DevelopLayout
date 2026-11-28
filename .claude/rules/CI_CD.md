@@ -124,7 +124,9 @@ que sus rutas tuvieron cambios (un cambio en `ci.yml` los corre todos, para que
 el workflow no se fusione sin haberse probado; `backend` también con `infrastructure/redis/**`,
 porque un test verifica `redis.conf`; `scripts` también con
 `docker-compose*.yml` y los `Dockerfile` de nginx, que
-`compose-seguridad.test.mjs` revisa). Esto es deliberado por dos razones:
+`compose-seguridad.test.mjs` revisa, y con cualquier cambio en `projects/` o
+`infrastructure/`, porque `init-project.test.mjs` recorre la plantilla entera).
+Esto es deliberado por dos razones:
 
 - **Este es un monorepo con 3 proyectos independientes** (ver
   [`README.md`](../../README.md)) que no comparten build ni runtime — no
