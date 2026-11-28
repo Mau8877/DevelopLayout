@@ -12,7 +12,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 /**
- * Envía los correos de la cuenta (recuperación e invitación), en texto plano.
+ * Envía los correos de la cuenta (recuperación, invitación y aviso de cambio), en texto plano.
  *
  * * El token va en el FRAGMENTO del enlace: el navegador no lo manda al servidor
  * * ni en `Referer`.
@@ -51,6 +51,15 @@ public class CorreoCuentaService {
 
     public void enviarInvitacion(String destinatario, String token, Locale idioma) {
         enviarPlantilla(destinatario, "auth.correo.invitacion", urlWeb + "/accept-invitation#token=" + token, idioma);
+    }
+
+    /** Avisa que la contraseña cambió. ! Sin enlaces, tokens ni contraseñas. */
+    public void enviarAvisoCambioPassword(String destinatario, Locale idioma) {
+        enviarSinEnlace(destinatario, "auth.correo.cambio", idioma);
+    }
+
+    private void enviarSinEnlace(String destinatario, String clave, Locale idioma) {
+        enviar(destinatario, mensajes.en(idioma, clave + ".asunto"), mensajes.en(idioma, clave + ".cuerpo"));
     }
 
     private void enviarPlantilla(String destinatario, String clave, String enlace, Locale idioma) {
