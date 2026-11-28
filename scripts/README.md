@@ -3,6 +3,18 @@
 Scripts de automatización del proyecto. Se corren en **tu máquina** (necesitan
 `pnpm`, `flutter` y Java; el backend usa el `mvnw` del repo).
 
+## `project:init`: convertir la plantilla en un proyecto nuevo
+
+```bash
+pnpm project:init --nombre "Acme Tienda" --slug acme-tienda --paquete com.acme [--dry-run]
+```
+
+Cambia los nombres genéricos de la plantilla en backend, web, mobile, Docker, CI y scripts. Se usa una sola vez sobre una copia sin cambios pendientes y no toca ningún `.env`. Guía completa en [docs/README.md](../docs/README.md).
+
+- Reemplaza una **lista cerrada** de nombres. Si agregás un contenedor nuevo con el prefijo de la plantilla, sumalo a `RECURSOS` en `init-project.mjs`.
+- No armes esos nombres al ejecutar, juntando el prefijo con una variable: escribilos enteros, o no se pueden renombrar. Las pruebas lo detectan.
+- Mientras el repo sea la plantilla, una prueba lo recorre entero y falla si quedaría algún nombre conocido o si una regla ya no encuentra nada.
+
 ## `setup:env`: preparar los `.env` en un paso
 
 Crea (o completa) los `.env` de los cuatro proyectos a partir de sus

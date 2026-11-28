@@ -6,6 +6,7 @@
 	},
 	"scripts": {
 		"prepare": "husky",
+		"project:init": "node scripts/init-project.mjs",
 		"setup:env": "node scripts/setup-env.mjs",
 		"setup:env:check": "node scripts/setup-env.mjs --check",
 		"db:backup": "node scripts/db-backup.mjs backup",

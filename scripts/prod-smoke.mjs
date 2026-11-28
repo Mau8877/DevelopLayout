@@ -212,9 +212,10 @@ async function esperarBackend(pedir, segundos = 300) {
 }
 
 async function comprobarServicios(compose) {
+  // * Nombres completos, sin armarlos: así `project:init` los puede renombrar.
   const unaVez = ['minio-permisos', 'minio-init'];
-  for (const nombre of unaVez) {
-    comprobar(docker('wait', `app-${nombre}`) === '0', `${nombre} terminó con éxito`);
+  for (const contenedor of ['app-minio-permisos', 'app-minio-init']) {
+    comprobar(docker('wait', contenedor) === '0', `${contenedor} terminó con éxito`);
   }
   const texto = compose(['ps', '-a', '--format', 'json'], { capturar: true }).salida.trim();
   const filas = texto.startsWith('[') ? JSON.parse(texto) : texto.split('\n').map((l) => JSON.parse(l));
