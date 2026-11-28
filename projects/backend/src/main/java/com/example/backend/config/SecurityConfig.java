@@ -24,12 +24,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.example.backend.security.JwtAuthenticationFilter;
-import com.example.backend.security.JwtService;
+import com.example.backend.security.jwt.JwtAuthenticationFilter;
+import com.example.backend.security.jwt.JwtService;
 import com.example.backend.security.RateLimitFilter;
-import com.example.backend.security.RestAccessDeniedHandler;
-import com.example.backend.security.RestAuthenticationEntryPoint;
-import com.example.backend.security.SesionRevocadaRegistry;
+import com.example.backend.security.handler.RestAccessDeniedHandler;
+import com.example.backend.security.handler.RestAuthenticationEntryPoint;
+import com.example.backend.security.jwt.SesionRevocadaRegistry;
 
 @Configuration
 @EnableWebSecurity

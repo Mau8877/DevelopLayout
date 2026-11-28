@@ -15,12 +15,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.backend.common.bitacora.BitacoraService;
-import com.example.backend.common.bitacora.ResultadoBitacora;
+import com.example.backend.common.bitacora.service.BitacoraService;
+import com.example.backend.common.bitacora.enums.ResultadoBitacora;
 import com.example.backend.common.exception.UnauthorizedException;
 import com.example.backend.common.util.Sha256;
-import com.example.backend.features.auth.AuthAcciones;
-import com.example.backend.features.auth.AuthErrorCodes;
+import com.example.backend.features.auth.constant.AuthAcciones;
+import com.example.backend.features.auth.constant.AuthErrorCodes;
 import com.example.backend.features.auth.enums.EstadoSesion;
 import com.example.backend.features.auth.enums.MotivoRevocacion;
 import com.example.backend.features.auth.enums.TipoCliente;
@@ -28,7 +28,7 @@ import com.example.backend.features.auth.model.Sesion;
 import com.example.backend.features.auth.repository.SesionRepository;
 import com.example.backend.features.usuarios.model.Usuario;
 import com.example.backend.security.RlsContext;
-import com.example.backend.security.SesionRevocadaRegistry;
+import com.example.backend.security.jwt.SesionRevocadaRegistry;
 
 /**
  * Ciclo de vida de las sesiones: crear, rotar el refresh token, revocar y cerrar.

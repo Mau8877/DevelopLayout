@@ -21,8 +21,8 @@ import com.example.backend.common.response.PageMeta;
 import com.example.backend.common.util.Paginacion;
 import com.example.backend.features.auth.dto.MiSesionResponse;
 import com.example.backend.features.auth.service.MisSesionesService;
-import com.example.backend.security.CurrentSessionId;
-import com.example.backend.security.CurrentUserId;
+import com.example.backend.security.annotation.CurrentSessionId;
+import com.example.backend.security.annotation.CurrentUserId;
 
 import io.swagger.v3.oas.annotations.Parameter;
 

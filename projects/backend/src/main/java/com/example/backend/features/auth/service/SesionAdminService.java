@@ -19,11 +19,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.backend.common.bitacora.BitacoraService;
-import com.example.backend.common.bitacora.ResultadoBitacora;
+import com.example.backend.common.bitacora.service.BitacoraService;
+import com.example.backend.common.bitacora.enums.ResultadoBitacora;
 import com.example.backend.common.exception.NotFoundException;
-import com.example.backend.features.auth.AuthAcciones;
-import com.example.backend.features.auth.AuthErrorCodes;
+import com.example.backend.features.auth.constant.AuthAcciones;
+import com.example.backend.features.auth.constant.AuthErrorCodes;
 import com.example.backend.features.auth.dto.SesionResponse;
 import com.example.backend.features.auth.enums.EstadoSesion;
 import com.example.backend.features.auth.enums.MotivoRevocacion;

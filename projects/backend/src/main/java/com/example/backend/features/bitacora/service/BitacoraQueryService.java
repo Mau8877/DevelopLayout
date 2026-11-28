@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.backend.common.bitacora.model.Bitacora;
 import com.example.backend.common.bitacora.repository.BitacoraConsultaRepository;
 import com.example.backend.common.exception.ValidationException;
-import com.example.backend.features.bitacora.BitacoraErrorCodes;
+import com.example.backend.features.bitacora.constant.BitacoraErrorCodes;
 import com.example.backend.features.bitacora.dto.BitacoraResponse;
 import com.example.backend.security.RlsContext;
 

@@ -2,8 +2,8 @@ import type { ReactNode } from 'react'
 import type { DataTableColumnDef } from '@/components/ui/tanstack-table'
 import { i18n } from '@/shared/language'
 import { formatDateTime } from '@/utils'
-import { resumirDispositivo } from '@/utils'
 import type { CamposDeSesion } from '../types'
+import { resumirDispositivo } from '../utils'
 
 /**
  * Columnas de una sesión, comunes a «Mis sesiones» y a la administración.

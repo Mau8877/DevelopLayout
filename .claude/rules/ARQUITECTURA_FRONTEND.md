@@ -41,9 +41,19 @@ edita a mano; los tipos de request/response se toman de ahí. Además de
 primer caso concreto que lo necesite (ver
 [TANSTACK_QUERY_FRONTEND.md](frontend/TANSTACK_QUERY_FRONTEND.md#endpoints-usados-por-más-de-una-feature)).
 
-`utils/index.ts` es la lista de lo que hay en `utils/`. Dos piezas que conviene
-conocer: `dayjsLocal.ts` (dayjs siguiendo el idioma vigente) y `marca.ts` (el
-nombre del producto, la única constante que cambia `project:init`). `layouts/`
+`store/` se divide en `http/` (cliente de la API y candado de sesión), `query/`
+(TanStack Query) y `ui/` (Zustand). `utils/` agrupa en `fechas/` y
+`formularios/` lo que está relacionado; el resto queda en su raíz. Una subcarpeta
+nueva tiene su barril, la exporta el barril de su carpeta y se agrega a
+`estructura.test.ts`. Desde fuera se sigue importando de `@/store` y `@/utils`.
+
+**`utils/` o `lib/`:** `lib/` es de shadcn (`cn()`), y ahí no va nada propio.
+`utils/` es para herramientas genéricas, que servirían igual en otro proyecto. Lo
+que conoce un tema del negocio va en su feature.
+
+Dos piezas que conviene conocer: `utils/fechas/dayjsLocal.ts` (dayjs siguiendo
+el idioma vigente) y `utils/marca.ts` (el nombre del producto, la única
+constante que cambia `project:init`; no se mueve). `layouts/`
 tiene un layout por rol (`admin/`, `usuario/`) y `navegacion/` (los enlaces del
 menú guardan claves de idioma, no textos) — ver
 [Layouts por rol](frontend/RUTAS_NAVEGACION_FRONTEND.md#layouts-por-rol).
@@ -64,6 +74,7 @@ src/features/usuarios/
 ├── screens/        # Pantallas completas que se montan desde routes/ (ListaUsuarios, DetalleUsuario...)
 ├── tests/          # Tests de esta feature (ver nota de Testing abajo)
 ├── types/          # Tipos TS propios de la feature que no salen de un schema de Zod
+├── utils/          # (si hace falta) Funciones puras que conocen el dominio de ESTA feature
 └── index.ts        # Barrel: re-exporta lo que otras partes de la app pueden importar de esta feature
 ```
 

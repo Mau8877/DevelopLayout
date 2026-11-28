@@ -27,8 +27,8 @@ import com.example.backend.features.usuarios.dto.UsuarioCreadoResponse;
 import com.example.backend.features.usuarios.dto.UsuarioResponse;
 import com.example.backend.features.usuarios.repository.UsuarioBusquedaRepository;
 import com.example.backend.features.usuarios.service.UsuarioAdminService;
-import com.example.backend.security.CurrentSessionId;
-import com.example.backend.security.CurrentUserId;
+import com.example.backend.security.annotation.CurrentSessionId;
+import com.example.backend.security.annotation.CurrentUserId;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;

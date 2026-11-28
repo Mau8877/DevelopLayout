@@ -2,7 +2,7 @@ import { i18n } from '@/shared/language'
 
 /**
  * Forma mínima de un error de negocio ya desempaquetado por el cliente HTTP
- * de la app (ver `ApiError` en `src/store/apiClient.ts`). Se detecta por
+ * de la app (ver `ApiError` en `src/store/http/apiClient.ts`). Se detecta por
  * estructura, no por import directo de esa clase -- así este paquete de
  * `components/ui/` no depende de `store/` y sigue siendo reusable
  * independiente del cliente HTTP concreto de esta app.

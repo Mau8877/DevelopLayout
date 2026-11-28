@@ -6,8 +6,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.example.backend.security.CurrentSessionIdArgumentResolver;
-import com.example.backend.security.CurrentUserIdArgumentResolver;
+import com.example.backend.security.resolver.CurrentSessionIdArgumentResolver;
+import com.example.backend.security.resolver.CurrentUserIdArgumentResolver;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {

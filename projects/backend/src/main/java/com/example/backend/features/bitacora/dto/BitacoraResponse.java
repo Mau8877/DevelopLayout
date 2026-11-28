@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
-import com.example.backend.common.bitacora.ResultadoBitacora;
+import com.example.backend.common.bitacora.enums.ResultadoBitacora;
 
 /** Evento de auditoría, sin el `id` interno. */
 public record BitacoraResponse(UUID codigo, Instant fecha, UUID usuarioCodigo, String accion, String modulo,

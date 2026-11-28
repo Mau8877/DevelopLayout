@@ -1,6 +1,6 @@
 package com.example.backend.features.auth.controller;
 
-import com.example.backend.security.CurrentSessionId;
+import com.example.backend.security.annotation.CurrentSessionId;
 import com.example.backend.features.auth.service.CambioPasswordService;
 import com.example.backend.features.auth.dto.CambiarPasswordRequest;
 import com.example.backend.common.idioma.Mensajes;
@@ -16,9 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.backend.common.bitacora.OrigenSolicitud;
+import com.example.backend.common.bitacora.service.OrigenSolicitud;
 import com.example.backend.common.response.ApiResponse;
-import com.example.backend.features.auth.AuthCookies;
 import com.example.backend.features.auth.dto.AceptarInvitacionRequest;
 import com.example.backend.features.auth.dto.ForgotPasswordRequest;
 import com.example.backend.features.auth.dto.LoginRequest;
@@ -30,7 +29,7 @@ import com.example.backend.features.auth.enums.TipoCliente;
 import com.example.backend.features.auth.service.AuthService;
 import com.example.backend.features.auth.service.InvitacionService;
 import com.example.backend.features.auth.service.RecuperacionService;
-import com.example.backend.security.CurrentUserId;
+import com.example.backend.security.annotation.CurrentUserId;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;

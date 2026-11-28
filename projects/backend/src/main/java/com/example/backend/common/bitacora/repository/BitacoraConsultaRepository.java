@@ -12,7 +12,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import com.example.backend.common.bitacora.ResultadoBitacora;
+import com.example.backend.common.bitacora.enums.ResultadoBitacora;
 import com.example.backend.common.bitacora.model.Bitacora;
 
 import jakarta.persistence.EntityManager;

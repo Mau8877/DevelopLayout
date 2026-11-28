@@ -87,7 +87,7 @@ const form = useForm({
 limpian al volver a salir del campo: tras pasar del correo a la contraseña quedaba
 anotado «la contraseña es obligatoria», y al escribirla y pulsar Enter sin salir
 del campo el envío se bloqueaba. Para mostrar errores al salir, el campo usa
-`onBlur={validarAlSalir(field)}` (`utils/validarAlSalir.ts`), que repite la
+`onBlur={validarAlSalir(field)}` (`utils/formularios/validarAlSalir.ts`), que repite la
 validación de `onChange`. Todo formulario tiene un test que **envía con Enter**,
 no solo con clic. El mensaje de un campo se obtiene con `primerError`.
 

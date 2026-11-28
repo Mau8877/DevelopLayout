@@ -13,9 +13,19 @@ const carpetaDe = (ruta: string) => ruta.slice(0, ruta.lastIndexOf('/'))
 const moduloDe = (ruta: string) => ruta.slice(ruta.lastIndexOf('/') + 1).replace(/(\.d)?\.tsx?$/, '')
 const esPrueba = (ruta: string) => ruta.includes('.test.') || ruta.includes('/tests/')
 
-const TRANSVERSALES = ['utils', 'shared/api', 'shared/language', 'store', 'components/layout', 'layouts'].map(
-  (carpeta) => `/src/${carpeta}`,
-)
+const TRANSVERSALES = [
+  'utils',
+  'utils/fechas',
+  'utils/formularios',
+  'shared/api',
+  'shared/language',
+  'store',
+  'store/http',
+  'store/query',
+  'store/ui',
+  'components/layout',
+  'layouts',
+].map((carpeta) => `/src/${carpeta}`)
 const DE_FEATURE = /^\/src\/features\/[^/]+\/(?!tests$|language$)[^/]+$/
 const obligatoria = (carpeta: string) => TRANSVERSALES.includes(carpeta) || DE_FEATURE.test(carpeta)
 
@@ -49,6 +59,21 @@ describe('estructura del código', () => {
   it('cada carpeta obligatoria tiene su barril', () => {
     expect(carpetas.length).toBeGreaterThan(5)
     expect(carpetas.filter((carpeta) => !archivos[`${carpeta}/index.ts`])).toEqual([])
+  })
+
+  it('las subcarpetas de store y utils están vigiladas y las exporta el barril de su carpeta', () => {
+    const subcarpetas = Object.keys(archivos).flatMap((ruta) => {
+      const hallada = /^(\/src\/(?:store|utils))\/([^/]+)\/index\.ts$/.exec(ruta)
+      return hallada ? [{ padre: hallada[1], nombre: hallada[2] }] : []
+    })
+
+    expect(subcarpetas.length).toBeGreaterThan(0)
+    expect(
+      subcarpetas.filter(
+        ({ padre, nombre }) =>
+          !obligatoria(`${padre}/${nombre}`) || !(archivos[`${padre}/index.ts`] ?? '').includes(`from './${nombre}'`),
+      ),
+    ).toEqual([])
   })
 
   it('cada barril exporta todos los archivos de su carpeta', () => {

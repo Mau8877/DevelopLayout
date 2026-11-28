@@ -127,13 +127,13 @@ Todo lo relacionado a API/datos vive en `src/store/` — **no** en
 `src/lib/` (eso es exclusivo de lo que genera el CLI de shadcn, ver
 [TAILWIND_STYLES_FRONTEND.md](TAILWIND_STYLES_FRONTEND.md)). Dos capas:
 
-- **`src/store/createBaseApi.ts`** — factory que crea una instancia de axios
+- **`src/store/http/createBaseApi.ts`** — factory que crea una instancia de axios
   con logging HTTP en consola (acordeón colapsable vía
   `console.groupCollapsed`: código + success/failed + URL siempre visibles,
   el body de la respuesta solo al expandir), activable con la env var
   `VITE_ENABLE_API_LOGS` (`true`/`false`, apagada por default). No sabe nada
   del sobre del backend — reusable con cualquier API.
-- **`src/store/apiClient.ts`** — la instancia real de la app, construida
+- **`src/store/http/apiClient.ts`** — la instancia real de la app, construida
   sobre `createBaseApi({ baseURL: import.meta.env.VITE_API_BASE_URL })`, con
   un segundo interceptor que desempaqueta el sobre estándar del backend
   (`{ status, data, message, error, timestamp, meta? }`, ver
@@ -143,9 +143,9 @@ Todo lo relacionado a API/datos vive en `src/store/` — **no** en
   - Si `status === "failed"`, rechaza con `ApiError` (`{ code, message }`,
     clase exportada desde el mismo archivo) en vez de dejar pasar un error
     HTTP crudo de axios sin el código de negocio.
-- **`src/store/queryClient.ts`** — instancia de `QueryClient`
+- **`src/store/query/queryClient.ts`** — instancia de `QueryClient`
   (`retry: 1`, `refetchOnWindowFocus: false` por default).
-- **`src/store/QueryProvider.tsx`** — envuelve `QueryClientProvider` +
+- **`src/store/query/QueryProvider.tsx`** — envuelve `QueryClientProvider` +
   `ReactQueryDevtools` (montado solo si `import.meta.env.DEV`, así el panel
   no termina en el bundle de producción). `main.tsx` monta
   `<QueryProvider><RouterProvider .../></QueryProvider>`.
@@ -167,7 +167,7 @@ Vive en `apiClient.ts`; ninguna pantalla maneja un 401 por su cuenta.
 - Solo un 401 o 403 del refresh dispara `onSesionExpirada` (lo conecta
   `main.tsx` con `manejarSesionExpirada`). Sin red, 429 o 500 la sesión se
   conserva.
-- `store/candadoSesion.ts` serializa refresh y logout **entre pestañas** con
+- `store/http/candadoSesion.ts` serializa refresh y logout **entre pestañas** con
   `navigator.locks` y, sin soporte (navegador viejo o `http://` fuera de
   localhost), con una reserva con vencimiento en `localStorage` (id y hora,
   nunca tokens; no es atómica). El refresh y el logout usan `conCandadoDeSesion`.

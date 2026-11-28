@@ -117,6 +117,8 @@ se pudo probar se dice.
 
 ## Trampas conocidas
 
+- **No leas enteros `docs/api/openapi.json` ni `shared/api/schema.d.ts`:** son
+  generados y crecen con cada endpoint. Busca la ruta o el esquema que necesitas.
 - **Spring no lee los `.env`.** Con Docker Compose llegan solos; para correr el
   backend fuera de Docker hay que cargar las variables (ver el tutorial).
 - **El backend necesita JDK 21.** `mvnw` usa `JAVA_HOME`; el `java` del `PATH`

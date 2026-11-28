@@ -1,5 +1,7 @@
 package com.example.backend.features.auth.dto;
 
+import com.example.backend.features.auth.validation.MaximoBytes;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.validation.constraints.NotBlank;

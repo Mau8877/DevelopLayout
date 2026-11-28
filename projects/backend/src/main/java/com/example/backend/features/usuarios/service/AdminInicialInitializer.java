@@ -19,7 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import com.example.backend.features.usuarios.RolNombres;
+import com.example.backend.features.usuarios.constant.RolNombres;
 
 /**
  * Crea el SUPER_ADMIN inicial si todavía no existe ninguno (idempotente).

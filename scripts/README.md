@@ -10,10 +10,29 @@ el Java de `JAVA_HOME`.
 | `pnpm setup:env` | Crear y comprobar los `.env` |
 | `pnpm db:backup` · `db:verify` · `db:restore` | Respaldar y restaurar Postgres |
 | `pnpm openapi:sync` · `openapi:types` | Contrato de la API |
-| `scripts/*/update-deps.*` | Actualizar dependencias |
+| `scripts/dependencias/update-deps.*` | Actualizar dependencias |
 | `pnpm test:prod` | Probar producción de punta a punta |
 | `pnpm test:e2e` | Pruebas de navegador |
 | `pnpm test:scripts` | Pruebas de estos scripts |
+
+## Cómo está ordenada
+
+Por tema, con cada script junto a su prueba:
+
+| Carpeta | Qué tiene |
+| --- | --- |
+| `proyecto/` | `init-project` y `setup-env` |
+| `base-datos/` | `db-backup` |
+| `api/` | `openapi-sync` |
+| `e2e/` | Pruebas de navegador, incluida la de interrupción |
+| `produccion/` | `prod-smoke` |
+| `seguridad/` | Pruebas que vigilan el CI, los compose y las rutas de los scripts |
+| `dependencias/` | `update-deps` para Windows y para Linux/macOS |
+
+Un script nuevo va en la carpeta de su tema (o en una nueva). Para encontrar la
+raíz del repo sube **dos** niveles. Si lo nombra `ci.yml` o `package.json`, se
+escribe la ruta completa: una prueba falla si no existe. Si un script que ya
+filtra `ci.yml` pasa a importar otro, se agrega también a ese filtro.
 
 ## `project:init`: convertir la plantilla en un proyecto nuevo
 
@@ -81,9 +100,11 @@ pnpm openapi:sync --check   # falla si el backend en vivo ya no coincide con el 
   muestra exactamente qué cambió para frontend y mobile. Se normaliza (claves ordenadas, sin `servers`).
 - El test `OpenApiContractTest` (backend) falla si el contrato publicado difiere del snapshot:
   si cambiás un endpoint o un DTO, corré `openapi:sync` y commiteá el snapshot con el cambio.
-- `schema.d.ts` se **genera, no se edita a mano** (sí se commitea, para que el build y CI no dependan del backend) (reemplaza escribir a mano los
-  tipos de request/response del frontend). Mobile (Dart) no genera código: valida contra el
-  snapshot en sus tests de parsing cuando haga falta.
+- El CI regenera los tipos y falla si no coinciden con los commiteados. Los dos
+  archivos están marcados como generados en `.gitattributes`.
+- `schema.d.ts` se **genera, no se edita a mano**. Sí se commitea, para que el build y el
+  CI no dependan del backend, y reemplaza escribir a mano los tipos de request/response del
+  frontend. Mobile (Dart) no usa el contrato: sus modelos se escriben a mano.
 - Tests: `pnpm test:scripts`.
 
 ## `update-deps`: actualizar y validar las dependencias
@@ -106,12 +127,12 @@ revisá `git diff` antes.
 
 ```powershell
 # Windows (desde la raíz del repo)
-powershell -ExecutionPolicy Bypass -File .\scripts\windows\update-deps.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\dependencias\update-deps.ps1
 ```
 
 ```bash
 # Linux / macOS (desde la raíz del repo)
-bash scripts/linux/update-deps.sh
+bash scripts/dependencias/update-deps.sh
 ```
 
 ### El log

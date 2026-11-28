@@ -12,25 +12,35 @@ creado:
 ```
 com.example.backend
 ├── common/
-│   ├── bitacora/       # Registro de auditoría (ver BITACORA_BACKEND.md)
-│   ├── constant/       # Constantes compartidas entre módulos
+│   ├── bitacora/       # Escritura de la auditoría: service/, enums/, model/, repository/
 │   ├── idioma/         # Idioma de la petición y textos (ver IDIOMAS_BACKEND.md)
 │   ├── exception/       # BusinessException y jerarquía (ver EXCEPCIONES_BACKEND.md)
 │   ├── model/           # BaseModel (codigo UUID, timestamps, soft delete -- ver abajo)
 │   ├── response/        # ApiResponse, PageMeta (ver RESPONSES_BACKEND.md)
 │   └── util/            # Utilidades genéricas sin estado
 ├── config/               # Configuración de Spring (SecurityConfig, etc.)
-├── security/             # JWT, filtros, @CurrentUserId, UserDetailsServiceImpl
+├── security/
+│   ├── annotation/       # @CurrentUserId, @CurrentSessionId
+│   ├── resolver/         # El código que resuelve esas anotaciones
+│   ├── jwt/              # JwtService, JwtAuthenticationFilter, SesionRevocadaRegistry
+│   ├── handler/          # Respuestas 401 y 403
+│   └── (en la raíz)      # RateLimitFilter, RlsContext, UserDetailsServiceImpl
 └── features/
     └── {modulo}/         # ej. usuarios/, auth/, pedidos/
+        ├── constant/     # {Recurso}ErrorCodes, {Recurso}Acciones y otras constantes del módulo
         ├── controller/
         ├── enums/        # Enumeraciones de negocio del módulo (si aplica, ver nota abajo)
         ├── service/
         ├── repository/
         ├── dto/          # XxxRequest, XxxResponse
         ├── model/        # La clase mapeada a una tabla (sigue llevando @Entity de JPA, ver nota abajo)
-        └── mapper/       # (si el mapeo Model↔DTO no es trivial)
+        ├── mapper/       # (si el mapeo Model↔DTO no es trivial)
+        └── validation/   # Anotaciones de validación propias del módulo, con su validador
 ```
+
+Una carpeta se crea cuando tiene su primer archivo, nunca vacía "por las
+dudas". `common/constant/`, por ejemplo, aparece el día que dos módulos
+compartan una constante que no tenga un dueño mejor.
 
 Una clase que solo la usa un módulo vive **dentro de ese módulo**, no en
 `common/` — `common/` es exclusivamente para lo que de verdad comparten dos o
@@ -41,11 +51,12 @@ más features. No se mueve algo a `common/` "por las dudas".
 un campo del Model que solo puede tomar un set fijo de valores, persistido
 `@Enumerated(EnumType.STRING)` (nunca `ORDINAL`, mismo criterio que `Role`
 en [SEGURIDAD_AUTH_BACKEND.md](SEGURIDAD_AUTH_BACKEND.md#roles-y-permisos)).
-No confundir con `{Recurso}ErrorCodes` (el catálogo de códigos de error del
-módulo, ver [EXCEPCIONES_BACKEND.md](EXCEPCIONES_BACKEND.md)) — eso sigue
-sin una subcarpeta dedicada, vive suelto en la raíz del paquete del módulo.
-Si el módulo no tiene ninguna enumeración de negocio, la carpeta
-directamente no existe (no se crea vacía "por si acaso").
+
+Las constantes no son enumeraciones de negocio: `{Recurso}ErrorCodes` (el
+catálogo de errores, ver [EXCEPCIONES_BACKEND.md](EXCEPCIONES_BACKEND.md)),
+`{Recurso}Acciones` (los eventos de la bitácora) y otras como `RolNombres` van
+en `constant/`. Una clase con comportamiento (ej. `AuthCookies`) **no** es una
+constante: va con quien la usa.
 
 Todo Model de un módulo extiende
 [`common/model/BaseModel.java`](../../../projects/backend/src/main/java/com/example/backend/common/model/BaseModel.java):
@@ -89,11 +100,15 @@ con un doble real, algo que ya cubre Mockito sin necesidad de la interfaz).
 
 ## Anotaciones/decorators custom
 
-Las anotaciones custom del proyecto (ej. `@CurrentUserId`, ver
-[SEGURIDAD_AUTH_BACKEND.md](SEGURIDAD_AUTH_BACKEND.md)) se definen **una
-sola vez**, en `security/` si están ligadas a autenticación, o en
-`common/` si son de propósito general y no específicas de seguridad. No se
-redefine la misma anotación en dos módulos — si dos features necesitan
+Las anotaciones custom del proyecto se definen **una sola vez**:
+
+| Tipo de anotación | Dónde va |
+| --- | --- |
+| Ligada a autenticación (`@CurrentUserId`, ver [SEGURIDAD_AUTH_BACKEND.md](SEGURIDAD_AUTH_BACKEND.md)) | `security/annotation/`, con su resolver en `security/resolver/` |
+| De validación y usada por un solo módulo (`@MaximoBytes`) | `features/{modulo}/validation/` |
+| De propósito general y usada por dos o más módulos | `common/` |
+
+No se redefine la misma anotación en dos módulos — si dos features necesitan
 "lo mismo", es la misma anotación importada, no una copia.
 
 ## Estilo general

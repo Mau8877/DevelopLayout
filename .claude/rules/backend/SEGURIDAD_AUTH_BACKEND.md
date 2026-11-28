@@ -227,7 +227,7 @@ que **no se relajan**:
   ficticio, para igualar tiempos.
 - `UserDetailsServiceImpl` existe en `security/` y evita que Spring Boot cree
   su usuario en memoria; el flujo de login no lo invoca.
-- `JwtAuthenticationFilter` (`OncePerRequestFilter`, creado en
+- `security/jwt/JwtAuthenticationFilter` (`OncePerRequestFilter`, creado en
   `SecurityConfig`, no es `@Component`) valida el access token, consulta la
   lista de sesiones revocadas y puebla el `SecurityContext`.
 - El primer `SUPER_ADMIN` lo crea `AdminInicialInitializer` con
@@ -262,7 +262,7 @@ que va a hacer falta esa flexibilidad.
   fila de `UsuarioRol`.
 - Los nombres de rol conocidos por el sistema (ej. `"SUPER_ADMIN"`, `"USUARIO"`)
   se validan/usan como constantes de texto (`RolNombres` o similar, en
-  `features/usuarios/`), **no** como un enum Java cerrado — los roles son
+  `features/usuarios/constant/`), **no** como un enum Java cerrado — los roles son
   datos (filas de la tabla `rol`), administrables sin desplegar código
   nuevo.
 - El JWT lleva la lista de nombres de roles activos como claim (array de
@@ -301,7 +301,7 @@ public ResponseEntity<ApiResponse<List<PedidoResponse>>> misPedidos(@CurrentUser
 [CONVENCIONES_JAVA_BACKEND.md](CONVENCIONES_JAVA_BACKEND.md)).
 
 La anotación `@CurrentUserId` (y su `HandlerMethodArgumentResolver`) se
-define una sola vez en `security/` — ver
+define una sola vez en `security/annotation/` y `security/resolver/` — ver
 [CONVENCIONES_JAVA_BACKEND.md](CONVENCIONES_JAVA_BACKEND.md) para dónde vive
 exactamente el archivo, para no terminar con dos definiciones de la misma
 anotación en dos lugares distintos.

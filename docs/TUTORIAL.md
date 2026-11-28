@@ -95,13 +95,13 @@ Si usaste «Use this template», ya tienes ese primer commit: no borres `.git`.
 Primero mira qué va a cambiar, sin escribir nada:
 
 ```powershell
-node scripts/init-project.mjs --nombre "Acme Tienda" --slug acme-tienda --paquete com.acme --dry-run
+node scripts/proyecto/init-project.mjs --nombre "Acme Tienda" --slug acme-tienda --paquete com.acme --dry-run
 ```
 
 Si está bien, aplícalo:
 
 ```powershell
-node scripts/init-project.mjs --nombre "Acme Tienda" --slug acme-tienda --paquete com.acme
+node scripts/proyecto/init-project.mjs --nombre "Acme Tienda" --slug acme-tienda --paquete com.acme
 ```
 
 | Dato | Qué es |
@@ -373,6 +373,7 @@ si creaste un schema, la tabla de la regla de schemas.
 | `dto/` | `record` de entrada (sin campos que el cliente no deba decidir) y de salida |
 | `service/` | La lógica. Dentro de la transacción, primero `rlsContext.usarUsuario(codigo)`; sin eso no se ve ninguna fila |
 | `controller/` | Delgado: valida, llama al service y responde `ApiResponse`. El usuario sale de `@CurrentUserId` |
+| `constant/` | `NotaErrorCodes` y `NotaAcciones` (los eventos de la bitácora) |
 
 - Los listados van paginados (`common/util/Paginacion`).
 - Cada error tiene código (`ERR_NOT_01`) y se documenta en
