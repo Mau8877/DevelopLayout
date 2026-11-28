@@ -229,6 +229,7 @@ async function main(argumentos) {
       '--app.ratelimit.refresh-capacity=10000', '--app.ratelimit.refresh-refill-per-minute=10000',
       '--app.ratelimit.forgot-capacity=10000', '--app.ratelimit.forgot-refill-per-minute=10000',
       '--app.ratelimit.reset-capacity=10000', '--app.ratelimit.reset-refill-per-minute=10000',
+      '--app.ratelimit.change-capacity=10000', '--app.ratelimit.change-refill-per-minute=10000',
       // * La web de prueba va por HTTP en localhost.
       '--app.cookies.secure=false',
     ], {
