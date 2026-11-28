@@ -24,6 +24,33 @@ class PlatformKeyValueStore implements KeyValueStore {
   Future<void> delete(String key) => _storage.delete(key: key);
 }
 
+/// La elección de idioma. No es sensible y no comparte claves con los tokens:
+/// cerrar la sesión no la borra.
+class PreferenciaDeIdioma {
+  static const _clave = 'preferencia.idioma';
+
+  final KeyValueStore _store;
+
+  PreferenciaDeIdioma([KeyValueStore? store]) : _store = store ?? const PlatformKeyValueStore();
+
+  /// Si el almacenamiento falla, la app arranca igual con el idioma del teléfono.
+  Future<String?> leer() async {
+    try {
+      return await _store.read(_clave);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> guardar(String codigo) async {
+    try {
+      await _store.write(_clave, codigo);
+    } catch (_) {
+      // * La elección dura lo que dure la app abierta.
+    }
+  }
+}
+
 /// Guarda los tokens de sesión (access y refresh) del cliente mobile.
 ///
 /// * Solo almacenamiento seguro del sistema: nunca `shared_preferences`.

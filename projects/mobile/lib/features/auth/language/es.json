@@ -1,0 +1,44 @@
+{
+  "comun": {
+    "correo": "Correo",
+    "password": "Contraseña"
+  },
+  "validacion": {
+    "correoObligatorio": "El correo es obligatorio",
+    "correoInvalido": "El correo no es válido",
+    "passwordObligatoria": "La contraseña es obligatoria",
+    "passwordCorta": "La contraseña debe tener al menos 8 caracteres",
+    "passwordLarga": "La contraseña es demasiado larga"
+  },
+  "login": {
+    "titulo": "Iniciar sesión",
+    "entrar": "Iniciar sesión",
+    "olvidaste": "¿Olvidaste tu contraseña?"
+  },
+  "recuperar": {
+    "titulo": "Recuperar contraseña",
+    "enviado": "Si hay una cuenta con ese correo, te enviamos un enlace para restablecer la contraseña. Ábrelo desde el correo: se abre en el navegador. Revisa también la carpeta de correo no deseado.",
+    "enviar": "Enviar enlace",
+    "volver": "Volver a iniciar sesión"
+  },
+  "sesiones": {
+    "titulo": "Mis sesiones",
+    "cerrarDemas": "Cerrar todas las demás",
+    "avisoDemas": "Los demás dispositivos perderán el acceso de inmediato. Esta sesión sigue abierta.",
+    "tituloCerrar": "Cerrar sesión",
+    "avisoUna": "Ese dispositivo perderá el acceso de inmediato.",
+    "cargarMas": "Cargar más",
+    "actual": "Esta sesión",
+    "cerrarEsta": "Cerrar esta otra sesión",
+    "movil": "Móvil",
+    "web": "Web",
+    "ipDesconocida": "IP desconocida",
+    "iniciada": "Iniciada: {{fecha}}",
+    "ultimoUso": "Último uso: {{fecha}}"
+  },
+  "dispositivo": {
+    "appMovil": "App móvil",
+    "desconocido": "Dispositivo desconocido",
+    "navegadorEn": "{{navegador}} en {{sistema}}"
+  }
+}

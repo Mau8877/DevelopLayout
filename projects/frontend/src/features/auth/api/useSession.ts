@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/store'
-import type { UsuarioSesion } from '../types/auth'
+import type { UsuarioSesion } from '../types'
 import { authKeys } from './keys'
 
 export async function fetchSession(): Promise<UsuarioSesion> {

@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 
 import 'api_client.dart';
 
-const _mensajeGenerico = 'Ocurrió un error inesperado. Intentá de nuevo.';
+const _mensajeGenerico = 'shared:cliente.desconocido';
 
 /// Extrae la [ApiException] de un error, venga sola o envuelta en un [DioException].
 ApiException? apiExceptionDe(Object error) {
@@ -13,7 +13,8 @@ ApiException? apiExceptionDe(Object error) {
   return null;
 }
 
-/// Convierte cualquier error en un texto apto para el usuario.
+/// Convierte cualquier error en un mensaje apto para el usuario: el del servidor
+/// o una clave de idioma. La pantalla lo muestra con `context.traducir`.
 ///
 /// * Nunca devuelve `toString()` de una excepción ni el body de la respuesta.
 String mensajeDeError(Object error) {

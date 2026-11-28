@@ -9,11 +9,8 @@ import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/error_snack_bar.dart';
 import '../providers/auth_provider.dart';
 import 'login_screen.dart' show validarCorreo;
-
-/// No afirma que se envió: la app no sabe (ni debe saber) si la cuenta existe.
-const mensajeEnlacePedido =
-    'Si hay una cuenta con ese correo, te enviamos un enlace para restablecer la contraseña. '
-    'Abrilo desde el correo: se abre en el navegador. Revisá también la carpeta de spam.';
+import '../../../shared/language/app_texts.dart';
+import '../../../shared/widgets/selector_idioma.dart';
 
 /// Pide el enlace de recuperación. El restablecimiento se completa en la web.
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
@@ -42,7 +39,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       await ref.read(authServiceProvider).solicitarRecuperacion(_emailController.text.trim());
       if (mounted) setState(() => _pedido = true);
     } catch (error) {
-      if (mounted) mostrarError(context, mensajeDeError(error));
+      if (mounted) mostrarError(context, context.traducir(mensajeDeError(error)));
     } finally {
       if (mounted) setState(() => _enviando = false);
     }
@@ -51,6 +48,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(actions: const [SelectorIdioma()]),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -64,18 +62,19 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Recuperar contraseña',
+                      context.t('auth:recuperar.titulo'),
                       style: Theme.of(context).textTheme.headlineMedium,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
+                    // * No afirma que se envió: la app no sabe (ni debe saber) si la cuenta existe.
                     if (_pedido)
-                      const Text(mensajeEnlacePedido, textAlign: TextAlign.center)
+                      Text(context.t('auth:recuperar.enviado'), textAlign: TextAlign.center)
                     else ...[
                       AppTextField(
-                        label: 'Correo',
+                        label: context.t('auth:comun.correo'),
                         controller: _emailController,
-                        validator: validarCorreo,
+                        validator: context.validador(validarCorreo),
                         keyboardType: TextInputType.emailAddress,
                         autofillHints: const [AutofillHints.username],
                         textInputAction: TextInputAction.done,
@@ -83,12 +82,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         onFieldSubmitted: (_) => _enviar(),
                       ),
                       const SizedBox(height: 24),
-                      AppButton(texto: 'Enviar enlace', cargando: _enviando, onPressed: _enviar),
+                      AppButton(texto: context.t('auth:recuperar.enviar'), cargando: _enviando, onPressed: _enviar),
                     ],
                     const SizedBox(height: 16),
                     TextButton(
                       onPressed: () => context.go(rutaLogin),
-                      child: const Text('Volver a iniciar sesión'),
+                      child: Text(context.t('auth:recuperar.volver')),
                     ),
                   ],
                 ),

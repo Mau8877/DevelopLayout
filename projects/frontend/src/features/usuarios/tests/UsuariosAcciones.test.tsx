@@ -2,8 +2,8 @@ import { screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { toastError, toastSuccess, toastWarning } from '@/components/ui/toast'
 import { apiClient, ApiError } from '@/store'
-import { UsuariosScreen } from '../screens/UsuariosScreen'
-import type { Usuario } from '../types/usuario'
+import { UsuariosScreen } from '../screens'
+import type { Usuario } from '../types'
 import { montar, pagina, usuario } from './soporte'
 
 vi.mock('@/components/ui/toast', () => ({
@@ -16,7 +16,7 @@ vi.mock('@/components/ui/toast', () => ({
 function servidor(filas: Usuario[], accion: () => Promise<unknown> = () => Promise.resolve({ data: null })) {
   return vi
     .spyOn(apiClient, 'post')
-    .mockImplementation((url) => (url === '/usuarios/buscar' ? Promise.resolve(pagina(filas)) : accion()) as never)
+    .mockImplementation((url) => (url === '/users/search' ? Promise.resolve(pagina(filas)) : accion()) as never)
 }
 
 async function enLaTabla(filas: Usuario[], accion?: () => Promise<unknown>) {
@@ -26,7 +26,7 @@ async function enLaTabla(filas: Usuario[], accion?: () => Promise<unknown>) {
   return { post, ...montado, tabla: within(screen.getByRole('table')) }
 }
 
-const acciones = (post: ReturnType<typeof servidor>) => post.mock.calls.filter(([url]) => url !== '/usuarios/buscar')
+const acciones = (post: ReturnType<typeof servidor>) => post.mock.calls.filter(([url]) => url !== '/users/search')
 const boton = (tabla: ReturnType<typeof within>, name: string) => tabla.queryByRole('button', { name })
 
 describe('UsuariosScreen: acciones', () => {
@@ -76,7 +76,7 @@ describe('UsuariosScreen: acciones', () => {
     await user.click(within(dialogo).getByRole('button', { name: 'Desactivar' }))
 
     await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith('Usuario desactivado'))
-    expect(acciones(post)).toEqual([['/usuarios/u-1/desactivar']])
+    expect(acciones(post)).toEqual([['/users/u-1/deactivate']])
     expect(post.mock.calls.length).toBeGreaterThan(consultas + 1)
   })
 
@@ -85,7 +85,7 @@ describe('UsuariosScreen: acciones', () => {
 
     await user.click(boton(tabla, 'Reactivar')!)
 
-    await waitFor(() => expect(acciones(post)).toEqual([['/usuarios/u-1/reactivar']]))
+    await waitFor(() => expect(acciones(post)).toEqual([['/users/u-1/reactivate']]))
   })
 
   it('avisa si el correo reenviado no salió', async () => {

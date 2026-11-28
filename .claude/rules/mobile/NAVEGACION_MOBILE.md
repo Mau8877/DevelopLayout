@@ -28,6 +28,14 @@ Mismo concepto que el guard de rutas del frontend web (ver
 la lógica de "¿puede entrar acá?" vive en **un solo lugar**, no se
 reimplementa un `if` de sesión al principio de cada pantalla.
 
+## Rutas en inglés
+
+Las rutas de `go_router` van en inglés y en kebab-case (`/my-sessions`), igual
+que en la web. El título de la pantalla sale de los archivos de idioma.
+
+> La migración de lo escrito antes es
+> [HU-INICIAL-Convenciones](../../../docs/HistoriasDeUsuario/HU-INICIAL-Convenciones.md).
+
 ## Fuente del estado de sesión
 
 El `redirect` necesita leer si hay sesión válida — esto se resuelve contra

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import {
   MenuIcon,
   LayoutDashboardIcon,
@@ -10,7 +11,7 @@ import {
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
-import { runThemeTransition } from '@/utils/runThemeTransition'
+import { runThemeTransition } from '@/utils'
 import { useUiStore } from '@/store'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -27,6 +28,7 @@ import {
 import { Breadcrumbs } from './Breadcrumbs'
 import { HeaderClock } from './HeaderClock'
 import { NotificationsMenu } from './NotificationsMenu'
+import { SelectorIdioma } from './SelectorIdioma'
 import type { LayoutUser, NotificationsController } from './types'
 
 function iniciales(nombre: string) {
@@ -83,6 +85,7 @@ const headerButtonClass =
   'text-header-foreground hover:bg-header-foreground/15 hover:text-header-foreground focus-visible:ring-header-foreground/40'
 
 export function AppHeader({ appName, user, notifications = EMPTY_NOTIFICATIONS, onLogout }: AppHeaderProps) {
+  const { t } = useTranslation('shared')
   const theme = useUiStore((s) => s.theme)
   const toggleTheme = useUiStore((s) => s.toggleTheme)
 
@@ -90,7 +93,7 @@ export function AppHeader({ appName, user, notifications = EMPTY_NOTIFICATIONS, 
     <header className="flex h-16 shrink-0 items-center gap-3 bg-header px-4 text-header-foreground">
       <Button variant="ghost" size="icon-sm" className={headerButtonClass} onClick={toggleSidebar}>
         <MenuIcon />
-        <span className="sr-only">Alternar sidebar</span>
+        <span className="sr-only">{t('cabecera.alternarMenu')}</span>
       </Button>
 
       <div className="flex items-center gap-2.5">
@@ -104,6 +107,7 @@ export function AppHeader({ appName, user, notifications = EMPTY_NOTIFICATIONS, 
 
       <div className="ml-auto flex items-center gap-3">
         <HeaderClock className="hidden text-xs text-header-foreground/60 xl:block" />
+        <SelectorIdioma className={headerButtonClass} compacto />
         <NotificationsMenu notifications={notifications} triggerClassName={headerButtonClass} />
 
         <DropdownMenu>
@@ -130,27 +134,27 @@ export function AppHeader({ appName, user, notifications = EMPTY_NOTIFICATIONS, 
               <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <UserIcon />
-                Mi perfil
+                {t('cabecera.miPerfil')}
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <KeyRoundIcon />
-                Cambiar contraseña
+                {t('cabecera.cambiarPassword')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 closeOnClick={false}
                 onClick={(event) => runThemeTransition(event.clientX, event.clientY, toggleTheme)}
               >
                 {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-                Cambiar tema
+                {t('cabecera.cambiarTema')}
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <SettingsIcon />
-                Configuración
+                {t('cabecera.configuracion')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" onClick={onLogout}>
                 <LogOutIcon />
-                Cerrar sesión
+                {t('cabecera.cerrarSesion')}
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>

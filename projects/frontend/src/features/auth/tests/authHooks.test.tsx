@@ -3,9 +3,9 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { apiClient, ApiError } from '@/store'
-import { authKeys } from '../api/keys'
-import { useLogin } from '../api/useLogin'
-import { useSession } from '../api/useSession'
+import { authKeys } from '../api'
+import { useLogin } from '../api'
+import { useSession } from '../api'
 
 const usuario = { codigo: 'u-1', email: 'a@b.co', roles: ['USUARIO'] }
 

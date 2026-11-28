@@ -1,5 +1,6 @@
 package com.example.backend.features.auth.controller;
 
+import com.example.backend.common.idioma.Mensajes;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,24 +31,25 @@ import jakarta.validation.Valid;
 public class SesionAdminController {
 
     private final SesionAdminService sesiones;
+    private final Mensajes mensajes;
 
-    @PostMapping("/sesiones/buscar")
+    @PostMapping("/sessions/search")
     public ResponseEntity<ApiResponse<List<SesionResponse>>> buscar(@Valid @RequestBody BuscarSesionesRequest request) {
         Page<SesionResponse> pagina = sesiones.listarPorEmail(request.email(),
                 Paginacion.de(request.page(), request.pageSize()));
-        return ResponseEntity.ok(ApiResponse.successList(pagina.getContent(), "Sesiones obtenidas",
+        return ResponseEntity.ok(ApiResponse.successList(pagina.getContent(), mensajes.de("auth.exito.sesionesObtenidas"),
                 PageMeta.de(pagina)));
     }
 
-    @DeleteMapping("/sesiones/{codigo}")
+    @DeleteMapping("/sessions/{codigo}")
     public ResponseEntity<ApiResponse<Void>> cerrar(@PathVariable UUID codigo) {
         sesiones.cerrar(codigo);
-        return ResponseEntity.ok(ApiResponse.success(null, "Sesión cerrada"));
+        return ResponseEntity.ok(ApiResponse.success(null, mensajes.de("auth.exito.sesionCerrada")));
     }
 
-    @PostMapping("/usuarios/{codigoUsuario}/sesiones/cerrar")
+    @PostMapping("/users/{codigoUsuario}/sessions/revoke")
     public ResponseEntity<ApiResponse<Void>> cerrarTodas(@PathVariable UUID codigoUsuario) {
         int cerradas = sesiones.cerrarTodas(codigoUsuario);
-        return ResponseEntity.ok(ApiResponse.success(null, "Sesiones cerradas: " + cerradas));
+        return ResponseEntity.ok(ApiResponse.success(null, mensajes.de("auth.exito.sesionesCerradas", cerradas)));
     }
 }

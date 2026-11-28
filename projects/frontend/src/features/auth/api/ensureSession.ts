@@ -1,6 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { ApiError } from '@/store'
-import type { UsuarioSesion } from '../types/auth'
+import type { UsuarioSesion } from '../types'
 import { authKeys } from './keys'
 import { fetchSession } from './useSession'
 

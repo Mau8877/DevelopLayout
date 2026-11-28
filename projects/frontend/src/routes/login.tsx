@@ -6,7 +6,7 @@ export const Route = createFileRoute('/login')({
   // Si ya hay sesión, no tiene sentido mostrar el login.
   beforeLoad: async () => {
     if (await ensureSession(queryClient)) {
-      throw redirect({ to: '/panel' })
+      throw redirect({ to: '/dashboard' })
     }
   },
   component: LoginScreen,

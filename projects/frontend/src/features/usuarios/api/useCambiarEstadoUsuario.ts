@@ -4,7 +4,7 @@ import { usuariosKeys } from './keys'
 
 export interface CambioDeEstado {
   codigo: string
-  accion: 'desactivar' | 'reactivar'
+  accion: 'deactivate' | 'reactivate'
 }
 
 export function useCambiarEstadoUsuario() {
@@ -12,7 +12,7 @@ export function useCambiarEstadoUsuario() {
 
   return useMutation({
     mutationFn: async ({ codigo, accion }: CambioDeEstado) => {
-      await apiClient.post(`/usuarios/${codigo}/${accion}`)
+      await apiClient.post(`/users/${codigo}/${accion}`)
     },
     // * También si falla: un 404 o un 409 indican que la lista quedó vieja.
     onSettled: () => queryClient.invalidateQueries({ queryKey: usuariosKeys.lists() }),

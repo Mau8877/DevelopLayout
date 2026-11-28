@@ -22,10 +22,12 @@ lib/
 │   ├── routing/     # GoRouter único con el redirect global según la sesión (ver NAVEGACION_MOBILE.md)
 │   ├── storage/     # SecureTokenStorage: tokens en el almacenamiento seguro del sistema
 │   ├── logging/     # AppLogger: único punto de log, solo en debug (ver ERRORES_LOGGING_MOBILE.md)
-│   └── theme/       # AppColors/AppTheme, con paleta neutra de placeholder
+│   ├── theme/       # AppColors/AppTheme, con paleta neutra de placeholder
+│   └── marca.dart   # El nombre del producto (lo cambia project:init)
 ├── layouts/
 │   └── {rol}/       # Shell por rol (AdminShell, UsuarioShell), con "Cerrar sesión"
 ├── shared/
+│   ├── language/    # Carga de textos y textos comunes (ver IDIOMAS_MOBILE.md)
 │   └── widgets/     # Widgets genéricos, sin dominio (AppButton, EstadoError, pedirConfirmacion...)
 ├── features/
 │   ├── auth/        # Referencia real: models, providers, screens, services
@@ -60,6 +62,7 @@ esta misma forma:
 
 ```
 lib/features/usuarios/
+├── language/     # Textos de ESTA feature: es.json y en.json (ver IDIOMAS_MOBILE.md)
 ├── models/       # DTOs Dart (fromJson) del JSON de request/response de la API
 ├── providers/    # Riverpod: AsyncNotifier/FutureProvider (datos) + *UiProvider (estado de UI)
 ├── screens/      # Pantallas completas que apunta el GoRouter de core/routing/

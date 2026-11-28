@@ -6,7 +6,7 @@ export function useCerrarSesionAdmin() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (codigo: string) => apiClient.delete(`/admin/sesiones/${codigo}`),
+    mutationFn: (codigo: string) => apiClient.delete(`/admin/sessions/${codigo}`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: authKeys.sesionesAdmin }),
   })
 }

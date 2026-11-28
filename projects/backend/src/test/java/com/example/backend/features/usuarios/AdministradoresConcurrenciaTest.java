@@ -27,7 +27,7 @@ class AdministradoresConcurrenciaTest extends AdminUsuariosIntegrationTest {
     private Callable<Integer> cambio(CyclicBarrier salida, Cuenta actor, UUID objetivo, String accion) {
         return () -> {
             salida.await(10, TimeUnit.SECONDS);
-            return mvc.perform(como(actor, post("/api/v1/usuarios/" + objetivo + "/" + accion)))
+            return mvc.perform(como(actor, post("/api/v1/users/" + objetivo + "/" + accion)))
                     .andReturn().getResponse().getStatus();
         };
     }
@@ -45,7 +45,7 @@ class AdministradoresConcurrenciaTest extends AdminUsuariosIntegrationTest {
     private Callable<Integer> quitarRol(CyclicBarrier salida, Cuenta actor, UUID objetivo) {
         return () -> {
             salida.await(10, TimeUnit.SECONDS);
-            return mvc.perform(como(actor, conJson(put("/api/v1/usuarios/" + objetivo + "/roles"),
+            return mvc.perform(como(actor, conJson(put("/api/v1/users/" + objetivo + "/roles"),
                     "{\"roles\":[\"USUARIO\"]}"))).andReturn().getResponse().getStatus();
         };
     }
@@ -84,7 +84,7 @@ class AdministradoresConcurrenciaTest extends AdminUsuariosIntegrationTest {
 
             List<Integer> estados = aLaVez(List.of(
                     quitarRol(salida, uno, otro.codigo()),
-                    cambio(salida, otro, uno.codigo(), "desactivar")));
+                    cambio(salida, otro, uno.codigo(), "deactivate")));
 
             assertThat(estados).containsExactlyInAnyOrder(200, 401);
             assertThat(administradoresEntre(uno, otro)).isEqualTo(1);
@@ -125,8 +125,8 @@ class AdministradoresConcurrenciaTest extends AdminUsuariosIntegrationTest {
             CyclicBarrier salida = new CyclicBarrier(2);
 
             List<Integer> estados = aLaVez(List.of(
-                    cambio(salida, uno, otro.codigo(), "desactivar"),
-                    cambio(salida, otro, uno.codigo(), "desactivar")));
+                    cambio(salida, uno, otro.codigo(), "deactivate"),
+                    cambio(salida, otro, uno.codigo(), "deactivate")));
 
             assertThat(estados).containsExactlyInAnyOrder(200, 401);
             assertThat(List.of(columna(uno.codigo(), "estado"), columna(otro.codigo(), "estado")))

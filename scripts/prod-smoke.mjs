@@ -212,9 +212,10 @@ async function esperarBackend(pedir, segundos = 300) {
 }
 
 async function comprobarServicios(compose) {
+  // * Nombres completos, sin armarlos: así `project:init` los puede renombrar.
   const unaVez = ['minio-permisos', 'minio-init'];
-  for (const nombre of unaVez) {
-    comprobar(docker('wait', `app-${nombre}`) === '0', `${nombre} terminó con éxito`);
+  for (const contenedor of ['app-minio-permisos', 'app-minio-init']) {
+    comprobar(docker('wait', contenedor) === '0', `${contenedor} terminó con éxito`);
   }
   const texto = compose(['ps', '-a', '--format', 'json'], { capturar: true }).salida.trim();
   const filas = texto.startsWith('[') ? JSON.parse(texto) : texto.split('\n').map((l) => JSON.parse(l));
@@ -335,13 +336,13 @@ async function comprobarUsuarios(pedir, entorno, compose) {
     headers: { ...comoMobile.headers, Authorization: `Bearer ${sesion.json.data.accessToken}` },
   };
   const email = 'invitada@e2e.test';
-  const alta = await pedir('/api/v1/usuarios', { method: 'POST', body: { email, roles: ['USUARIO'] }, ...admin });
+  const alta = await pedir('/api/v1/users', { method: 'POST', body: { email, roles: ['USUARIO'] }, ...admin });
   comprobar(
     alta.status === 201 && alta.json?.data?.invitacionEnviada === false,
     'el alta crea la cuenta y avisa que el correo no salió',
     `${alta.status} ${alta.texto}`,
   );
-  const listado = await pedir('/api/v1/usuarios/buscar', { method: 'POST', body: { search: email }, ...admin });
+  const listado = await pedir('/api/v1/users/search', { method: 'POST', body: { search: email }, ...admin });
   comprobar(
     listado.json?.data?.length === 1 && listado.json.data[0].invitacionPendiente === true,
     'la cuenta aparece con la invitación pendiente',
@@ -350,14 +351,14 @@ async function comprobarUsuarios(pedir, entorno, compose) {
     method: 'POST', body: { email, password: 'ClaveCualquiera123' }, ...comoMobile, // gitleaks:allow
   });
   comprobar(entrada.status === 401, 'la cuenta pendiente no puede iniciar sesión', `status ${entrada.status}`);
-  const cuenta = `/api/v1/usuarios/${alta.json.data.usuario.codigo}`;
+  const cuenta = `/api/v1/users/${alta.json.data.usuario.codigo}`;
   const cambio = await pedir(`${cuenta}/roles`, { method: 'PUT', body: { roles: ['USUARIO', 'SUPER_ADMIN'] }, ...admin });
   comprobar(
     cambio.status === 200 && cambio.json?.data?.roles?.join() === 'SUPER_ADMIN,USUARIO',
     'se pueden cambiar los roles a través del proxy',
     `${cambio.status} ${cambio.texto}`,
   );
-  const baja = await pedir(`${cuenta}/desactivar`, { method: 'POST', ...admin });
+  const baja = await pedir(`${cuenta}/deactivate`, { method: 'POST', ...admin });
   comprobar(baja.status === 200 && baja.json?.data?.estado === 'INACTIVO', 'se puede desactivar', `status ${baja.status}`);
   const salud = docker('inspect', '-f', '{{.State.Health.Status}} {{.RestartCount}}', 'app-backend');
   const health = compose(['exec', '-T', 'backend', 'wget', '-qO-', 'http://localhost:8080/health'], { capturar: true }).salida;

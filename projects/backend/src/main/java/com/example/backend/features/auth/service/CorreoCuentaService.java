@@ -1,7 +1,9 @@
 package com.example.backend.features.auth.service;
 
+import com.example.backend.common.idioma.Mensajes;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Locale;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -25,44 +27,34 @@ public class CorreoCuentaService {
     private static final Set<String> HOSTS_LOCALES = Set.of("localhost", "127.0.0.1");
 
     private final JavaMailSender mailSender;
+    private final Mensajes mensajes;
     private final String remitente;
     private final String urlWeb;
 
     public CorreoCuentaService(JavaMailSender mailSender,
             @Value("${spring.mail.host:}") String servidor,
             @Value("${app.mail.from:}") String remitente,
-            @Value("${app.frontend-base-url:}") String urlWeb) {
+            @Value("${app.frontend-base-url:}") String urlWeb,
+            Mensajes mensajes) {
         exigir(servidor, "SPRING_MAIL_HOST (servidor SMTP)");
         exigir(remitente, "MAIL_FROM (remitente de los correos)");
         exigir(urlWeb, "APP_FRONTEND_BASE_URL (dirección de la web)");
         this.mailSender = mailSender;
+        this.mensajes = mensajes;
         this.remitente = remitente.trim();
         this.urlWeb = validarUrl(urlWeb.trim());
     }
 
-    public void enviarRecuperacion(String destinatario, String token) {
-        enviar(destinatario, "Restablecé tu contraseña", """
-                Recibimos un pedido para restablecer la contraseña de tu cuenta.
-
-                Abrí este enlace para elegir una nueva. Sirve una sola vez y vence en 30 minutos:
-
-                %s/reset-password#token=%s
-
-                Si no fuiste vos, ignorá este correo: tu contraseña no cambió.
-                """.formatted(urlWeb, token));
+    public void enviarRecuperacion(String destinatario, String token, Locale idioma) {
+        enviarPlantilla(destinatario, "auth.correo.recuperacion", urlWeb + "/reset-password#token=" + token, idioma);
     }
 
-    public void enviarInvitacion(String destinatario, String token) {
-        enviar(destinatario, "Te invitaron a usar el sistema", """
-                Un administrador creó una cuenta para vos.
+    public void enviarInvitacion(String destinatario, String token, Locale idioma) {
+        enviarPlantilla(destinatario, "auth.correo.invitacion", urlWeb + "/accept-invitation#token=" + token, idioma);
+    }
 
-                Abrí este enlace para elegir tu contraseña. Sirve una sola vez y vence en 24 horas:
-
-                %s/accept-invitation#token=%s
-
-                Si venció, pedile al administrador que te envíe otra invitación.
-                Si no esperabas este correo, ignoralo.
-                """.formatted(urlWeb, token));
+    private void enviarPlantilla(String destinatario, String clave, String enlace, Locale idioma) {
+        enviar(destinatario, mensajes.en(idioma, clave + ".asunto"), mensajes.en(idioma, clave + ".cuerpo", enlace));
     }
 
     private void enviar(String destinatario, String asunto, String texto) {

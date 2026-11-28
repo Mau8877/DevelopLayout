@@ -13,21 +13,26 @@ globs: projects/backend/**/*
   [SEGURIDAD_AUTH_BACKEND.md](SEGURIDAD_AUTH_BACKEND.md) y
   [LOGGING_BACKEND.md](LOGGING_BACKEND.md) para el resto de excepciones de
   seguridad).
-- Recursos en **plural** y **kebab-case**: `/api/v1/usuarios`,
-  `/api/v1/menus-semanales`, `/api/v1/tipos-comida`. Nunca camelCase ni
-  snake_case en la URL.
+- **Las URL van en inglés** (recursos, acciones y nombres de filtros), aunque el
+  código, la base de datos y los campos del JSON sigan en español.
+- Recursos en **plural** y **kebab-case**: `/api/v1/users`,
+  `/api/v1/weekly-menus`, `/api/v1/food-types`. Nunca camelCase ni snake_case en
+  la URL. (Un recurso que no es una colección se nombra en singular:
+  `/api/v1/audit-log`.)
+  > La migración de lo escrito antes es
+  > [HU-INICIAL-Convenciones](../../../docs/HistoriasDeUsuario/HU-INICIAL-Convenciones.md).
 - Recursos anidados solo cuando la relación es de pertenencia real (el hijo
-  no existe sin el padre): `/api/v1/pedidos/{pedidoId}/items`. Si el recurso
+  no existe sin el padre): `/api/v1/orders/{orderCode}/items`. Si el recurso
   tiene entidad propia y se puede consultar solo, va en su propia raíz con un
-  filtro (`/api/v1/items?filter[pedidoId]=123`), no anidado.
+  filtro (`/api/v1/items?filter[orderCode]=...`), no anidado.
 - Acciones que no mapean a un CRUD directo (ej. "aprobar pedido") van como
-  sub-recurso verbo en infinitivo: `POST /api/v1/pedidos/{id}/aprobar`. No se
-  usan verbos como query param (`?action=aprobar`).
+  sub-recurso con un verbo: `POST /api/v1/orders/{code}/approve`. No se
+  usan verbos como query param (`?action=approve`).
 
 ## Query params de listados (obligatorio en TODO `GET` de colección)
 
 ```
-GET /api/v1/usuarios?page=1&pageSize=20&search=texto&filter[rol]=admin
+GET /api/v1/orders?page=1&pageSize=20&search=texto&filter[status]=PAGADO
 ```
 
 | Param | Obligatorio | Default | Descripción |
@@ -35,7 +40,7 @@ GET /api/v1/usuarios?page=1&pageSize=20&search=texto&filter[rol]=admin
 | `page` | No | `1` | Página 1-indexed |
 | `pageSize` | No | `20` | Tamaño de página, modificable por query param |
 | `search` | No | — | Búsqueda de texto libre (campos definidos por cada endpoint) |
-| `filter[campo]` | No | — | Filtro exacto por campo (`filter[rol]=admin`, se pueden repetir varios `filter[...]`) |
+| `filter[campo]` | No | — | Filtro exacto por campo (`filter[status]=PAGADO`, se pueden repetir varios `filter[...]`) |
 
 - **Ningún endpoint de listado puede omitir la paginación**, ni siquiera si
   hoy tiene pocos registros — se pagina desde el primer día.
@@ -43,7 +48,7 @@ GET /api/v1/usuarios?page=1&pageSize=20&search=texto&filter[rol]=admin
   bloque `meta` se arma con `PageMeta.de(pagina)`.
 - **Un dato personal no va en la URL** (queda en los logs del proxy). Un listado
   que se busca por correo o similar es un `POST .../buscar` con el criterio y la
-  paginación en el body (ej. `POST /api/v1/admin/sesiones/buscar`).
+  paginación en el body (ej. `POST /api/v1/admin/sessions/search`).
 - El response correspondiente sigue el contrato de
   [RESPONSES_BACKEND.md](RESPONSES_BACKEND.md) (`data` array + bloque `meta`).
 - Si un listado necesita un `sort`/orden, no está definido todavía en este

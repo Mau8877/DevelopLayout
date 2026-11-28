@@ -28,7 +28,7 @@ class EstadoUsuarioControllerTest extends InvitacionesIntegrationTest {
     private PasswordResetTokenService recuperaciones;
 
     private static String ruta(UUID codigo, String accion) {
-        return "/api/v1/usuarios/" + codigo + "/" + accion;
+        return "/api/v1/users/" + codigo + "/" + accion;
     }
 
     private ResultActions pedir(Cuenta actor, UUID codigo, String accion) throws Exception {
@@ -45,7 +45,7 @@ class EstadoUsuarioControllerTest extends InvitacionesIntegrationTest {
         String recuperacion = recuperaciones.emitir(cuenta.codigo());
         String invitacion = invitaciones.emitir(cuenta.codigo());
 
-        pedir(admin, cuenta.codigo(), "desactivar")
+        pedir(admin, cuenta.codigo(), "deactivate")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.estado").value("INACTIVO"))
                 .andExpect(jsonPath("$.data.roles[0]").value("USUARIO"))
@@ -59,7 +59,7 @@ class EstadoUsuarioControllerTest extends InvitacionesIntegrationTest {
         assertThat(invitaciones.consultar(invitacion)).isEmpty();
         String enlaceTardio = recuperaciones.emitir(cuenta.codigo());
 
-        pedir(admin, cuenta.codigo(), "reactivar")
+        pedir(admin, cuenta.codigo(), "reactivate")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.estado").value("ACTIVO"));
 
@@ -76,9 +76,9 @@ class EstadoUsuarioControllerTest extends InvitacionesIntegrationTest {
     void repetirNoRegistraOtroEvento() throws Exception {
         Cuenta cuenta = crearCuenta("repetida", "USUARIO");
 
-        pedir(admin, cuenta.codigo(), "reactivar").andExpect(status().isOk());
-        pedir(admin, cuenta.codigo(), "desactivar").andExpect(status().isOk());
-        pedir(admin, cuenta.codigo(), "desactivar").andExpect(status().isOk());
+        pedir(admin, cuenta.codigo(), "reactivate").andExpect(status().isOk());
+        pedir(admin, cuenta.codigo(), "deactivate").andExpect(status().isOk());
+        pedir(admin, cuenta.codigo(), "deactivate").andExpect(status().isOk());
 
         assertThat(eventosSobre("USUARIOS_USUARIO_REACTIVADO", cuenta.codigo())).isZero();
         assertThat(eventosSobre("USUARIOS_USUARIO_DESACTIVADO", cuenta.codigo())).isEqualTo(1);
@@ -88,20 +88,20 @@ class EstadoUsuarioControllerTest extends InvitacionesIntegrationTest {
     void unaCuentaPendienteSigueSiendoloTrasDesactivarYReactivar() throws Exception {
         UUID codigo = codigoCreado(invitar("pend." + marca + "@test.local"));
 
-        pedir(admin, codigo, "desactivar").andExpect(status().isOk());
-        pedir(admin, codigo, "reactivar").andExpect(jsonPath("$.data.invitacionPendiente").value(true));
+        pedir(admin, codigo, "deactivate").andExpect(status().isOk());
+        pedir(admin, codigo, "reactivate").andExpect(jsonPath("$.data.invitacionPendiente").value(true));
 
         assertThat(invitaciones.consultar(ultimoToken())).isEmpty();
     }
 
     @Test
     void nadieSeDesactivaASiMismo_yUnCodigoInexistenteEs404() throws Exception {
-        pedir(admin, admin.codigo(), "desactivar")
+        pedir(admin, admin.codigo(), "deactivate")
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error").value("ERR_US_04"));
         assertThat(columna(admin.codigo(), "estado")).isEqualTo("ACTIVO");
 
-        for (String accion : new String[] {"desactivar", "reactivar"}) {
+        for (String accion : new String[] {"deactivate", "reactivate"}) {
             pedir(admin, UUID.randomUUID(), accion).andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.error").value("ERR_US_01"));
         }
@@ -111,7 +111,7 @@ class EstadoUsuarioControllerTest extends InvitacionesIntegrationTest {
     void sinSesion401_sinRol403_sinCsrf403_ySinSesionVigente401() throws Exception {
         Cuenta objetivo = crearCuenta("objetivo", "USUARIO");
         Cuenta comun = conSesion(crearCuenta("comun", "USUARIO"));
-        for (String accion : new String[] {"desactivar", "reactivar"}) {
+        for (String accion : new String[] {"deactivate", "reactivate"}) {
             mvc.perform(post(ruta(objetivo.codigo(), accion)).with(csrf())).andExpect(status().isUnauthorized());
             pedir(comun, objetivo.codigo(), accion).andExpect(status().isForbidden());
             mvc.perform(post(ruta(objetivo.codigo(), accion))
@@ -120,7 +120,7 @@ class EstadoUsuarioControllerTest extends InvitacionesIntegrationTest {
         dueno().update("UPDATE authentication.sesion SET estado = 'REVOCADA' WHERE usuario_codigo = ?",
                 admin.codigo());
 
-        pedir(admin, objetivo.codigo(), "desactivar").andExpect(status().isUnauthorized());
+        pedir(admin, objetivo.codigo(), "deactivate").andExpect(status().isUnauthorized());
 
         assertThat(columna(objetivo.codigo(), "estado")).isEqualTo("ACTIVO");
     }

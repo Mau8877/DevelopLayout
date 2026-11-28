@@ -1,4 +1,4 @@
-import type { components } from '@/shared/api/schema'
+import type { components } from '@/shared/api'
 
 /** Cuenta vista por el administrador (contrato OpenAPI). */
 export type Usuario = Required<components['schemas']['UsuarioResponse']>

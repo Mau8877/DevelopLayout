@@ -27,7 +27,7 @@ public @interface MaximoBytes {
 
     int value();
 
-    String message() default "La contraseña es demasiado larga";
+    String message() default "{auth.validacion.passwordMaximo}";
 
     Class<?>[] groups() default {};
 

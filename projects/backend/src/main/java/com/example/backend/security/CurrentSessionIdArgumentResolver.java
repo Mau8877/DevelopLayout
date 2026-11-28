@@ -29,6 +29,6 @@ public class CurrentSessionIdArgumentResolver implements HandlerMethodArgumentRe
         if (auth != null && auth.getDetails() instanceof UUID codigo) {
             return codigo;
         }
-        throw new UnauthorizedException(AuthErrorCodes.ERR_AUTH_07, "No autenticado");
+        throw new UnauthorizedException(AuthErrorCodes.ERR_AUTH_07, "common.error.noAutenticado");
     }
 }

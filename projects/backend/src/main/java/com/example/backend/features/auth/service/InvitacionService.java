@@ -112,6 +112,6 @@ public class InvitacionService {
     // * El mismo mensaje para todos los motivos: no se dice por qué no sirve.
     private static ValidationException enlaceInvalido() {
         return new ValidationException(AuthErrorCodes.ERR_AUTH_11,
-                "La invitación no es válida o ya venció. Pedile al administrador que te envíe otra");
+                "auth.error.invitacionInvalida");
     }
 }

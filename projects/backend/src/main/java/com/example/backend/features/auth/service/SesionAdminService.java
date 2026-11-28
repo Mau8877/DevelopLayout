@@ -73,7 +73,7 @@ public class SesionAdminService {
     public void cerrar(UUID codigoSesion) {
         rlsContext.usarAdmin();
         Sesion sesion = sesionRepository.bloquearPorCodigo(codigoSesion)
-                .orElseThrow(() -> new NotFoundException(AuthErrorCodes.ERR_AUTH_09, "La sesión no existe"));
+                .orElseThrow(() -> new NotFoundException(AuthErrorCodes.ERR_AUTH_09, "auth.error.sesionNoExiste"));
         if (sesion.getEstado() == EstadoSesion.ACTIVA) {
             revocarYRegistrar(sesion);
         }

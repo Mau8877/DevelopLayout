@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -39,6 +40,7 @@ export function DataTablePagination({
   siblingCount = 1,
   className,
 }: DataTablePaginationProps) {
+  const { t } = useTranslation('shared')
   const pageSize = meta?.pageSize ?? DEFAULT_PAGE_SIZE
   const canPreviousPage = page > 1 && !isLoading
   const canNextPage = !!meta && page < meta.totalPages && !isLoading
@@ -50,9 +52,9 @@ export function DataTablePagination({
   return (
     <div className={cn('flex flex-wrap items-center justify-between gap-4', className)}>
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <span>Filas por página</span>
+        <span>{t('tabla.filasPorPagina')}</span>
         <Select value={pageSize} onValueChange={(value) => onPageSizeChange(Number(value))}>
-          <SelectTrigger size="sm" aria-label="Filas por página">
+          <SelectTrigger size="sm" aria-label={t('tabla.filasPorPagina')}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -63,19 +65,19 @@ export function DataTablePagination({
             ))}
           </SelectContent>
         </Select>
-        {meta && <span>· {meta.totalItems} resultados</span>}
+        {meta && <span>· {t('tabla.resultados', { count: meta.totalItems })}</span>}
       </div>
 
-      <nav className="flex items-center gap-1" aria-label="Paginación">
+      <nav className="flex items-center gap-1" aria-label={t('tabla.paginacion')}>
         <Button
           variant="ghost"
           size="sm"
-          aria-label="Página anterior"
+          aria-label={t('tabla.paginaAnterior')}
           disabled={!canPreviousPage}
           onClick={() => onPageChange(page - 1)}
         >
           <ChevronLeftIcon data-icon="inline-start" />
-          Anterior
+          {t('tabla.anterior')}
         </Button>
 
         {pageRange.map((item, index) =>
@@ -92,7 +94,7 @@ export function DataTablePagination({
                 'rounded-full',
                 item === page && 'bg-accent text-accent-foreground hover:bg-accent/90',
               )}
-              aria-label={`Página ${item}`}
+              aria-label={t('tabla.pagina', { numero: item })}
               aria-current={item === page ? 'page' : undefined}
               disabled={isLoading}
               onClick={() => onPageChange(item)}
@@ -105,11 +107,11 @@ export function DataTablePagination({
         <Button
           variant="ghost"
           size="sm"
-          aria-label="Página siguiente"
+          aria-label={t('tabla.paginaSiguiente')}
           disabled={!canNextPage}
           onClick={() => onPageChange(page + 1)}
         >
-          Siguiente
+          {t('tabla.siguiente')}
           <ChevronRightIcon data-icon="inline-end" />
         </Button>
       </nav>

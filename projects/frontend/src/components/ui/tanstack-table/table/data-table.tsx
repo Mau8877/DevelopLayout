@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { flexRender } from '@tanstack/react-table'
 import type { RowData } from '@tanstack/react-table'
 import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon } from 'lucide-react'
@@ -63,14 +64,15 @@ export function DataTable<TData extends RowData>({
   table,
   isLoading,
   isError,
-  errorMessage = 'Ocurrió un error al cargar los datos',
+  errorMessage,
   skeletonRowCount = 5,
-  emptyMessage = 'Sin resultados',
+  emptyMessage,
   showRowNumber = false,
   renderActions,
-  actionsLabel = 'Acciones',
+  actionsLabel,
   className,
 }: DataTableProps<TData>) {
+  const { t } = useTranslation('shared')
   const columnCount = table.getAllLeafColumns().length + (showRowNumber ? 1 : 0) + (renderActions ? 1 : 0)
   const rows = table.getRowModel().rows
   const { pageIndex, pageSize } = table.state.pagination
@@ -118,7 +120,7 @@ export function DataTable<TData extends RowData>({
               })}
               {renderActions && (
                 <TableHead className="w-28 px-3 text-right text-accent-foreground">
-                  {actionsLabel}
+                  {actionsLabel ?? t('tabla.acciones')}
                 </TableHead>
               )}
             </TableRow>
@@ -138,13 +140,13 @@ export function DataTable<TData extends RowData>({
           ) : isError ? (
             <TableRow>
               <TableCell colSpan={columnCount} className="h-24 px-3 text-center text-destructive">
-                {errorMessage}
+                {errorMessage ?? t('tabla.errorDeCarga')}
               </TableCell>
             </TableRow>
           ) : rows.length === 0 ? (
             <TableRow>
               <TableCell colSpan={columnCount} className="h-24 px-3 text-center text-muted-foreground">
-                {emptyMessage}
+                {emptyMessage ?? t('tabla.sinResultados')}
               </TableCell>
             </TableRow>
           ) : (

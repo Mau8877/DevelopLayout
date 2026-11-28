@@ -65,7 +65,7 @@ class BitacoraControllerTest extends PostgresRuntimeIntegrationTest {
     }
 
     private MockHttpServletRequestBuilder consulta() {
-        return get("/api/v1/bitacora").param("filter[modulo]", modulo).cookie(admin);
+        return get("/api/v1/audit-log").param("filter[module]", modulo).cookie(admin);
     }
 
     private List<String> acciones(MockHttpServletRequestBuilder request) throws Exception {
@@ -101,28 +101,28 @@ class BitacoraControllerTest extends PostgresRuntimeIntegrationTest {
 
     @Test
     void listar_aplicaCadaFiltroEIncluyeLosExtremosDelRango() throws Exception {
-        assertThat(acciones(consulta().param("filter[accion]", "SEGUNDO"))).containsExactly("SEGUNDO");
-        assertThat(acciones(consulta().param("filter[resultado]", "EXITO"))).containsExactly("TERCERO", "PRIMERO");
-        assertThat(acciones(consulta().param("filter[usuarioCodigo]", actor.toString())))
+        assertThat(acciones(consulta().param("filter[action]", "SEGUNDO"))).containsExactly("SEGUNDO");
+        assertThat(acciones(consulta().param("filter[result]", "EXITO"))).containsExactly("TERCERO", "PRIMERO");
+        assertThat(acciones(consulta().param("filter[userCode]", actor.toString())))
                 .containsExactly("TERCERO", "SEGUNDO");
-        assertThat(acciones(consulta().param("desde", "2026-02-10T10:00:00Z").param("hasta", "2026-03-10T10:00:00Z")))
+        assertThat(acciones(consulta().param("from", "2026-02-10T10:00:00Z").param("to", "2026-03-10T10:00:00Z")))
                 .containsExactly("TERCERO", "SEGUNDO");
         // Con zona horaria: 06:00-04:00 es 10:00Z.
-        assertThat(acciones(consulta().param("hasta", "2026-01-10T06:00:00-04:00"))).containsExactly("PRIMERO");
-        assertThat(acciones(consulta().param("filter[accion]", "x' OR '1'='1"))).isEmpty();
+        assertThat(acciones(consulta().param("to", "2026-01-10T06:00:00-04:00"))).containsExactly("PRIMERO");
+        assertThat(acciones(consulta().param("filter[action]", "x' OR '1'='1"))).isEmpty();
     }
 
     @Test
     void listar_conRangoInvertido_da400Catalogado() throws Exception {
-        mvc.perform(consulta().param("desde", "2026-03-01T00:00:00Z").param("hasta", "2026-01-01T00:00:00Z"))
+        mvc.perform(consulta().param("from", "2026-03-01T00:00:00Z").param("to", "2026-01-01T00:00:00Z"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("ERR_BIT_01"));
     }
 
     @Test
     void listar_conFiltrosMalFormados_da400() throws Exception {
-        for (List<String> filtro : List.of(List.of("filter[resultado]", "QUIZAS"),
-                List.of("filter[usuarioCodigo]", "abc"), List.of("desde", "ayer"))) {
+        for (List<String> filtro : List.of(List.of("filter[result]", "QUIZAS"),
+                List.of("filter[userCode]", "abc"), List.of("from", "ayer"))) {
             mvc.perform(consulta().param(filtro.get(0), filtro.get(1)))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.error").value("ERR_SYS_01"));
@@ -131,9 +131,9 @@ class BitacoraControllerTest extends PostgresRuntimeIntegrationTest {
 
     @Test
     void listar_sinSesionDa401YConRolUsuarioDa403() throws Exception {
-        mvc.perform(get("/api/v1/bitacora")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/v1/audit-log")).andExpect(status().isUnauthorized());
 
-        mvc.perform(get("/api/v1/bitacora").with(org.springframework.security.test.web.servlet.request
+        mvc.perform(get("/api/v1/audit-log").with(org.springframework.security.test.web.servlet.request
                         .SecurityMockMvcRequestPostProcessors.user(UUID.randomUUID().toString()).roles("USUARIO")))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error").value("ERR_AUTH_08"));
@@ -141,8 +141,8 @@ class BitacoraControllerTest extends PostgresRuntimeIntegrationTest {
 
     @Test
     void noExistenOperacionesDeEscritura() throws Exception {
-        mvc.perform(delete("/api/v1/bitacora").with(csrf()).cookie(admin)).andExpect(status().isMethodNotAllowed());
-        mvc.perform(post("/api/v1/bitacora").with(csrf()).cookie(admin)).andExpect(status().isMethodNotAllowed());
+        mvc.perform(delete("/api/v1/audit-log").with(csrf()).cookie(admin)).andExpect(status().isMethodNotAllowed());
+        mvc.perform(post("/api/v1/audit-log").with(csrf()).cookie(admin)).andExpect(status().isMethodNotAllowed());
     }
 
     @Test

@@ -3,7 +3,7 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { apiClient, ApiError } from '@/store'
-import { BitacoraScreen } from '../screens/BitacoraScreen'
+import { BitacoraScreen } from '../screens'
 
 const evento = {
   codigo: 'b-1',
@@ -38,7 +38,7 @@ describe('BitacoraScreen', () => {
     montar()
 
     expect((await screen.findAllByText('AUTH_LOGIN_FALLO')).length).toBeGreaterThan(0)
-    expect(get.mock.calls[0][0]).toBe('/bitacora')
+    expect(get.mock.calls[0][0]).toBe('/audit-log')
     expect(ultimosParams(get)).toEqual({ page: 1, pageSize: 20 })
   })
 
@@ -51,7 +51,7 @@ describe('BitacoraScreen', () => {
     await user.type(screen.getByLabelText('Acción'), 'AUTH_LOGOUT')
     await user.click(screen.getByRole('button', { name: 'Filtrar' }))
 
-    await waitFor(() => expect(ultimosParams(get)['filter[accion]']).toBe('AUTH_LOGOUT'))
+    await waitFor(() => expect(ultimosParams(get)['filter[action]']).toBe('AUTH_LOGOUT'))
     expect(ultimosParams(get).page).toBe(1)
   })
 

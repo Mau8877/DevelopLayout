@@ -1,4 +1,4 @@
-import type { components } from '@/shared/api/schema'
+import type { components } from '@/shared/api'
 
 /**
  * Usuario de la sesión actual (respuesta de GET /auth/me y de POST /auth/login).

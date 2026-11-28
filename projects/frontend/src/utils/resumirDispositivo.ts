@@ -1,3 +1,5 @@
+import { i18n } from '@/shared/language'
+
 // * El orden importa: Edge y Opera también dicen "Chrome", y Chrome dice "Safari".
 const NAVEGADORES: [RegExp, string][] = [
   [/Edg(e|A|iOS)?\//, 'Edge'],
@@ -25,10 +27,10 @@ const buscar = (reglas: [RegExp, string][], texto: string) => reglas.find(([patr
  * controla el cliente: puede ser falso, y lo que no se reconoce no se adivina.
  */
 export function resumirDispositivo(userAgent: string | null | undefined, tipoCliente: 'WEB' | 'MOBILE'): string {
-  if (tipoCliente === 'MOBILE') return 'App móvil'
+  if (tipoCliente === 'MOBILE') return i18n.t('shared:dispositivo.appMovil')
   const texto = userAgent ?? ''
   const navegador = buscar(NAVEGADORES, texto)
   const sistema = buscar(SISTEMAS, texto)
-  if (navegador && sistema) return `${navegador} en ${sistema}`
-  return navegador ?? sistema ?? 'Dispositivo desconocido'
+  if (navegador && sistema) return i18n.t('shared:dispositivo.navegadorEn', { navegador, sistema })
+  return navegador ?? sistema ?? i18n.t('shared:dispositivo.desconocido')
 }

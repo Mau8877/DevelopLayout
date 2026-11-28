@@ -6,7 +6,7 @@ export function useCerrarOtrasSesiones() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: () => apiClient.post('/auth/sesiones/cerrar-otras'),
+    mutationFn: () => apiClient.post('/auth/sessions/revoke-others'),
     onSettled: () => queryClient.invalidateQueries({ queryKey: authKeys.misSesiones }),
   })
 }

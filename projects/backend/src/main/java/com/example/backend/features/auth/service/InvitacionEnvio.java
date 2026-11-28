@@ -1,5 +1,6 @@
 package com.example.backend.features.auth.service;
 
+import com.example.backend.common.idioma.Mensajes;
 import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
@@ -23,12 +24,14 @@ public class InvitacionEnvio {
 
     private final InvitacionTokenService tokens;
     private final CorreoCuentaService correo;
+    private final Mensajes mensajes;
 
     /** @return `false` si no se pudo enviar; el fallo no se propaga. */
     public boolean enviar(UUID usuario, String email) {
         try (MDC.MDCCloseable ignored = MDC.putCloseable("module", "auth")) {
             try {
-                correo.enviarInvitacion(email, tokens.emitir(usuario));
+                // * En el idioma del administrador que hace la petición.
+                correo.enviarInvitacion(email, tokens.emitir(usuario), mensajes.idiomaActual());
                 LOG.info("Invitación enviada usuarioCodigo={}", usuario);
                 return true;
             } catch (RuntimeException e) {

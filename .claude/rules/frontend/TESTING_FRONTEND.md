@@ -95,3 +95,22 @@ te lo va a bloquear automáticamente si te olvidás.
 - `it`/`test`: describe el comportamiento en español, en minúscula, sin
   prefijo redundante (`it('renderiza el texto que recibe', ...)`, no
   `it('should render the text', ...)`).
+
+## Pruebas de navegador
+
+**Playwright, solo Chromium**, en `projects/frontend/e2e/`. Se corren con
+`pnpm test:e2e` desde la raíz (necesita Docker, JDK 21 y, la primera vez,
+`pnpm --dir projects/frontend exec playwright install chromium`). Para un solo
+archivo: `pnpm test:e2e sesiones`. Vitest no las incluye (`test.include` es
+`src/**`).
+
+Cubren flujos clave, no cada criterio: arranque, sesiones (cookies, renovación,
+revocación), recuperación e invitación por correo, administración y permisos, e
+idiomas. Lo que ya prueba un componente no se repite acá.
+
+- Cada prueba **crea sus datos** (`soporte/api.ts`): no depende del orden ni de otra.
+- **Sin esperas fijas** (`waitForTimeout`): se espera a que algo ocurra.
+- Sin reintentos, tampoco en CI.
+- Se busca por rol, etiqueta o texto visible, como lo ve la persona.
+- El access token dura 20 s en este entorno, para probar la renovación.
+- Un cambio de texto visible o de un flujo actualiza sus pruebas en el mismo cambio.

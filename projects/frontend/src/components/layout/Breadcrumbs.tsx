@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next'
 import { Fragment } from 'react'
 import { useMatches } from '@tanstack/react-router'
 import { ChevronRightIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
+import { traducirMensaje } from '@/shared/language'
 
 // Cada route file opta-in a aparecer acá declarando
 // `staticData: { breadcrumb: 'Label' }` en las opciones de
@@ -26,15 +28,17 @@ interface BreadcrumbsProps {
 // * genérico resuelto en runtime), no de un literal de ruta conocido en
 // * tiempo de compilación que el tipado de `Link to=` pueda validar.
 export function Breadcrumbs({ className }: BreadcrumbsProps) {
+  const { t } = useTranslation('shared')
   const matches = useMatches()
   const crumbs = matches
     .filter((match) => !!match.staticData.breadcrumb)
-    .map((match) => ({ pathname: match.pathname, label: match.staticData.breadcrumb as string }))
+    // * `breadcrumb` es una clave de idioma (`shared:navegacion.usuarios`).
+    .map((match) => ({ pathname: match.pathname, label: traducirMensaje(match.staticData.breadcrumb) }))
 
   if (crumbs.length === 0) return null
 
   return (
-    <nav aria-label="Ruta actual" className={cn('flex min-w-0 items-center gap-1.5 text-sm', className)}>
+    <nav aria-label={t('cabecera.rutaActual')} className={cn('flex min-w-0 items-center gap-1.5 text-sm', className)}>
       {crumbs.map((crumb, index) => {
         const isLast = index === crumbs.length - 1
         return (

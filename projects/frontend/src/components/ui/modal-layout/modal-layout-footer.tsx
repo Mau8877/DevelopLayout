@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Loader2Icon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DialogFooter } from '@/components/ui/dialog'
@@ -15,19 +16,20 @@ export interface ModalLayoutFooterProps {
 export function ModalLayoutFooter({
   formId,
   isSubmitting = false,
-  confirmLabel = 'Guardar',
-  cancelLabel = 'Cancelar',
+  confirmLabel,
+  cancelLabel,
   onCancel,
   className,
 }: ModalLayoutFooterProps) {
+  const { t } = useTranslation('shared')
   return (
     <DialogFooter className={cn('shrink-0 border-t border-border p-6', className)}>
       <Button type="button" variant="destructive-solid" onClick={onCancel} disabled={isSubmitting}>
-        {cancelLabel}
+        {cancelLabel ?? t('comun.cancelar')}
       </Button>
       <Button type="submit" variant="success" form={formId} disabled={isSubmitting}>
         {isSubmitting && <Loader2Icon data-icon="inline-start" className="animate-spin" />}
-        {confirmLabel}
+        {confirmLabel ?? t('comun.guardar')}
       </Button>
     </DialogFooter>
   )

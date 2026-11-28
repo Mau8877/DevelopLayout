@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { AlertDialog as AlertDialogPrimitive } from '@base-ui/react/alert-dialog'
 import { Loader2Icon } from 'lucide-react'
 import {
@@ -33,10 +34,11 @@ export function ModalConfirmacion({
   title,
   description,
   confirmLabel,
-  cancelLabel = 'Cancelar',
+  cancelLabel,
   isSubmitting = false,
   onConfirm,
 }: ModalConfirmacionProps) {
+  const { t } = useTranslation('shared')
   const handleOpenChange = (
     siguiente: boolean,
     detalles: AlertDialogPrimitive.Root.ChangeEventDetails,
@@ -58,7 +60,7 @@ export function ModalConfirmacion({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <Button type="button" variant="outline" disabled={isSubmitting} onClick={() => onOpenChange(false)}>
-            {cancelLabel}
+            {cancelLabel ?? t('comun.cancelar')}
           </Button>
           <Button type="button" disabled={isSubmitting} onClick={onConfirm}>
             {isSubmitting && <Loader2Icon data-icon="inline-start" className="animate-spin" />}

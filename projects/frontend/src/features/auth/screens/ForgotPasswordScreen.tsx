@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useForm } from '@tanstack/react-form'
 import { Link } from '@tanstack/react-router'
 import { CenteredCardLayout } from '@/components/layout'
@@ -6,14 +7,13 @@ import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form-field'
 import { Input } from '@/components/ui/input'
 import { ApiError } from '@/store'
-import { primerError } from '@/utils/primerError'
-import { validarAlSalir } from '@/utils/validarAlSalir'
-import { useForgotPassword } from '../api/useForgotPassword'
-import { forgotPasswordSchema } from '../schemas/forgotPasswordSchema'
-
-const MENSAJE_GENERICO = 'No pudimos enviar el pedido. Intentá de nuevo.'
+import { primerError } from '@/utils'
+import { validarAlSalir } from '@/utils'
+import { useForgotPassword } from '../api'
+import { forgotPasswordSchema } from '../schemas'
 
 export function ForgotPasswordScreen() {
+  const { t } = useTranslation('auth')
   const pedido = useForgotPassword()
 
   const form = useForm({
@@ -31,13 +31,10 @@ export function ForgotPasswordScreen() {
   const limitado = pedido.error instanceof ApiError && pedido.error.status === 429
 
   return (
-    <CenteredCardLayout titulo="Recuperar contraseña" descripcion="Ingresá el correo de tu cuenta">
+    <CenteredCardLayout titulo={t('recuperar.titulo')} descripcion={t('recuperar.descripcion')}>
       {pedido.isSuccess ? (
         // * No afirma que se envió: la web no sabe (ni debe saber) si la cuenta existe.
-        <Alert role="status">
-          Si hay una cuenta con ese correo, te enviamos un enlace para restablecer la contraseña. Revisá también
-          la carpeta de spam.
-        </Alert>
+        <Alert role="status">{t('recuperar.enviado')}</Alert>
       ) : (
         <form
           noValidate
@@ -50,7 +47,7 @@ export function ForgotPasswordScreen() {
         >
           {pedido.isError && (
             <Alert variant={limitado ? 'warning' : 'destructive'}>
-              {pedido.error instanceof ApiError ? pedido.error.message : MENSAJE_GENERICO}
+              {pedido.error instanceof ApiError ? pedido.error.message : t('recuperar.error')}
             </Alert>
           )}
 
@@ -58,7 +55,7 @@ export function ForgotPasswordScreen() {
             {(field) => (
               <FormField
                 id="email"
-                label="Correo"
+                label={t('comun.correo')}
                 error={field.state.meta.isTouched ? primerError(field.state.meta.errors) : undefined}
               >
                 {(controlProps) => (
@@ -77,14 +74,14 @@ export function ForgotPasswordScreen() {
           </form.Field>
 
           <Button type="submit" disabled={pedido.isPending}>
-            {pedido.isPending ? 'Enviando…' : 'Enviar enlace'}
+            {pedido.isPending ? t('recuperar.enviando') : t('recuperar.enviar')}
           </Button>
         </form>
       )}
 
       <p className="mt-4 text-center text-sm">
         <Link to="/login" className="text-primary underline underline-offset-4">
-          Volver a iniciar sesión
+          {t('recuperar.volver')}
         </Link>
       </p>
     </CenteredCardLayout>

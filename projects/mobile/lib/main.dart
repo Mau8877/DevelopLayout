@@ -6,6 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/logging/app_logger.dart';
 import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'core/marca.dart';
+import 'core/storage/secure_token_storage.dart';
+import 'shared/language/app_texts.dart';
+import 'shared/language/idioma_provider.dart';
+import 'shared/language/idiomas.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,13 +24,19 @@ Future<void> main() async {
     return true;
   };
   if (kReleaseMode) {
-    ErrorWidget.builder = (details) => const Material(
-          child: Center(child: Text('Ocurrió un error inesperado.')),
+    ErrorWidget.builder = (details) => Material(
+          child: Center(child: Text(AppTexts.de(IdiomaActual.codigo).t('shared:error.inesperado'))),
         );
   }
 
   await dotenv.load();
-  runApp(const ProviderScope(child: MyApp()));
+  await AppTexts.precargar();
+  final idioma = detectarIdioma(await PreferenciaDeIdioma().leer(), PlatformDispatcher.instance.locales);
+  IdiomaActual.codigo = idioma;
+  runApp(ProviderScope(
+    overrides: [idiomaInicialProvider.overrideWithValue(idioma)],
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends ConsumerWidget {
@@ -34,7 +45,10 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp.router(
-      title: 'App',
+      title: appName,
+      locale: Locale(ref.watch(idiomaProvider)),
+      supportedLocales: localesSoportados,
+      localizationsDelegates: delegadosDeIdioma,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       routerConfig: ref.watch(routerProvider),

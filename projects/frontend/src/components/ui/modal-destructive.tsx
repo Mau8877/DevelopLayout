@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { AlertDialog as AlertDialogPrimitive } from '@base-ui/react/alert-dialog'
 import { Loader2Icon, TriangleAlertIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -34,11 +35,12 @@ export function ModalDestructive({
   title,
   description,
   isSubmitting = false,
-  confirmLabel = 'Eliminar',
-  cancelLabel = 'Cancelar',
+  confirmLabel,
+  cancelLabel,
   onConfirm,
   onCancel,
 }: ModalDestructiveProps) {
+  const { t } = useTranslation('shared')
   const handleOpenChange = (
     nextOpen: boolean,
     eventDetails: AlertDialogPrimitive.Root.ChangeEventDetails,
@@ -71,7 +73,7 @@ export function ModalDestructive({
             {description}
           </AlertDialogDescription>
           <p className="text-sm font-semibold text-destructive-foreground">
-            Esta acción no se puede deshacer.
+            {t('comun.noSeDeshace')}
           </p>
         </div>
         <div className="flex justify-end gap-2 border-t border-border p-6">
@@ -81,11 +83,11 @@ export function ModalDestructive({
             onClick={onCancel ?? (() => onOpenChange(false))}
             disabled={isSubmitting}
           >
-            {cancelLabel}
+            {cancelLabel ?? t('comun.cancelar')}
           </Button>
           <Button type="button" variant="destructive-solid" onClick={onConfirm} disabled={isSubmitting}>
             {isSubmitting && <Loader2Icon data-icon="inline-start" className="animate-spin" />}
-            {confirmLabel}
+            {confirmLabel ?? t('comun.eliminar')}
           </Button>
         </div>
       </AlertDialogContent>

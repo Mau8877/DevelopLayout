@@ -1,0 +1,32 @@
+{
+  "idioma": {
+    "cambiar": "Cambiar idioma"
+  },
+  "comun": {
+    "reintentar": "Reintentar",
+    "cancelar": "Cancelar",
+    "cerrar": "Cerrar"
+  },
+  "error": {
+    "inesperado": "Ocurrió un error inesperado."
+  },
+  "cliente": {
+    "red": "No pudimos conectarnos. Revisa tu conexión e inténtalo de nuevo.",
+    "tiempo": "La solicitud tardó demasiado. Inténtalo de nuevo.",
+    "desconocido": "Ocurrió un error inesperado. Inténtalo de nuevo."
+  },
+  "cabecera": {
+    "cerrarSesion": "Cerrar sesión"
+  },
+  "navegacion": {
+    "panel": "Panel",
+    "inicio": "Inicio",
+    "usuarios": "Usuarios",
+    "pedidos": "Pedidos",
+    "perfil": "Perfil",
+    "misSesiones": "Mis sesiones"
+  },
+  "layout": {
+    "ejemplo": "Pantalla de ejemplo. Aquí irá el contenido de «{{seccion}}» cuando exista esa función."
+  }
+}

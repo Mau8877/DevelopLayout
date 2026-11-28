@@ -8,11 +8,11 @@ import jakarta.validation.constraints.Size;
 /** El token va en el body, nunca en la URL de la API. */
 @JsonIgnoreProperties(ignoreUnknown = false)
 public record AceptarInvitacionRequest(
-        @NotBlank(message = "El enlace no es válido")
-        @Size(max = 100, message = "El enlace no es válido")
+        @NotBlank(message = "{auth.validacion.enlace}")
+        @Size(max = 100, message = "{auth.validacion.enlace}")
         String token,
-        @NotBlank(message = "La contraseña es obligatoria")
-        @Size(min = 8, max = 72, message = "La contraseña debe tener entre 8 y 72 caracteres")
+        @NotBlank(message = "{auth.validacion.passwordObligatoria}")
+        @Size(min = 8, max = 72, message = "{auth.validacion.passwordLargo}")
         @MaximoBytes(72)
         String password) {
 }

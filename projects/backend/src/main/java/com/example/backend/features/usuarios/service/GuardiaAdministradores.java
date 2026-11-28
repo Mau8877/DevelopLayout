@@ -69,7 +69,7 @@ public class GuardiaAdministradores {
                         + "usuarioCodigo={} errorCode={}", actor, AuthErrorCodes.ERR_AUTH_04);
             }
             throw new UnauthorizedException(AuthErrorCodes.ERR_AUTH_04,
-                    "Tu sesión ya no es válida, iniciá sesión de nuevo");
+                    "auth.error.sesionInvalida");
         }
     }
 }

@@ -8,20 +8,23 @@ import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/error_snack_bar.dart';
 import '../providers/auth_provider.dart';
+import '../../../shared/language/app_texts.dart';
+import '../../../shared/widgets/selector_idioma.dart';
 
-/// Validadores con las mismas reglas que el login web (loginSchema).
+/// Validadores con las mismas reglas que el login web (loginSchema). Devuelven
+/// claves de idioma.
 String? validarCorreo(String? value) {
   final texto = value?.trim() ?? '';
-  if (texto.isEmpty) return 'El correo es obligatorio';
-  if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(texto)) return 'El correo no es válido';
+  if (texto.isEmpty) return 'auth:validacion.correoObligatorio';
+  if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(texto)) return 'auth:validacion.correoInvalido';
   return null;
 }
 
 String? validarPassword(String? value) {
   final texto = value ?? '';
-  if (texto.isEmpty) return 'La contraseña es obligatoria';
-  if (texto.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
-  if (texto.codeUnits.length > 72) return 'La contraseña es demasiado larga';
+  if (texto.isEmpty) return 'auth:validacion.passwordObligatoria';
+  if (texto.length < 8) return 'auth:validacion.passwordCorta';
+  if (texto.codeUnits.length > 72) return 'auth:validacion.passwordLarga';
   return null;
 }
 
@@ -54,7 +57,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .login(_emailController.text.trim(), _passwordController.text);
       // * El router redirige solo al cambiar la sesión.
     } catch (error) {
-      if (mounted) mostrarError(context, mensajeDeError(error));
+      if (mounted) mostrarError(context, context.traducir(mensajeDeError(error)));
     } finally {
       if (mounted) setState(() => _enviando = false);
     }
@@ -63,6 +66,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(actions: const [SelectorIdioma()]),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -77,15 +81,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        'Iniciar sesión',
+                        context.t('auth:login.titulo'),
                         style: Theme.of(context).textTheme.headlineMedium,
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 24),
                       AppTextField(
-                        label: 'Correo',
+                        label: context.t('auth:comun.correo'),
                         controller: _emailController,
-                        validator: validarCorreo,
+                        validator: context.validador(validarCorreo),
                         keyboardType: TextInputType.emailAddress,
                         autofillHints: const [AutofillHints.username],
                         textInputAction: TextInputAction.next,
@@ -93,9 +97,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       const SizedBox(height: 16),
                       AppTextField(
-                        label: 'Contraseña',
+                        label: context.t('auth:comun.password'),
                         controller: _passwordController,
-                        validator: validarPassword,
+                        validator: context.validador(validarPassword),
                         obscureText: true,
                         autofillHints: const [AutofillHints.password],
                         textInputAction: TextInputAction.done,
@@ -103,11 +107,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         onFieldSubmitted: (_) => _enviar(),
                       ),
                       const SizedBox(height: 24),
-                      AppButton(texto: 'Ingresar', cargando: _enviando, onPressed: _enviar),
+                      AppButton(texto: context.t('auth:login.entrar'), cargando: _enviando, onPressed: _enviar),
                       const SizedBox(height: 8),
                       TextButton(
                         onPressed: _enviando ? null : () => context.go(rutaOlvidePassword),
-                        child: const Text('¿Olvidaste tu contraseña?'),
+                        child: Text(context.t('auth:login.olvidaste')),
                       ),
                     ],
                   ),

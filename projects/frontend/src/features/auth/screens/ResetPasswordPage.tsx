@@ -1,4 +1,4 @@
-import { useTokenDelFragmento } from '../api/useTokenDelFragmento'
+import { useTokenDelFragmento } from '../api'
 import { ResetPasswordScreen } from './ResetPasswordScreen'
 
 export function ResetPasswordPage() {

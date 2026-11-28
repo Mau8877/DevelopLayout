@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import type { components } from '@/shared/api/schema'
+import type { components } from '@/shared/api'
 import { apiClient } from '@/store'
 
 /**

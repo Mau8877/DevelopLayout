@@ -8,6 +8,8 @@ import '../../../shared/widgets/estado_error.dart';
 import '../models/pagina_sesiones.dart';
 import '../providers/mis_sesiones_provider.dart';
 import '../widgets/sesion_tile.dart';
+import '../../../shared/language/app_texts.dart';
+import '../../../shared/widgets/selector_idioma.dart';
 
 /// Lugares donde la cuenta está abierta, con cierre de los demás.
 class MisSesionesScreen extends ConsumerStatefulWidget {
@@ -29,14 +31,19 @@ class _MisSesionesScreenState extends ConsumerState<MisSesionesScreen> {
     try {
       await accion();
     } catch (error) {
-      if (mounted) mostrarError(context, mensajeDeError(error));
+      if (mounted) mostrarError(context, context.traducir(mensajeDeError(error)));
     } finally {
       if (mounted) setState(() => _ocupado = false);
     }
   }
 
   Future<void> _confirmarY(String titulo, String mensaje, Future<void> Function() accion) async {
-    final confirmado = await pedirConfirmacion(context, titulo: titulo, mensaje: mensaje, confirmar: 'Cerrar');
+    final confirmado = await pedirConfirmacion(
+      context,
+      titulo: titulo,
+      mensaje: mensaje,
+      confirmar: context.t('shared:comun.cerrar'),
+    );
     if (confirmado && mounted) await _ejecutar(accion);
   }
 
@@ -44,13 +51,13 @@ class _MisSesionesScreenState extends ConsumerState<MisSesionesScreen> {
   Widget build(BuildContext context) {
     final estado = ref.watch(misSesionesProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Mis sesiones')),
+      appBar: AppBar(title: Text(context.t('auth:sesiones.titulo')), actions: const [SelectorIdioma()]),
       body: SafeArea(
         child: estado.when(
           skipLoadingOnRefresh: true,
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => EstadoError(
-            mensaje: mensajeDeError(error),
+            mensaje: context.traducir(mensajeDeError(error)),
             onReintentar: () => ref.invalidate(misSesionesProvider),
           ),
           data: _lista,
@@ -68,11 +75,11 @@ class _MisSesionesScreenState extends ConsumerState<MisSesionesScreen> {
             onPressed: _ocupado || pagina.totalItems <= 1
                 ? null
                 : () => _confirmarY(
-                      'Cerrar todas las demás',
-                      'Los demás dispositivos perderán el acceso de inmediato. Esta sesión sigue abierta.',
+                      context.t('auth:sesiones.cerrarDemas'),
+                      context.t('auth:sesiones.avisoDemas'),
                       () => _sesiones.cerrarOtras(),
                     ),
-            child: const Text('Cerrar todas las demás'),
+            child: Text(context.t('auth:sesiones.cerrarDemas')),
           ),
         ),
         for (final sesion in pagina.sesiones)
@@ -81,15 +88,15 @@ class _MisSesionesScreenState extends ConsumerState<MisSesionesScreen> {
             onCerrar: _ocupado
                 ? null
                 : () => _confirmarY(
-                      'Cerrar sesión',
-                      'Ese dispositivo perderá el acceso de inmediato.',
+                      context.t('auth:sesiones.tituloCerrar'),
+                      context.t('auth:sesiones.avisoUna'),
                       () => _sesiones.cerrar(sesion.codigo),
                     ),
           ),
         if (pagina.hayMas)
           TextButton(
             onPressed: _ocupado ? null : () => _ejecutar(() => _sesiones.cargarMas()),
-            child: const Text('Cargar más'),
+            child: Text(context.t('auth:sesiones.cargarMas')),
           ),
       ],
     );

@@ -3,7 +3,7 @@ import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 import { authKeys } from '@/features/auth'
-import type { Usuario } from '../types/usuario'
+import type { Usuario } from '../types'
 
 export function usuario(cambios: Partial<Usuario> = {}): Usuario {
   return {

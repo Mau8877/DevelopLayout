@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_client.dart';
 import '../providers/health_provider.dart';
+import '../../../shared/language/app_texts.dart';
 
 /// Pantalla de diagnóstico -- prueba de punta a punta el camino completo
 /// `service -> provider -> screen` contra el backend real: `ApiClient`
@@ -15,16 +16,18 @@ class HealthCheckScreen extends ConsumerWidget {
 
   Future<void> _probarRutaInexistente(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
+    final textos = context.textos;
     try {
       await ref.read(healthServiceProvider).pingRutaInexistente();
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Respondió 2xx (inesperado para una ruta inexistente)')),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(textos.t('health:respuestaInesperada'))));
     } on DioException catch (error) {
       final apiException = error.error;
       final mensaje = apiException is ApiException
-          ? 'ApiException: [${apiException.code}] ${apiException.message}'
-          : 'DioException sin ApiException -- status ${error.response?.statusCode}, body: ${error.response?.data}';
+          ? '[${apiException.code}] ${textos.traducir(apiException.message)}'
+          : textos.t('health:sinApiException', args: {
+              'estado': '${error.response?.statusCode}',
+              'cuerpo': '${error.response?.data}',
+            });
       messenger.showSnackBar(SnackBar(content: Text(mensaje)));
     }
   }
@@ -34,50 +37,50 @@ class HealthCheckScreen extends ConsumerWidget {
     final health = ref.watch(healthCheckProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Diagnóstico de conexión')),
+      appBar: AppBar(title: Text(context.t('health:titulo'))),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('GET /health (fuera de /api/v1)', style: Theme.of(context).textTheme.titleMedium),
+            Text(context.t('health:salud'), style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             health.when(
-              loading: () => const Row(
+              loading: () => Row(
                 children: [
-                  SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2)),
-                  SizedBox(width: 12),
-                  Text('Consultando backend...'),
+                  const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                  const SizedBox(width: 12),
+                  Text(context.t('health:consultando')),
                 ],
               ),
               error: (error, stackTrace) => Text(
-                'No se pudo conectar: $error',
+                context.t('health:sinConexion', args: {'error': error}),
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
               data: (data) => Text(
-                'Backend conectado -- status: ${data['status']}',
+                context.t('health:conectado', args: {'estado': '${data['status']}'}),
                 style: TextStyle(color: Theme.of(context).colorScheme.primary),
               ),
             ),
             const SizedBox(height: 8),
             OutlinedButton(
               onPressed: () => ref.invalidate(healthCheckProvider),
-              child: const Text('Reintentar'),
+              child: Text(context.t('shared:comun.reintentar')),
             ),
             const Divider(height: 40),
             Text(
-              'GET /api/v1/ping-ruta-que-no-existe',
+              context.t('health:rutaInexistente'),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 4),
             Text(
-              'Prueba que ApiClient desempaqueta un error real del backend en ApiException.',
+              context.t('health:explicacion'),
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 12),
             FilledButton(
               onPressed: () => _probarRutaInexistente(context, ref),
-              child: const Text('Probar'),
+              child: Text(context.t('health:probar')),
             ),
           ],
         ),

@@ -115,6 +115,21 @@ antes de un salto mayor se leen sus notas de versión.
 No cubre lo que cada acción descarga o usa por dentro (el binario de gitleaks, la
 base de Trivy, sus propias dependencias).
 
+## Pruebas de navegador
+
+El job `e2e` corre `scripts/e2e.mjs` (en local, `pnpm test:e2e`) cuando cambian la
+web, el backend, el propio script o las dependencias. Detalle de lo que cubre en
+[TESTING_FRONTEND.md](frontend/TESTING_FRONTEND.md#pruebas-de-navegador).
+
+- Entorno desechable: Postgres, Redis y Mailpit con prefijo `e2e-nav-`, puertos
+  propios en `127.0.0.1`, secretos generados en cada corrida y sin leer ningún
+  `.env`.
+- **Solo borra lo que él creó**, por identificador; si ya hay un contenedor con sus
+  nombres o un puerto ocupado, se detiene sin tocar nada. Esas protecciones tienen
+  tests en `e2e.test.mjs`: **no se relajan**.
+- Sin reintentos. Una prueba inestable se corrige.
+- El informe y las trazas se suben solo si falla (7 días); traen datos desechables.
+
 ## Un job por proyecto, no uno solo para todo
 
 El pipeline usa un job `changes` (con la acción `dorny/paths-filter`) que
@@ -124,7 +139,9 @@ que sus rutas tuvieron cambios (un cambio en `ci.yml` los corre todos, para que
 el workflow no se fusione sin haberse probado; `backend` también con `infrastructure/redis/**`,
 porque un test verifica `redis.conf`; `scripts` también con
 `docker-compose*.yml` y los `Dockerfile` de nginx, que
-`compose-seguridad.test.mjs` revisa). Esto es deliberado por dos razones:
+`compose-seguridad.test.mjs` revisa, y con cualquier cambio en `projects/` o
+`infrastructure/`, porque `init-project.test.mjs` recorre la plantilla entera).
+Esto es deliberado por dos razones:
 
 - **Este es un monorepo con 3 proyectos independientes** (ver
   [`README.md`](../../README.md)) que no comparten build ni runtime — no
@@ -152,6 +169,7 @@ sin nada adicional inventado solo para CI:
 | `frontend` | `pnpm install --frozen-lockfile` (desde la raíz, ver [docs/README.md](../../docs/README.md)) → `pnpm lint` → `pnpm test` → `pnpm build` → `pnpm audit --audit-level moderate` |
 | `mobile` | `flutter pub get` → `flutter analyze` → `flutter test` |
 | `scripts` | `node --test "scripts/**/*.test.mjs"` |
+| `e2e` | `pnpm install --frozen-lockfile` → `playwright install --with-deps chromium` → `node scripts/e2e.mjs` |
 
 - El job de `backend` levanta `postgres:18-alpine` y `redis:8-alpine` como
   `services:` del job (mismas versiones que `docker-compose.yml`) y le pasa

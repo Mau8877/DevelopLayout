@@ -9,6 +9,7 @@ import 'package:mobile/features/auth/services/auth_service.dart';
 import 'package:mobile/layouts/admin/admin_shell.dart';
 import 'package:mobile/layouts/usuario/usuario_shell.dart';
 
+import '../../support/app_de_prueba.dart';
 import '../../support/fake_adapter.dart';
 import '../../support/memory_store.dart';
 
@@ -65,7 +66,7 @@ void main() {
 
       await tester.pumpWidget(ProviderScope(
         overrides: [authServiceProvider.overrideWithValue(AuthService(dio, tokens))],
-        child: MaterialApp(home: shell.value),
+        child: AppDePrueba(home: shell.value),
       ));
       await tester.runAsync(() async {
         await tester.tap(find.byTooltip('Cerrar sesión'));

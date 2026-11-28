@@ -11,7 +11,7 @@ import jakarta.validation.constraints.Size;
 /** El conjunto completo de roles que debe quedar. */
 @JsonIgnoreProperties(ignoreUnknown = false)
 public record CambiarRolesRequest(
-        @NotEmpty(message = "Elegí al menos un rol en el campo roles")
-        @Size(max = 20, message = "El campo roles tiene demasiados elementos")
-        List<@NotBlank(message = "El campo roles tiene un rol vacío") String> roles) {
+        @NotEmpty(message = "{usuarios.validacion.rolRequerido}")
+        @Size(max = 20, message = "{usuarios.validacion.rolesDemasiados}")
+        List<@NotBlank(message = "{usuarios.validacion.rolVacio}") String> roles) {
 }

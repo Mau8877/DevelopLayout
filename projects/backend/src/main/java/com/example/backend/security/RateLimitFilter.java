@@ -1,5 +1,6 @@
 package com.example.backend.security;
 
+import com.example.backend.common.idioma.Mensajes;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
@@ -42,6 +43,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private final Cache<String, Bucket> buckets;
 
+    private final Mensajes mensajes;
+
     // * Límite más estricto, por IP, solo para el login (además del global).
     private final Cache<String, Bucket> loginBuckets;
 
@@ -75,15 +78,33 @@ public class RateLimitFilter extends OncePerRequestFilter {
             @Value("${app.ratelimit.forgot-refill-per-minute:1}") int forgotRefillPerMinute,
             @Value("${app.ratelimit.reset-capacity:10}") int resetCapacity,
             @Value("${app.ratelimit.reset-refill-per-minute:5}") int resetRefillPerMinute,
-            @Value("${app.ratelimit.max-clients:100000}") int maxClientes) {
+            @Value("${app.ratelimit.max-clients:100000}") int maxClientes, Mensajes mensajes) {
         this(capacity, refillPerMinute, loginCapacity, loginRefillPerMinute, refreshCapacity,
                 refreshRefillPerMinute, forgotCapacity, forgotRefillPerMinute, resetCapacity,
-                resetRefillPerMinute, maxClientes, Ticker.systemTicker());
+                resetRefillPerMinute, maxClientes, Ticker.systemTicker(), mensajes);
+    }
+
+    /** Para las pruebas: reloj del sistema y mensajes por defecto. */
+    RateLimitFilter(int capacity, int refillPerMinute, int loginCapacity, int loginRefillPerMinute,
+            int refreshCapacity, int refreshRefillPerMinute, int forgotCapacity, int forgotRefillPerMinute,
+            int resetCapacity, int resetRefillPerMinute, int maxClientes) {
+        this(capacity, refillPerMinute, loginCapacity, loginRefillPerMinute, refreshCapacity, refreshRefillPerMinute,
+                forgotCapacity, forgotRefillPerMinute, resetCapacity, resetRefillPerMinute, maxClientes,
+                Ticker.systemTicker());
     }
 
     RateLimitFilter(int capacity, int refillPerMinute, int loginCapacity, int loginRefillPerMinute,
             int refreshCapacity, int refreshRefillPerMinute, int forgotCapacity, int forgotRefillPerMinute,
             int resetCapacity, int resetRefillPerMinute, int maxClientes, Ticker reloj) {
+        this(capacity, refillPerMinute, loginCapacity, loginRefillPerMinute, refreshCapacity, refreshRefillPerMinute,
+                forgotCapacity, forgotRefillPerMinute, resetCapacity, resetRefillPerMinute, maxClientes, reloj,
+                new Mensajes(Mensajes.crearFuente()));
+    }
+
+    private RateLimitFilter(int capacity, int refillPerMinute, int loginCapacity, int loginRefillPerMinute,
+            int refreshCapacity, int refreshRefillPerMinute, int forgotCapacity, int forgotRefillPerMinute,
+            int resetCapacity, int resetRefillPerMinute, int maxClientes, Ticker reloj, Mensajes mensajes) {
+        this.mensajes = mensajes;
         if (maxClientes < 1) {
             throw new IllegalStateException("app.ratelimit.max-clients debe ser 1 o más");
         }
@@ -143,7 +164,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return;
         }
 
-        writeTooManyRequests(response);
+        writeTooManyRequests(request, response);
     }
 
     /** Nunca menor que lo que tarda un bucket vacío en rellenarse (con margen). */
@@ -197,7 +218,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return request.getRemoteAddr();
     }
 
-    private void writeTooManyRequests(HttpServletResponse response) throws IOException {
+    private void writeTooManyRequests(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setStatus(429);
         response.setContentType("application/json;charset=UTF-8");
         // * Se escribe el JSON a mano (no ApiResponse.error(...)) porque este
@@ -207,8 +228,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
         // * respeta el mismo contrato de sobre que RESPONSES_BACKEND.md exige
         // * en todo el resto de la API.
         String body = """
-                {"status":"failed","data":null,"message":"Demasiadas solicitudes, intentá de nuevo en unos segundos","timestamp":"%s","error":"ERR_SYS_02"}"""
-                .formatted(Instant.now().toString());
+                {"status":"failed","data":null,"message":"%s","timestamp":"%s","error":"ERR_SYS_02"}"""
+                .formatted(mensajes.en(mensajes.idiomaDe(request), "common.error.limitePeticiones"),
+                        Instant.now().toString());
         response.getWriter().write(body);
     }
 }

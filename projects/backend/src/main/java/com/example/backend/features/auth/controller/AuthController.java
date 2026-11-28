@@ -1,5 +1,6 @@
 package com.example.backend.features.auth.controller;
 
+import com.example.backend.common.idioma.Mensajes;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpHeaders;
@@ -41,6 +42,7 @@ public class AuthController {
     private final AuthCookies authCookies;
     private final RecuperacionService recuperacion;
     private final InvitacionService invitacion;
+    private final Mensajes mensajes;
 
     /** Entrega la cookie `XSRF-TOKEN` (double-submit) al cliente web. */
     @GetMapping("/csrf")
@@ -58,7 +60,7 @@ public class AuthController {
                 request.email(), request.password(), mobile ? TipoCliente.MOBILE : TipoCliente.WEB,
                 http.getRemoteAddr(), http.getHeader("User-Agent")));
 
-        return conTokens(mobile, result, "Inicio de sesión correcto");
+        return conTokens(mobile, result, mensajes.de("auth.exito.login"));
     }
 
     // * Web usa SOLO la cookie y mobile SOLO el body: mobile está exento de CSRF,
@@ -70,7 +72,7 @@ public class AuthController {
         boolean mobile = esMobile(http);
         AuthService.LoginResult result = authService.refresh(
                 mobile ? tokenDelBody(request) : cookie, http.getRemoteAddr(), http.getHeader("User-Agent"));
-        return conTokens(mobile, result, "Sesión renovada");
+        return conTokens(mobile, result, mensajes.de("auth.exito.sesionRenovada"));
     }
 
     @PostMapping("/logout")
@@ -84,7 +86,7 @@ public class AuthController {
         if (!mobile) {
             authCookies.agregarBorrado(headers);
         }
-        return ResponseEntity.ok().headers(headers).body(ApiResponse.success(null, "Sesión cerrada"));
+        return ResponseEntity.ok().headers(headers).body(ApiResponse.success(null, mensajes.de("auth.exito.sesionCerrada")));
     }
 
     private static boolean esMobile(HttpServletRequest http) {
@@ -114,13 +116,13 @@ public class AuthController {
         recuperacion.solicitar(request.email(),
                 new OrigenSolicitud(http.getRemoteAddr(), http.getHeader("User-Agent")));
         return ResponseEntity.ok(ApiResponse.success(null,
-                "Si hay una cuenta con ese correo, te enviamos un enlace para restablecer la contraseña"));
+                mensajes.de("auth.exito.recuperacionSolicitada")));
     }
 
     @PostMapping("/password/reset")
     public ResponseEntity<ApiResponse<Void>> restablecerPassword(@Valid @RequestBody ResetPasswordRequest request) {
         recuperacion.restablecer(request.token(), request.password());
-        return ResponseEntity.ok(ApiResponse.success(null, "Contraseña actualizada. Ya podés iniciar sesión"));
+        return ResponseEntity.ok(ApiResponse.success(null, mensajes.de("auth.exito.passwordActualizada")));
     }
 
     /** La credencial es el token de la invitación: quien acepta no tiene contraseña. */
@@ -128,11 +130,11 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> aceptarInvitacion(
             @Valid @RequestBody AceptarInvitacionRequest request) {
         invitacion.aceptar(request.token(), request.password());
-        return ResponseEntity.ok(ApiResponse.success(null, "Contraseña guardada. Ya podés iniciar sesión"));
+        return ResponseEntity.ok(ApiResponse.success(null, mensajes.de("auth.exito.invitacionAceptada")));
     }
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UsuarioSesionResponse>> me(@Parameter(hidden = true) @CurrentUserId java.util.UUID codigo) {
-        return ResponseEntity.ok(ApiResponse.success(authService.me(codigo), "Sesión actual"));
+        return ResponseEntity.ok(ApiResponse.success(authService.me(codigo), mensajes.de("auth.exito.sesionActual")));
     }
 }

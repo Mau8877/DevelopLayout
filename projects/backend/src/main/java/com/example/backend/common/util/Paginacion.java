@@ -23,8 +23,7 @@ public final class Paginacion {
         int pagina = page == null ? 1 : page;
         int tamanio = pageSize == null ? PAGE_SIZE_POR_DEFECTO : pageSize;
         if (pagina < 1 || pagina > PAGE_MAXIMA || tamanio < 1 || tamanio > PAGE_SIZE_MAXIMO) {
-            throw new ValidationException("ERR_SYS_01",
-                    "La paginación no es válida: page desde 1 y pageSize entre 1 y " + PAGE_SIZE_MAXIMO);
+            throw new ValidationException("ERR_SYS_01", "common.error.paginacion", PAGE_SIZE_MAXIMO);
         }
         return PageRequest.of(pagina - 1, tamanio);
     }

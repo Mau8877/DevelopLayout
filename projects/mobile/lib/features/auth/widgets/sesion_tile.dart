@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/mi_sesion.dart';
-
-String _fecha(DateTime fecha) {
-  final f = fecha.toLocal();
-  String dos(int n) => n.toString().padLeft(2, '0');
-  return '${dos(f.day)}/${dos(f.month)}/${f.year} ${dos(f.hour)}:${dos(f.minute)}';
-}
+import '../../../shared/language/app_texts.dart';
 
 /// Una sesión de la lista. La actual no ofrece cierre: para eso está "Cerrar sesión".
 class SesionTile extends StatelessWidget {
@@ -19,18 +14,20 @@ class SesionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final ultimoUso = sesion.ultimoUsoEn;
     return ListTile(
-      title: Text(sesion.dispositivo),
+      title: Text(sesion.dispositivo(context.textos)),
       subtitle: Text([
-        '${sesion.tipoCliente == 'MOBILE' ? 'Móvil' : 'Web'} · ${sesion.ip ?? 'IP desconocida'}',
-        'Iniciada: ${_fecha(sesion.creadaEn)}',
-        if (ultimoUso != null) 'Último uso: ${_fecha(ultimoUso)}',
+        '${context.t(sesion.tipoCliente == 'MOBILE' ? 'auth:sesiones.movil' : 'auth:sesiones.web')}'
+            ' · ${sesion.ip ?? context.t('auth:sesiones.ipDesconocida')}',
+        context.t('auth:sesiones.iniciada', args: {'fecha': context.fechaYHora(sesion.creadaEn)}),
+        if (ultimoUso != null)
+          context.t('auth:sesiones.ultimoUso', args: {'fecha': context.fechaYHora(ultimoUso)}),
       ].join('\n')),
       isThreeLine: true,
       trailing: sesion.actual
-          ? const Chip(label: Text('Esta sesión'))
+          ? Chip(label: Text(context.t('auth:sesiones.actual')))
           : IconButton(
               icon: const Icon(Icons.logout),
-              tooltip: 'Cerrar esta otra sesión',
+              tooltip: context.t('auth:sesiones.cerrarEsta'),
               onPressed: onCerrar,
             ),
     );

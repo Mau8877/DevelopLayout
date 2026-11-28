@@ -11,10 +11,10 @@ import '../../layouts/admin/admin_shell.dart';
 import '../../layouts/usuario/usuario_shell.dart';
 
 const rutaLogin = '/login';
-const rutaCargando = '/cargando';
+const rutaCargando = '/loading';
 const rutaInicio = '/';
 const rutaOlvidePassword = '/forgot-password';
-const rutaMisSesiones = '/mis-sesiones';
+const rutaMisSesiones = '/my-sessions';
 
 /// Rutas a las que se entra sin sesión. Con sesión, llevan a inicio.
 const _rutasSinSesion = {rutaLogin, rutaOlvidePassword};

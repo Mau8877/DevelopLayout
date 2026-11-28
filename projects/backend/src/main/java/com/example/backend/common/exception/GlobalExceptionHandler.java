@@ -1,5 +1,6 @@
 package com.example.backend.common.exception;
 
+import com.example.backend.common.idioma.Mensajes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -22,10 +23,16 @@ public class GlobalExceptionHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    private final Mensajes mensajes;
+
+    public GlobalExceptionHandler(Mensajes mensajes) {
+        this.mensajes = mensajes;
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiResponse<Object>> handleBusinessException(BusinessException ex) {
         return ResponseEntity.status(ex.getHttpStatus())
-                .body(ApiResponse.error(ex.getErrorCode(), ex.getMessage()));
+                .body(ApiResponse.error(ex.getErrorCode(), mensajes.de(ex.getMessage(), ex.getArgumentos())));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -33,7 +40,7 @@ public class GlobalExceptionHandler {
         String message = ex.getBindingResult().getFieldErrors().stream()
                 .findFirst()
                 .map(FieldError::getDefaultMessage)
-                .orElse("Los datos enviados no son válidos");
+                .orElseGet(() -> mensajes.de("common.error.datosInvalidos"));
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error("ERR_SYS_01", message));
@@ -43,7 +50,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<Object>> handleNotReadable(HttpMessageNotReadableException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error("ERR_SYS_01", "El cuerpo de la solicitud no es válido"));
+                .body(ApiResponse.error("ERR_SYS_01", mensajes.de("common.error.cuerpoInvalido")));
     }
 
     // * Los rechazos de @PreAuthorize se relanzan: Spring Security los convierte
@@ -57,7 +64,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TypeMismatchException.class)
     public ResponseEntity<ApiResponse<Object>> handleTypeMismatch(TypeMismatchException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error("ERR_SYS_01", "Los datos enviados no son válidos"));
+                .body(ApiResponse.error("ERR_SYS_01", mensajes.de("common.error.datosInvalidos")));
     }
 
     @ExceptionHandler(Exception.class)
@@ -69,16 +76,16 @@ public class GlobalExceptionHandler {
         }
         LOG.error("Error interno no controlado", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("ERR_SYS_00", "Ocurrió un error inesperado"));
+                .body(ApiResponse.error("ERR_SYS_00", mensajes.de("common.error.inesperado")));
     }
 
-    private static ResponseEntity<ApiResponse<Object>> errorDelCliente(ErrorResponse error) {
+    private ResponseEntity<ApiResponse<Object>> errorDelCliente(ErrorResponse error) {
         HttpStatusCode status = error.getStatusCode();
         ApiResponse<Object> body = switch (status.value()) {
-            case 400 -> ApiResponse.error("ERR_SYS_01", "Los datos enviados no son válidos");
-            case 404 -> ApiResponse.error("ERR_SYS_03", "El recurso solicitado no existe");
-            case 405 -> ApiResponse.error("ERR_SYS_04", "Método no permitido");
-            default -> ApiResponse.error("ERR_SYS_05", "La solicitud no es compatible con este recurso");
+            case 400 -> ApiResponse.error("ERR_SYS_01", mensajes.de("common.error.datosInvalidos"));
+            case 404 -> ApiResponse.error("ERR_SYS_03", mensajes.de("common.error.noExiste"));
+            case 405 -> ApiResponse.error("ERR_SYS_04", mensajes.de("common.error.metodo"));
+            default -> ApiResponse.error("ERR_SYS_05", mensajes.de("common.error.noCompatible"));
         };
         // * Conserva las cabeceras propias del error (ej. `Allow` en el 405).
         return ResponseEntity.status(status).headers(error.getHeaders()).body(body);

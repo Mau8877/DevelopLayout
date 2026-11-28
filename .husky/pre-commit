@@ -1,1 +1,2 @@
-pnpm exec lint-staged
+# En Windows, cmd corta las líneas largas: lint-staged reparte los archivos en tandas.
+pnpm exec lint-staged --max-arg-length 4000

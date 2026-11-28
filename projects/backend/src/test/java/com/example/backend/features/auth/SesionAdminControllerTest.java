@@ -52,7 +52,7 @@ class SesionAdminControllerTest extends AuthSesionIntegrationTest {
     }
 
     private MockHttpServletRequestBuilder buscar(String json) {
-        return post("/api/v1/admin/sesiones/buscar").contentType(MediaType.APPLICATION_JSON).content(json);
+        return post("/api/v1/admin/sessions/search").contentType(MediaType.APPLICATION_JSON).content(json);
     }
 
     private String porCorreo(String correo) {
@@ -127,7 +127,7 @@ class SesionAdminControllerTest extends AuthSesionIntegrationTest {
         Tokens victima = loginWeb();
         String sid = columnaSesion("codigo_sesion");
 
-        mvc.perform(comoAdmin(delete("/api/v1/admin/sesiones/" + sid))).andExpect(status().isOk());
+        mvc.perform(comoAdmin(delete("/api/v1/admin/sessions/" + sid))).andExpect(status().isOk());
 
         assertThat(columnaSesion("estado")).isEqualTo("REVOCADA");
         assertThat(columnaSesion("motivo_revocacion")).isEqualTo("ADMIN");
@@ -138,14 +138,14 @@ class SesionAdminControllerTest extends AuthSesionIntegrationTest {
                 + "AND detalle ->> 'usuarioAfectado' = ?", Integer.class, sid, codigoAdmin, codigoUsuario())).isEqualTo(1);
 
         // Repetirlo no falla ni duplica el evento.
-        mvc.perform(comoAdmin(delete("/api/v1/admin/sesiones/" + sid))).andExpect(status().isOk());
+        mvc.perform(comoAdmin(delete("/api/v1/admin/sessions/" + sid))).andExpect(status().isOk());
         assertThat(dueno().queryForObject("SELECT count(*) FROM authentication.bitacora WHERE entidad_codigo = ?::uuid "
                 + "AND accion = 'AUTH_SESION_CERRADA_ADMIN'", Integer.class, sid)).isEqualTo(1);
     }
 
     @Test
     void cerrar_sesionInexistente_da404() throws Exception {
-        mvc.perform(comoAdmin(delete("/api/v1/admin/sesiones/" + UUID.randomUUID())))
+        mvc.perform(comoAdmin(delete("/api/v1/admin/sessions/" + UUID.randomUUID())))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("ERR_AUTH_09"));
     }
@@ -155,7 +155,7 @@ class SesionAdminControllerTest extends AuthSesionIntegrationTest {
         Tokens una = loginWeb();
         Tokens otra = loginMobile();
 
-        mvc.perform(comoAdmin(post("/api/v1/admin/usuarios/" + codigoUsuario() + "/sesiones/cerrar")))
+        mvc.perform(comoAdmin(post("/api/v1/admin/users/" + codigoUsuario() + "/sessions/revoke")))
                 .andExpect(status().isOk());
 
         assertAccess(una.access(), 401);
@@ -175,7 +175,7 @@ class SesionAdminControllerTest extends AuthSesionIntegrationTest {
                     + "WHERE u.email = ? ORDER BY s.id DESC LIMIT 1", String.class, email));
             Callable<Integer> renovar = () -> mvc.perform(mobile("refresh", tokens.refresh()))
                     .andReturn().getResponse().getStatus();
-            Callable<Integer> cerrar = () -> mvc.perform(comoAdmin(delete("/api/v1/admin/sesiones/" + sid)))
+            Callable<Integer> cerrar = () -> mvc.perform(comoAdmin(delete("/api/v1/admin/sessions/" + sid)))
                     .andReturn().getResponse().getStatus();
 
             List<Integer> estados = new ArrayList<>();
@@ -199,8 +199,8 @@ class SesionAdminControllerTest extends AuthSesionIntegrationTest {
         String sid = columnaSesion("codigo_sesion");
 
         for (MockHttpServletRequestBuilder request : List.of(buscar(porCorreo("admin@test.local")),
-                delete("/api/v1/admin/sesiones/" + sid),
-                post("/api/v1/admin/usuarios/" + codigoAdmin + "/sesiones/cerrar"))) {
+                delete("/api/v1/admin/sessions/" + sid),
+                post("/api/v1/admin/users/" + codigoAdmin + "/sessions/revoke"))) {
             mvc.perform(request.with(csrf()).cookie(cookie))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.error").value("ERR_AUTH_08"));
@@ -216,7 +216,7 @@ class SesionAdminControllerTest extends AuthSesionIntegrationTest {
 
         Cookie cookie = new Cookie("accessToken", accessAdmin);
         mvc.perform(buscar(porCorreo(email)).cookie(cookie)).andExpect(status().isForbidden());
-        mvc.perform(delete("/api/v1/admin/sesiones/" + UUID.randomUUID()).cookie(cookie))
+        mvc.perform(delete("/api/v1/admin/sessions/" + UUID.randomUUID()).cookie(cookie))
                 .andExpect(status().isForbidden());
     }
 

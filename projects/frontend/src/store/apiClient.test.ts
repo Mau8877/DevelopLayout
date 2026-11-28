@@ -58,7 +58,7 @@ describe('redactBody', () => {
   })
 
   it('deja pasar el resto', () => {
-    expect(redactBody('http://api/api/v1/usuarios', { a: 1 })).toEqual({ a: 1 })
+    expect(redactBody('http://api/api/v1/users', { a: 1 })).toEqual({ a: 1 })
   })
 })
 

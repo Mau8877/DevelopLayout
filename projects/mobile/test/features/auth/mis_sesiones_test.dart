@@ -11,7 +11,9 @@ import 'package:mobile/features/auth/providers/auth_provider.dart';
 import 'package:mobile/features/auth/providers/mis_sesiones_provider.dart';
 import 'package:mobile/features/auth/screens/mis_sesiones_screen.dart';
 import 'package:mobile/features/auth/services/sesiones_service.dart';
+import 'package:mobile/shared/language/app_texts.dart';
 
+import '../../support/app_de_prueba.dart';
 import '../../support/fake_adapter.dart';
 import '../../support/memory_store.dart';
 import 'fake_auth_service.dart';
@@ -71,7 +73,7 @@ Future<void> _montar(WidgetTester tester, FakeAdapter adapter) async {
       authServiceProvider.overrideWithValue(FakeAuthService(token: true, usuarioDeMe: _usuario)),
       sesionesServiceProvider.overrideWithValue(_servicio(adapter)),
     ],
-    child: const MaterialApp(home: MisSesionesScreen()),
+    child: const AppDePrueba(home: MisSesionesScreen()),
   ));
   await _dejarResponder(tester);
   await _dejarResponder(tester);
@@ -87,17 +89,18 @@ void main() {
       expect(sesion.ip, isNull);
       expect(sesion.ultimoUsoEn, isNull);
       expect(sesion.actual, isFalse);
-      expect(sesion.dispositivo, 'Dispositivo desconocido');
+      expect(sesion.dispositivo(AppTexts.de('es')), 'Dispositivo desconocido');
     });
 
     test('el resumen sigue las mismas reglas que la web', () {
+      final es = AppTexts.de('es');
       const win = 'Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 Chrome/140.0 Safari/537.36';
-      expect(resumirDispositivo(win, 'WEB'), 'Chrome en Windows');
-      expect(resumirDispositivo('$win Edg/140.0', 'WEB'), 'Edge en Windows');
-      expect(resumirDispositivo('(iPhone; like Mac OS X) Version/18.0 Safari/604.1', 'WEB'), 'Safari en iPhone');
-      expect(resumirDispositivo('(Linux; Android 15) Chrome/140.0 Safari/537', 'WEB'), 'Chrome en Android');
-      expect(resumirDispositivo('Dart/3.12 (dart:io)', 'MOBILE'), 'App móvil');
-      expect(resumirDispositivo(null, 'WEB'), 'Dispositivo desconocido');
+      expect(resumirDispositivo(win, 'WEB', es), 'Chrome en Windows');
+      expect(resumirDispositivo('$win Edg/140.0', 'WEB', es), 'Edge en Windows');
+      expect(resumirDispositivo('(iPhone; like Mac OS X) Version/18.0 Safari/604.1', 'WEB', es), 'Safari en iPhone');
+      expect(resumirDispositivo('(Linux; Android 15) Chrome/140.0 Safari/537', 'WEB', es), 'Chrome en Android');
+      expect(resumirDispositivo('Dart/3.12 (dart:io)', 'MOBILE', es), 'App móvil');
+      expect(resumirDispositivo(null, 'WEB', es), 'Dispositivo desconocido');
     });
   });
 
@@ -111,7 +114,7 @@ void main() {
 
     expect(pagina.sesiones, hasLength(2));
     expect(adapter.requests.map((r) => '${r.method} ${r.path}'),
-        ['GET /auth/sesiones', 'DELETE /auth/sesiones/abc', 'POST /auth/sesiones/cerrar-otras']);
+        ['GET /auth/sessions', 'DELETE /auth/sessions/abc', 'POST /auth/sessions/revoke-others']);
     expect(adapter.requests.first.queryParameters, {'page': 2, 'pageSize': 20});
   });
 
@@ -145,7 +148,7 @@ void main() {
     await _dejarResponder(tester, () => tester.tap(find.text('Cerrar')));
     await _dejarResponder(tester);
 
-    expect(_cambios(adapter).single.path, '/auth/sesiones/otra');
+    expect(_cambios(adapter).single.path, '/auth/sessions/otra');
     expect(find.text('App móvil'), findsNothing);
   });
 
@@ -201,7 +204,7 @@ void main() {
     });
     await _montar(tester, adapter);
     expect(find.text('Reintentar'), findsOneWidget);
-    expect(find.text('No pudimos conectarnos. Revisá tu conexión e intentá de nuevo.'), findsOneWidget);
+    expect(find.text('No pudimos conectarnos. Revisa tu conexión e inténtalo de nuevo.'), findsOneWidget);
 
     sinRed = false;
     await _dejarResponder(tester, () => tester.tap(find.text('Reintentar')));

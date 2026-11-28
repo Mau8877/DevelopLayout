@@ -1,4 +1,4 @@
-import { useTokenDelFragmento } from '../api/useTokenDelFragmento'
+import { useTokenDelFragmento } from '../api'
 import { AceptarInvitacionScreen } from './AceptarInvitacionScreen'
 
 export function AceptarInvitacionPage() {

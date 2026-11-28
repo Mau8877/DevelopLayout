@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useForm } from '@tanstack/react-form'
+import type { TFunction } from 'i18next'
 import { EyeIcon, ScrollTextIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -17,47 +19,55 @@ import {
   type DataTableColumnDef,
 } from '@/components/ui/tanstack-table'
 import { ApiError } from '@/store'
-import { formatDateTime } from '@/utils/formatDateTime'
-import { primerError } from '@/utils/primerError'
-import { useBitacora } from '../api/useBitacora'
-import { bitacoraFiltrosSchema, SIN_FILTROS, type BitacoraFiltros } from '../schemas/bitacoraFiltrosSchema'
-import type { EventoBitacora } from '../types/bitacora'
+import { formatDateTime } from '@/utils'
+import { primerError } from '@/utils'
+import { useBitacora } from '../api'
+import { bitacoraFiltrosSchema, SIN_FILTROS, type BitacoraFiltros } from '../schemas'
+import type { EventoBitacora } from '../types'
 
-const ETIQUETA_RESULTADO: Record<string, string> = { '': 'Todos', EXITO: 'Éxito', FALLO: 'Fallo' }
+// * Se guardan claves, nunca textos: el valor del contrato no se traduce.
+const CLAVE_RESULTADO = {
+  '': 'resultado.todos',
+  EXITO: 'resultado.exito',
+  FALLO: 'resultado.fallo',
+} as const
 
 function Resultado({ valor }: { valor: EventoBitacora['resultado'] }) {
-  return <Badge variant={valor === 'FALLO' ? 'destructive' : 'secondary'}>{ETIQUETA_RESULTADO[valor]}</Badge>
+  const { t } = useTranslation('bitacora')
+  return <Badge variant={valor === 'FALLO' ? 'destructive' : 'secondary'}>{t(CLAVE_RESULTADO[valor])}</Badge>
 }
 
-const columnas: DataTableColumnDef<EventoBitacora>[] = [
-  {
-    accessorKey: 'fecha',
-    header: 'Fecha',
-    meta: { width: 'w-40' },
-    cell: ({ row }) => formatDateTime(row.original.fecha),
-  },
-  { accessorKey: 'accion', header: 'Acción', meta: { grow: true, cardTitle: true } },
-  { accessorKey: 'modulo', header: 'Módulo', meta: { width: 'w-24' } },
-  {
-    accessorKey: 'resultado',
-    header: 'Resultado',
-    meta: { width: 'w-28' },
-    cell: ({ row }) => <Resultado valor={row.original.resultado} />,
-  },
-  {
-    accessorKey: 'usuarioCodigo',
-    header: 'Usuario',
-    meta: { width: 'w-40' },
-    cell: ({ row }) => <span title={row.original.usuarioCodigo}>{row.original.usuarioCodigo ?? '—'}</span>,
-  },
-]
+function crearColumnas(t: TFunction<'bitacora'>): DataTableColumnDef<EventoBitacora>[] {
+  return [
+    {
+      accessorKey: 'fecha',
+      header: t('campo.fecha'),
+      meta: { width: 'w-40' },
+      cell: ({ row }) => formatDateTime(row.original.fecha),
+    },
+    { accessorKey: 'accion', header: t('campo.accion'), meta: { grow: true, cardTitle: true } },
+    { accessorKey: 'modulo', header: t('campo.modulo'), meta: { width: 'w-24' } },
+    {
+      accessorKey: 'resultado',
+      header: t('campo.resultado'),
+      meta: { width: 'w-28' },
+      cell: ({ row }) => <Resultado valor={row.original.resultado} />,
+    },
+    {
+      accessorKey: 'usuarioCodigo',
+      header: t('campo.usuario'),
+      meta: { width: 'w-40' },
+      cell: ({ row }) => <span title={row.original.usuarioCodigo}>{row.original.usuarioCodigo ?? '—'}</span>,
+    },
+  ]
+}
 
 const CAMPOS_TEXTO = [
-  { name: 'accion', label: 'Acción', type: 'text' },
-  { name: 'modulo', label: 'Módulo', type: 'text' },
-  { name: 'usuarioCodigo', label: 'Código de usuario', type: 'text' },
-  { name: 'desde', label: 'Desde', type: 'date' },
-  { name: 'hasta', label: 'Hasta', type: 'date' },
+  { name: 'accion', clave: 'campo.accion', type: 'text' },
+  { name: 'modulo', clave: 'campo.modulo', type: 'text' },
+  { name: 'usuarioCodigo', clave: 'campo.codigoUsuario', type: 'text' },
+  { name: 'desde', clave: 'campo.desde', type: 'date' },
+  { name: 'hasta', clave: 'campo.hasta', type: 'date' },
 ] as const
 
 function Dato({ nombre, valor }: { nombre: string; valor: string | undefined }) {
@@ -70,6 +80,7 @@ function Dato({ nombre, valor }: { nombre: string; valor: string | undefined }) 
 }
 
 export function BitacoraScreen() {
+  const { t } = useTranslation('bitacora')
   const [filtros, setFiltros] = useState<BitacoraFiltros>(SIN_FILTROS)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
@@ -82,7 +93,7 @@ export function BitacoraScreen() {
   }
   const { table } = useDataTable({
     data: consulta.data?.data ?? [],
-    columns: columnas,
+    columns: crearColumnas(t),
     meta: consulta.data?.meta,
     page,
     pageSize,
@@ -101,7 +112,7 @@ export function BitacoraScreen() {
   })
 
   const verDetalle = (evento: EventoBitacora) => (
-    <RowActionButton icon={<EyeIcon />} label="Ver detalle" onClick={() => setDetalle(evento)} />
+    <RowActionButton icon={<EyeIcon />} label={t('verDetalle')} onClick={() => setDetalle(evento)} />
   )
 
   return (
@@ -119,7 +130,7 @@ export function BitacoraScreen() {
             {(field) => (
               <FormField
                 id={`filtro-${campo.name}`}
-                label={campo.label}
+                label={t(campo.clave)}
                 error={primerError(field.state.meta.errors)}
               >
                 {(controlProps) => (
@@ -138,18 +149,20 @@ export function BitacoraScreen() {
         <form.Field name="resultado">
           {(field) => (
             <div className="flex flex-col gap-1.5">
-              <span className="text-sm font-medium">Resultado</span>
+              <span className="text-sm font-medium">{t('campo.resultado')}</span>
               <Select
                 value={field.state.value}
                 onValueChange={(valor) => field.handleChange((valor ?? '') as BitacoraFiltros['resultado'])}
               >
-                <SelectTrigger aria-label="Resultado" className="w-full">
-                  <SelectValue>{(valor: string | null) => ETIQUETA_RESULTADO[valor ?? '']}</SelectValue>
+                <SelectTrigger aria-label={t('campo.resultado')} className="w-full">
+                  <SelectValue>
+                    {(valor: string | null) => t(CLAVE_RESULTADO[(valor ?? '') as BitacoraFiltros['resultado']])}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(ETIQUETA_RESULTADO).map(([valor, etiqueta]) => (
+                  {Object.entries(CLAVE_RESULTADO).map(([valor, clave]) => (
                     <SelectItem key={valor} value={valor}>
-                      {etiqueta}
+                      {t(clave)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -158,7 +171,7 @@ export function BitacoraScreen() {
           )}
         </form.Field>
         <div className="flex gap-2 sm:col-span-2 lg:col-span-3">
-          <Button type="submit">Filtrar</Button>
+          <Button type="submit">{t('filtrar')}</Button>
           <Button
             type="button"
             variant="ghost"
@@ -168,7 +181,7 @@ export function BitacoraScreen() {
               setFiltros(SIN_FILTROS)
             }}
           >
-            Limpiar filtros
+            {t('limpiar')}
           </Button>
         </div>
       </form>
@@ -176,7 +189,7 @@ export function BitacoraScreen() {
       {consulta.isError ? (
         <ErrorState
           descripcion={
-            consulta.error instanceof ApiError ? consulta.error.message : 'No pudimos cargar la bitácora.'
+            consulta.error instanceof ApiError ? consulta.error.message : t('errorDeCarga')
           }
           onReintentar={() => void consulta.refetch()}
         />
@@ -187,9 +200,9 @@ export function BitacoraScreen() {
               table={table}
               isLoading={consulta.isPending}
               isError={false}
-              emptyMessage="No hay eventos con esos filtros"
+              emptyMessage={t('vacio')}
               renderActions={(row) => verDetalle(row.original)}
-              actionsLabel="Detalle"
+              actionsLabel={t('detalle')}
             />
           </div>
           <div className="md:hidden">
@@ -197,7 +210,7 @@ export function BitacoraScreen() {
               table={table}
               isLoading={consulta.isPending}
               isError={false}
-              emptyMessage="No hay eventos con esos filtros"
+              emptyMessage={t('vacio')}
               renderActions={(row) => verDetalle(row.original)}
             />
           </div>
@@ -214,23 +227,23 @@ export function BitacoraScreen() {
       <ModalDetailLayout
         open={detalle !== null}
         onOpenChange={(open) => !open && setDetalle(null)}
-        title={detalle?.accion ?? 'Evento'}
+        title={detalle?.accion ?? t('evento')}
         subtitle={detalle ? formatDateTime(detalle.fecha) : undefined}
         icon={ScrollTextIcon}
       >
         {detalle && (
           <div className="flex flex-col gap-4 text-sm">
             <dl className="grid gap-3 sm:grid-cols-2">
-              <Dato nombre="Módulo" valor={detalle.modulo} />
-              <Dato nombre="Resultado" valor={ETIQUETA_RESULTADO[detalle.resultado]} />
-              <Dato nombre="Usuario" valor={detalle.usuarioCodigo} />
-              <Dato nombre="IP" valor={detalle.ip} />
-              <Dato nombre="Entidad" valor={detalle.entidad} />
-              <Dato nombre="Código de la entidad" valor={detalle.entidadCodigo} />
+              <Dato nombre={t('campo.modulo')} valor={detalle.modulo} />
+              <Dato nombre={t('campo.resultado')} valor={t(CLAVE_RESULTADO[detalle.resultado])} />
+              <Dato nombre={t('campo.usuario')} valor={detalle.usuarioCodigo} />
+              <Dato nombre={t('campo.ip')} valor={detalle.ip} />
+              <Dato nombre={t('campo.entidad')} valor={detalle.entidad} />
+              <Dato nombre={t('campo.codigoEntidad')} valor={detalle.entidadCodigo} />
             </dl>
             {/* * Texto plano: el detalle nunca se interpreta como HTML. */}
             <pre className="overflow-x-auto rounded-md bg-muted p-3 text-xs whitespace-pre-wrap">
-              {detalle.detalle ? JSON.stringify(detalle.detalle, null, 2) : 'Sin detalle'}
+              {detalle.detalle ? JSON.stringify(detalle.detalle, null, 2) : t('sinDetalle')}
             </pre>
           </div>
         )}

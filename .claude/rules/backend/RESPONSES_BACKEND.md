@@ -24,7 +24,7 @@ existen fuera de este contrato (`/health`, `/prometheus`, `/swagger-ui/**`,
 
 - `status`: `"success"` o `"failed"`. Nunca otro valor.
 - `data`: ver [criterio objeto vs array](#data-objeto-vs-array) abajo. `null` cuando no hay contenido que devolver.
-- `message`: texto legible para humanos (UI/logs), en español. En éxito describe la acción (`"Usuario creado correctamente"`); en error, el mensaje de negocio (no el mensaje técnico de la excepción/stacktrace).
+- `message`: texto legible para humanos, en el idioma pedido con `Accept-Language` (ver [IDIOMAS_BACKEND.md](IDIOMAS_BACKEND.md)). En éxito describe la acción (`"Usuario creado correctamente"`); en error, el mensaje de negocio (no el mensaje técnico de la excepción/stacktrace).
 - `timestamp`: **siempre presente**, ISO-8601 en UTC (`Instant.now().toString()` en Java), generado en el momento de armar la respuesta, no reutilizado de ningún dato de dominio.
 - `error`: **solo presente cuando `status` es `"failed"`**. Es un código catalogado (ver [EXCEPCIONES_BACKEND.md](EXCEPCIONES_BACKEND.md)), nunca un mensaje libre. Cuando `status` es `"success"`, el campo `error` se omite (no se serializa `null`).
 

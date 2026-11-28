@@ -1,0 +1,93 @@
+{
+  "idioma": {
+    "cambiar": "Change language"
+  },
+  "comun": {
+    "reintentar": "Retry",
+    "cancelar": "Cancel",
+    "cerrar": "Close",
+    "guardar": "Save",
+    "eliminar": "Delete",
+    "noSeDeshace": "This action cannot be undone."
+  },
+  "error": {
+    "titulo": "Something went wrong",
+    "descripcion": "An unexpected error occurred. Try again.",
+    "solicitud": "The request could not be completed. Try again.",
+    "accion": "We could not complete the action. Try again.",
+    "noEncontradaTitulo": "Page not found",
+    "noEncontradaTexto": "The page you are looking for does not exist."
+  },
+  "cliente": {
+    "red": "We could not connect. Check your connection and try again.",
+    "tiempo": "The request took too long. Try again.",
+    "desconocido": "An unexpected error occurred. Try again."
+  },
+  "tabla": {
+    "filasPorPagina": "Rows per page",
+    "resultados_one": "{{count}} result",
+    "resultados_other": "{{count}} results",
+    "paginacion": "Pagination",
+    "paginaAnterior": "Previous page",
+    "anterior": "Previous",
+    "paginaSiguiente": "Next page",
+    "siguiente": "Next",
+    "pagina": "Page {{numero}}",
+    "errorDeCarga": "The data could not be loaded",
+    "sinResultados": "No results",
+    "acciones": "Actions"
+  },
+  "filtros": {
+    "buscar": "Search...",
+    "todos": "All",
+    "limpiar": "Clear filters"
+  },
+  "cabecera": {
+    "alternarMenu": "Show or hide the menu",
+    "miPerfil": "My profile",
+    "cambiarPassword": "Change password",
+    "cambiarTema": "Change theme",
+    "configuracion": "Settings",
+    "cerrarSesion": "Sign out",
+    "rutaActual": "Breadcrumb",
+    "formatoFecha": "dddd, MMMM D, YYYY - HH:mm"
+  },
+  "menu": {
+    "titulo": "Menu",
+    "navegacion": "Navigation menu",
+    "cerrar": "Close menu"
+  },
+  "navegacion": {
+    "panel": "Dashboard",
+    "inicio": "Home",
+    "misSesiones": "My sessions",
+    "sesionesUsuarios": "User sessions",
+    "bitacora": "Audit log",
+    "usuarios": "Users",
+    "administracion": "Administration"
+  },
+  "rol": {
+    "administrador": "Administrator",
+    "usuario": "User"
+  },
+  "panel": {
+    "vacio": "There is no content on the dashboard yet."
+  },
+  "notificaciones": {
+    "titulo": "Notifications",
+    "sinLeer_one": "{{count}} unread",
+    "sinLeer_other": "{{count}} unread",
+    "cargando": "Loading...",
+    "mostrarMas": "Show more",
+    "vacio": "You have no notifications.",
+    "leerTodo": "Mark all as read",
+    "eliminar": "Delete notifications",
+    "confirmarTitulo": "Delete all notifications?",
+    "confirmarTexto": "They are permanently deleted, not just marked as read. This action cannot be undone."
+  },
+  "dispositivo": {
+    "appMovil": "Mobile app",
+    "desconocido": "Unknown device",
+    "navegadorEn": "{{navegador}} on {{sistema}}"
+  }
+}

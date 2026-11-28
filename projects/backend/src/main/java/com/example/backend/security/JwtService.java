@@ -80,7 +80,7 @@ public class JwtService {
                     UUID.fromString(claims.get("sid", String.class)),
                     roles);
         } catch (JwtException | IllegalArgumentException | NullPointerException e) {
-            throw new UnauthorizedException(AuthErrorCodes.ERR_AUTH_07, "No autenticado");
+            throw new UnauthorizedException(AuthErrorCodes.ERR_AUTH_07, "common.error.noAutenticado");
         }
     }
 

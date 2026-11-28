@@ -165,7 +165,7 @@ class RateLimitFilterTest {
         assertThat(filter.shouldNotFilter(requestTo("/health"))).isTrue();
         assertThat(filter.shouldNotFilter(requestTo("/prometheus"))).isTrue();
         assertThat(filter.shouldNotFilter(requestTo("/swagger-ui/index.html"))).isTrue();
-        assertThat(filter.shouldNotFilter(requestTo("/api/v1/usuarios"))).isFalse();
+        assertThat(filter.shouldNotFilter(requestTo("/api/v1/users"))).isFalse();
     }
 
     private static MockHttpServletRequest apiRequest(String remoteAddr) {
@@ -196,6 +196,29 @@ class RateLimitFilterTest {
         assertThat(estadosDePost(filter, "/api/v1/auth/invitation/accept", 2)).containsExactly(200, 200);
         assertThat(estadosDePost(filter, "/api/v1/auth/password/reset", 2)).containsExactly(200, 429);
         assertThat(estadosDePost(filter, "/api/v1/auth/invitation/accept", 1)).containsExactly(429);
+    }
+
+    @Test
+    void elMensajeDel429SaleEnElIdiomaPedido() throws Exception {
+        for (String[] caso : new String[][] {
+            {"en", "Too many requests. Try again in a few seconds"},
+            {null, "Demasiadas solicitudes. Inténtalo de nuevo en unos segundos"},
+        }) {
+            RateLimitFilter filter = new RateLimitFilter(1, 60, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 100000);
+            MockHttpServletResponse ultima = new MockHttpServletResponse();
+            for (int i = 0; i < 2; i++) {
+                MockHttpServletRequest request = apiRequest("203.0.113.99");
+                if (caso[0] != null) {
+                    request.addHeader("Accept-Language", caso[0]);
+                    request.setPreferredLocales(java.util.List.of(java.util.Locale.forLanguageTag(caso[0])));
+                }
+                ultima = new MockHttpServletResponse();
+                ultima.setCharacterEncoding("UTF-8");
+                filter.doFilterInternal(request, ultima, (req, res) -> { });
+            }
+            assertThat(ultima.getContentAsString(java.nio.charset.StandardCharsets.UTF_8))
+                    .contains(caso[1], "ERR_SYS_02");
+        }
     }
 
     private static java.util.List<Integer> estadosDePost(RateLimitFilter filter, String ruta, int veces)

@@ -1,4 +1,6 @@
-/// Sesión propia (`GET /auth/sesiones`). `actual` es desde la que se consulta.
+import '../../../shared/language/app_texts.dart';
+
+/// Sesión propia (`GET /auth/sessions`). `actual` es desde la que se consulta.
 class MiSesion {
   final String codigo;
   final String tipoCliente;
@@ -31,7 +33,7 @@ class MiSesion {
     );
   }
 
-  String get dispositivo => resumirDispositivo(userAgent, tipoCliente);
+  String dispositivo(AppTexts textos) => resumirDispositivo(userAgent, tipoCliente, textos);
 }
 
 // * Mismas reglas que `resumirDispositivo` de la web. El orden importa: Edge y
@@ -63,11 +65,13 @@ String? _buscar(List<(RegExp, String)> reglas, String texto) {
 
 /// Nombre corto y orientativo del dispositivo. El user agent lo controla el
 /// cliente: lo que no se reconoce no se adivina.
-String resumirDispositivo(String? userAgent, String tipoCliente) {
-  if (tipoCliente == 'MOBILE') return 'App móvil';
+String resumirDispositivo(String? userAgent, String tipoCliente, AppTexts textos) {
+  if (tipoCliente == 'MOBILE') return textos.t('auth:dispositivo.appMovil');
   final texto = userAgent ?? '';
   final navegador = _buscar(_navegadores, texto);
   final sistema = _buscar(_sistemas, texto);
-  if (navegador != null && sistema != null) return '$navegador en $sistema';
-  return navegador ?? sistema ?? 'Dispositivo desconocido';
+  if (navegador != null && sistema != null) {
+    return textos.t('auth:dispositivo.navegadorEn', args: {'navegador': navegador, 'sistema': sistema});
+  }
+  return navegador ?? sistema ?? textos.t('auth:dispositivo.desconocido');
 }

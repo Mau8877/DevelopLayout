@@ -18,6 +18,6 @@ describe('guard de rutas de administrador', () => {
     } catch (error) {
       lanzado = error
     }
-    expect(lanzado).toMatchObject({ options: { to: '/panel' } })
+    expect(lanzado).toMatchObject({ options: { to: '/dashboard' } })
   })
 })

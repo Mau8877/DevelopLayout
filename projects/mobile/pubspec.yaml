@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -67,6 +69,13 @@ flutter:
   # flutter_dotenv no puede bundlear el archivo y falla en runtime.
   assets:
     - .env
+    # * Un par por cada carpeta `language` (ver IDIOMAS_MOBILE.md).
+    - lib/shared/language/es.json
+    - lib/shared/language/en.json
+    - lib/features/auth/language/es.json
+    - lib/features/auth/language/en.json
+    - lib/features/health/language/es.json
+    - lib/features/health/language/en.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:

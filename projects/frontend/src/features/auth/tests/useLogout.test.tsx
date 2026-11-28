@@ -12,9 +12,9 @@ import {
 import type { ReactNode } from 'react'
 import { AdminLayout, UsuarioLayout } from '@/layouts'
 import { apiClient, ApiError } from '@/store'
-import { authKeys } from '../api/keys'
-import { manejarSesionExpirada } from '../api/manejarSesionExpirada'
-import { useLogout } from '../api/useLogout'
+import { authKeys } from '../api'
+import { manejarSesionExpirada } from '../api'
+import { useLogout } from '../api'
 
 const navigate = vi.hoisted(() => vi.fn())
 vi.mock('@tanstack/react-router', async (original) => ({
@@ -65,7 +65,7 @@ describe('manejarSesionExpirada', () => {
     const queryClient = clienteConSesion()
     const irALogin = vi.fn()
 
-    manejarSesionExpirada(queryClient, '/panel', irALogin)
+    manejarSesionExpirada(queryClient, '/dashboard', irALogin)
 
     expect(queryClient.getQueryData(authKeys.session)).toBeNull()
     expect(queryClient.getQueryData(['pedidos', 'list'])).toBeUndefined()
@@ -76,7 +76,7 @@ describe('manejarSesionExpirada', () => {
     const irALogin = vi.fn()
 
     manejarSesionExpirada(new QueryClient(), '/login', irALogin)
-    manejarSesionExpirada(new QueryClient(), '/panel', irALogin)
+    manejarSesionExpirada(new QueryClient(), '/dashboard', irALogin)
 
     expect(irALogin).not.toHaveBeenCalled()
   })

@@ -1,0 +1,93 @@
+{
+  "idioma": {
+    "cambiar": "Cambiar idioma"
+  },
+  "comun": {
+    "reintentar": "Reintentar",
+    "cancelar": "Cancelar",
+    "cerrar": "Cerrar",
+    "guardar": "Guardar",
+    "eliminar": "Eliminar",
+    "noSeDeshace": "Esta acción no se puede deshacer."
+  },
+  "error": {
+    "titulo": "Algo salió mal",
+    "descripcion": "Ocurrió un error inesperado. Inténtalo de nuevo.",
+    "solicitud": "No se pudo completar la solicitud. Inténtalo de nuevo.",
+    "accion": "No pudimos completar la acción. Inténtalo de nuevo.",
+    "noEncontradaTitulo": "Página no encontrada",
+    "noEncontradaTexto": "La página que buscas no existe."
+  },
+  "cliente": {
+    "red": "No pudimos conectarnos. Revisa tu conexión e inténtalo de nuevo.",
+    "tiempo": "La solicitud tardó demasiado. Inténtalo de nuevo.",
+    "desconocido": "Ocurrió un error inesperado. Inténtalo de nuevo."
+  },
+  "tabla": {
+    "filasPorPagina": "Filas por página",
+    "resultados_one": "{{count}} resultado",
+    "resultados_other": "{{count}} resultados",
+    "paginacion": "Paginación",
+    "paginaAnterior": "Página anterior",
+    "anterior": "Anterior",
+    "paginaSiguiente": "Página siguiente",
+    "siguiente": "Siguiente",
+    "pagina": "Página {{numero}}",
+    "errorDeCarga": "Ocurrió un error al cargar los datos",
+    "sinResultados": "Sin resultados",
+    "acciones": "Acciones"
+  },
+  "filtros": {
+    "buscar": "Buscar...",
+    "todos": "Todos",
+    "limpiar": "Limpiar filtros"
+  },
+  "cabecera": {
+    "alternarMenu": "Mostrar u ocultar el menú",
+    "miPerfil": "Mi perfil",
+    "cambiarPassword": "Cambiar contraseña",
+    "cambiarTema": "Cambiar tema",
+    "configuracion": "Configuración",
+    "cerrarSesion": "Cerrar sesión",
+    "rutaActual": "Ruta actual",
+    "formatoFecha": "dddd, D [de] MMMM [de] YYYY - HH:mm"
+  },
+  "menu": {
+    "titulo": "Menú",
+    "navegacion": "Menú de navegación",
+    "cerrar": "Cerrar menú"
+  },
+  "navegacion": {
+    "panel": "Panel",
+    "inicio": "Inicio",
+    "misSesiones": "Mis sesiones",
+    "sesionesUsuarios": "Sesiones de usuarios",
+    "bitacora": "Bitácora",
+    "usuarios": "Usuarios",
+    "administracion": "Administración"
+  },
+  "rol": {
+    "administrador": "Administrador",
+    "usuario": "Usuario"
+  },
+  "panel": {
+    "vacio": "Todavía no hay contenido en el panel."
+  },
+  "notificaciones": {
+    "titulo": "Notificaciones",
+    "sinLeer_one": "{{count}} sin leer",
+    "sinLeer_other": "{{count}} sin leer",
+    "cargando": "Cargando...",
+    "mostrarMas": "Mostrar más",
+    "vacio": "No tienes notificaciones.",
+    "leerTodo": "Marcar todo como leído",
+    "eliminar": "Eliminar notificaciones",
+    "confirmarTitulo": "¿Eliminar todas las notificaciones?",
+    "confirmarTexto": "Se eliminan de forma permanente, no solo se marcan como leídas. Esta acción no se puede deshacer."
+  },
+  "dispositivo": {
+    "appMovil": "App móvil",
+    "desconocido": "Dispositivo desconocido",
+    "navegadorEn": "{{navegador}} en {{sistema}}"
+  }
+}

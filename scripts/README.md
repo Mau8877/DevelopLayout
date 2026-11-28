@@ -3,6 +3,18 @@
 Scripts de automatización del proyecto. Se corren en **tu máquina** (necesitan
 `pnpm`, `flutter` y Java; el backend usa el `mvnw` del repo).
 
+## `project:init`: convertir la plantilla en un proyecto nuevo
+
+```bash
+pnpm project:init --nombre "Acme Tienda" --slug acme-tienda --paquete com.acme [--dry-run]
+```
+
+Cambia los nombres genéricos de la plantilla en backend, web, mobile, Docker, CI y scripts. Se usa una sola vez sobre una copia sin cambios pendientes y no toca ningún `.env`. Guía completa en [docs/README.md](../docs/README.md).
+
+- Reemplaza una **lista cerrada** de nombres. Si agregás un contenedor nuevo con el prefijo de la plantilla, sumalo a `RECURSOS` en `init-project.mjs`.
+- No armes esos nombres al ejecutar, juntando el prefijo con una variable: escribilos enteros, o no se pueden renombrar. Las pruebas lo detectan.
+- Mientras el repo sea la plantilla, una prueba lo recorre entero y falla si quedaría algún nombre conocido o si una regla ya no encuentra nada.
+
 ## `setup:env`: preparar los `.env` en un paso
 
 Crea (o completa) los `.env` de los cuatro proyectos a partir de sus
@@ -112,3 +124,26 @@ pnpm test:prod
 
 Levanta `docker-compose.prod.yml` con secretos, certificado y volúmenes descartables, comprueba que funciona, borra los datos, restaura un respaldo en un servidor vacío y limpia. Necesita Docker, `openssl` (en Windows viene con Git) y los puertos `18080` y `18443` libres. Se niega a correr si hay contenedores con los nombres del proyecto (`docker compose down` antes; **no** uses `-v`, que borra tus datos). Deja las imágenes construidas con el tag `e2e-prod`. Tarda varios minutos. Es la misma prueba que corre el job `docker` de CI.
 
+
+## `test:e2e`: pruebas de navegador
+
+```bash
+pnpm --dir projects/frontend exec playwright install chromium   # solo la primera vez
+pnpm test:e2e
+pnpm test:e2e sesiones                                          # un solo archivo
+```
+
+Necesita Docker y JDK 21. Levanta Postgres, Redis y Mailpit desechables
+(prefijo `e2e-nav-`), compila y arranca el backend, arranca la web, corre
+Playwright y lo borra todo. No lee ningún `.env` ni usa tu base de desarrollo.
+
+Usa los puertos 25432, 26379, 21025, 28025, 28080 y 25173, solo en `127.0.0.1`.
+Si alguno está ocupado, o ya hay un contenedor con esos nombres, se detiene sin
+tocar nada. Si una ejecución se corta de golpe y quedan restos:
+
+```bash
+docker rm -f -v e2e-nav-postgres e2e-nav-redis e2e-nav-mailpit
+```
+
+Cuando algo falla, el informe queda en `projects/frontend/playwright-report/` y
+las trazas y el log del backend en `projects/frontend/test-results/`.

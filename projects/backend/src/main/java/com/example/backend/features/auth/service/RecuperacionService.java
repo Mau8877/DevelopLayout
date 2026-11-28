@@ -1,5 +1,6 @@
 package com.example.backend.features.auth.service;
 
+import com.example.backend.common.idioma.Mensajes;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
@@ -52,6 +53,7 @@ public class RecuperacionService {
     private final PasswordEncoder passwordEncoder;
     private final RlsContext rlsContext;
     private final BitacoraService bitacora;
+    private final Mensajes mensajes;
     private final Executor ejecutor;
     private final TransactionTemplate lectura;
     private final TransactionTemplate escritura;
@@ -59,7 +61,7 @@ public class RecuperacionService {
     public RecuperacionService(SolicitudesRecuperacion solicitudes, PasswordResetTokenService tokens,
             InvitacionTokenService invitaciones, CorreoCuentaService correo, SesionService sesionService, LoginAttemptService loginAttempts,
             UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, RlsContext rlsContext,
-            BitacoraService bitacora,
+            BitacoraService bitacora, Mensajes mensajes,
             @Qualifier(RecuperacionEjecutorConfig.EJECUTOR) Executor ejecutor,
             PlatformTransactionManager transacciones) {
         this.solicitudes = solicitudes;
@@ -72,6 +74,7 @@ public class RecuperacionService {
         this.passwordEncoder = passwordEncoder;
         this.rlsContext = rlsContext;
         this.bitacora = bitacora;
+        this.mensajes = mensajes;
         this.ejecutor = ejecutor;
         this.lectura = new TransactionTemplate(transacciones);
         this.lectura.setReadOnly(true);
@@ -88,7 +91,9 @@ public class RecuperacionService {
                 return;
             }
             try {
-                ejecutor.execute(() -> procesar(email, correoRef, origen));
+                // * El idioma se captura acá: el hilo del ejecutor no tiene petición.
+                Locale idioma = mensajes.idiomaActual();
+                ejecutor.execute(() -> procesar(email, correoRef, origen, idioma));
             } catch (TaskRejectedException e) {
                 LOG.warn("Recuperación descartada: cola de envío llena emailHash={}", correoRef);
             }
@@ -96,7 +101,7 @@ public class RecuperacionService {
     }
 
     // * Corre en un hilo del ejecutor: nada puede escapar de acá.
-    private void procesar(String email, String correoRef, OrigenSolicitud origen) {
+    private void procesar(String email, String correoRef, OrigenSolicitud origen, Locale idioma) {
         try (MDC.MDCCloseable ignored = MDC.putCloseable("module", "auth")) {
             Usuario usuario = lectura.execute(estado -> {
                 rlsContext.usarCorreoDeLogin(email);
@@ -109,7 +114,7 @@ public class RecuperacionService {
             }
             ResultadoBitacora resultado = ResultadoBitacora.EXITO;
             try {
-                correo.enviarRecuperacion(usuario.getEmail(), tokens.emitir(usuario.getCodigo()));
+                correo.enviarRecuperacion(usuario.getEmail(), tokens.emitir(usuario.getCodigo()), idioma);
                 LOG.info("Enlace de recuperación enviado usuarioCodigo={}", usuario.getCodigo());
             } catch (RuntimeException e) {
                 resultado = ResultadoBitacora.FALLO;
@@ -144,7 +149,7 @@ public class RecuperacionService {
         });
         if (passwordEncoder.matches(nuevaPassword, hashActual)) {
             throw new ValidationException(AuthErrorCodes.ERR_AUTH_06,
-                    "La contraseña nueva tiene que ser distinta de la actual");
+                    "auth.error.passwordRepetida");
         }
         String hashNuevo = passwordEncoder.encode(nuevaPassword);
 
@@ -188,6 +193,6 @@ public class RecuperacionService {
 
     private static ValidationException enlaceInvalido() {
         return new ValidationException(AuthErrorCodes.ERR_AUTH_05,
-                "El enlace no es válido o ya venció. Pedí uno nuevo");
+                "auth.error.enlaceInvalido");
     }
 }

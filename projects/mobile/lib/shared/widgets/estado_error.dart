@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../language/app_texts.dart';
 
 /// Fallo al cargar datos, con opción de reintentar. El mensaje llega ya apto
 /// para el usuario.
@@ -18,7 +19,7 @@ class EstadoError extends StatelessWidget {
           children: [
             Text(mensaje, textAlign: TextAlign.center),
             const SizedBox(height: 16),
-            OutlinedButton(onPressed: onReintentar, child: const Text('Reintentar')),
+            OutlinedButton(onPressed: onReintentar, child: Text(context.t('shared:comun.reintentar'))),
           ],
         ),
       ),

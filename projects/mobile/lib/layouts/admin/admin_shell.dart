@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/routing/app_router.dart';
 import '../../features/auth/providers/auth_provider.dart';
+import '../../core/marca.dart';
+import '../../shared/language/app_texts.dart';
+import '../../shared/widgets/selector_idioma.dart';
 
 /// Shell del rol Admin -- AppBar + `NavigationDrawer` (Material 3, tres
 /// secciones). Equivalente mobile de `AdminLayout` en el frontend web (ver
@@ -18,16 +21,17 @@ class AdminShell extends ConsumerStatefulWidget {
 }
 
 class _AdminSeccion {
-  final String label;
+  /// Clave de idioma, nunca el texto.
+  final String clave;
   final IconData icon;
 
-  const _AdminSeccion(this.label, this.icon);
+  const _AdminSeccion(this.clave, this.icon);
 }
 
 const _secciones = [
-  _AdminSeccion('Dashboard', Icons.dashboard_outlined),
-  _AdminSeccion('Usuarios', Icons.people_outline),
-  _AdminSeccion('Pedidos', Icons.list_alt_outlined),
+  _AdminSeccion('shared:navegacion.panel', Icons.dashboard_outlined),
+  _AdminSeccion('shared:navegacion.usuarios', Icons.people_outline),
+  _AdminSeccion('shared:navegacion.pedidos', Icons.list_alt_outlined),
 ];
 
 class _AdminShellState extends ConsumerState<AdminShell> {
@@ -39,16 +43,17 @@ class _AdminShellState extends ConsumerState<AdminShell> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('App Admin'),
+        title: const Text(appNameAdmin),
         actions: [
+          const SelectorIdioma(),
           IconButton(
             icon: const Icon(Icons.devices_outlined),
-            tooltip: 'Mis sesiones',
+            tooltip: context.t('shared:navegacion.misSesiones'),
             onPressed: () => context.push(rutaMisSesiones),
           ),
           IconButton(
             icon: const Icon(Icons.logout),
-            tooltip: 'Cerrar sesión',
+            tooltip: context.t('shared:cabecera.cerrarSesion'),
             onPressed: () => ref.read(authProvider.notifier).logout(),
           ),
         ],
@@ -62,12 +67,12 @@ class _AdminShellState extends ConsumerState<AdminShell> {
         children: [
           const Padding(
             padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text('App Admin', style: TextStyle(fontWeight: FontWeight.w600)),
+            child: Text(appNameAdmin, style: TextStyle(fontWeight: FontWeight.w600)),
           ),
           for (final seccion in _secciones)
             NavigationDrawerDestination(
               icon: Icon(seccion.icon),
-              label: Text(seccion.label),
+              label: Text(context.t(seccion.clave)),
             ),
         ],
       ),
@@ -76,10 +81,10 @@ class _AdminShellState extends ConsumerState<AdminShell> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(seccionActual.label, style: Theme.of(context).textTheme.headlineSmall),
+            Text(context.t(seccionActual.clave), style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 8),
             Text(
-              'Pantalla de prueba del layout -- acá va el contenido real de "${seccionActual.label}" cuando exista esa feature.',
+              context.t('shared:layout.ejemplo', args: {'seccion': context.t(seccionActual.clave)}),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],

@@ -1,5 +1,7 @@
 import { AppShell } from '@/components/layout'
 import { useLogout } from '@/features/auth'
+import { APP_NAME_ADMIN } from '@/utils'
+import { useMenuTraducido } from '../navegacion'
 
 import { adminNavItems } from './adminNavItems'
 import type { AdminLayoutProps } from './adminTypes'
@@ -12,12 +14,13 @@ export function AdminLayout({
   children,
 }: AdminLayoutProps) {
   const logout = useLogout()
+  const menu = useMenuTraducido(adminNavItems)
 
   return (
     <AppShell
-      appName="App Admin"
+      appName={APP_NAME_ADMIN}
       title={title}
-      navItems={adminNavItems}
+      navItems={menu}
       activeHref={activeHref}
       user={user}
       notifications={notifications}

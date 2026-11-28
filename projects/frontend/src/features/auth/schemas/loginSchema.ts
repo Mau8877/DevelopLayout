@@ -5,13 +5,13 @@ import { z } from 'zod'
 const MAX_PASSWORD_BYTES = 72
 
 export const loginSchema = z.object({
-  email: z.string().min(1, 'El correo es obligatorio').email('El correo no es válido'),
+  email: z.string().min(1, 'auth:validacion.correoObligatorio').email('auth:validacion.correoInvalido'),
   password: z
     .string()
-    .min(1, 'La contraseña es obligatoria')
-    .min(8, 'La contraseña debe tener al menos 8 caracteres')
+    .min(1, 'auth:validacion.passwordObligatoria')
+    .min(8, 'auth:validacion.passwordCorta')
     .refine((value) => new TextEncoder().encode(value).length <= MAX_PASSWORD_BYTES, {
-      message: 'La contraseña es demasiado larga',
+      message: 'auth:validacion.passwordLarga',
     }),
 })
 

@@ -1,5 +1,6 @@
 import { isAxiosError, type InternalAxiosRequestConfig } from 'axios'
-import { logger } from '@/utils/logger'
+import { i18n } from '@/shared/language'
+import { logger } from '@/utils'
 import { conCandadoDeSesion } from './candadoSesion'
 import { createBaseApi } from './createBaseApi'
 
@@ -65,12 +66,12 @@ export function normalizeError(error: unknown): unknown {
     return new ApiError(envelope.error, envelope.message, error.response?.status)
   }
   if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
-    return new ApiError('CLIENT_TIMEOUT', 'La solicitud tardó demasiado. Intentá de nuevo.')
+    return new ApiError('CLIENT_TIMEOUT', i18n.t('shared:cliente.tiempo'))
   }
   if (!error.response) {
-    return new ApiError('CLIENT_NETWORK', 'No pudimos conectarnos. Revisá tu conexión e intentá de nuevo.')
+    return new ApiError('CLIENT_NETWORK', i18n.t('shared:cliente.red'))
   }
-  return new ApiError('CLIENT_UNKNOWN', 'Ocurrió un error inesperado. Intentá de nuevo.')
+  return new ApiError('CLIENT_UNKNOWN', i18n.t('shared:cliente.desconocido'))
 }
 
 apiClient.interceptors.response.use(
@@ -149,6 +150,8 @@ async function renovarYReintentar(error: unknown) {
 
 apiClient.interceptors.request.use((config) => {
   config._renovaciones ??= renovaciones
+  // * El servidor responde (mensajes y correos) en el idioma que se está viendo.
+  config.headers['Accept-Language'] = i18n.resolvedLanguage
   return config
 })
 
