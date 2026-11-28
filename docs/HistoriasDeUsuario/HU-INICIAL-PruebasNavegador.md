@@ -2,9 +2,9 @@
 
 | Id | Nombre corto de HU | Prioridad | PHU | Estado |
 | --- | --- | --- | --- | --- |
-| HU-INICIAL-PRUEBASNAVEGADOR | Comprobar los flujos en un navegador | Alta |  | En progreso |
+| HU-INICIAL-PRUEBASNAVEGADOR | Comprobar los flujos en un navegador | Alta |  | Hecha |
 
-> **Avance:** Implementada y probada en local, también en un proyecto creado con `project:init`. Falta confirmar la primera ejecución del job en GitHub (CA08) y probar la interrupción a mitad de una corrida en Linux (CA01).
+> **Validación:** en local (tres corridas seguidas y en un proyecto creado con `project:init`) y en el job `e2e` de GitHub. La limpieza al interrumpir (CA01) se prueba en Linux con señales reales sobre `scripts/e2e.mjs`, con sustitutos de Docker, Java y el navegador (`scripts/e2e-interrupcion.test.mjs`).
 
 **Como:** persona que mantiene un proyecto hecho con la plantilla
 **Quiero:** comprobar automáticamente los flujos clave en un navegador real

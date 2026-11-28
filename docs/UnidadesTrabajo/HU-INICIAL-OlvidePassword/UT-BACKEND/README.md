@@ -47,8 +47,9 @@ Sin tablas ni migraciones nuevas (los tokens y límites viven en Redis).
 | [UT-HUI-OLVIDEPASSWORD-BE-05](./UT-HUI-OLVIDEPASSWORD-BE-05.md) | Restablecer contraseña | 03, 04 |
 | [UT-HUI-OLVIDEPASSWORD-BE-06](./UT-HUI-OLVIDEPASSWORD-BE-06.md) | Tests de recuperación | 05 |
 | [UT-HUI-OLVIDEPASSWORD-BE-07](./UT-HUI-OLVIDEPASSWORD-BE-07.md) | Correo en producción y prueba de punta a punta | 05 |
+| [UT-HUI-OLVIDEPASSWORD-BE-08](./UT-HUI-OLVIDEPASSWORD-BE-08.md) | Aviso de contraseña cambiada | 05 |
 
-**Cadena:** 01 → 02; 02, 03 → 04 → 05 → 06, 07
+**Cadena:** 01 → 02; 02, 03 → 04 → 05 → 06, 07, 08
 
 ## Criterios de aceptación cubiertos
 
@@ -71,6 +72,7 @@ Sin tablas ni migraciones nuevas (los tokens y límites viven en Redis).
 | CA16 | Desbloqueo | 05, 06 |
 | CA17 | No arranca sin correo | 02, 07 |
 | CA18 | Un solo uso simultáneo | 03, 05, 06 |
+| CA19 | Aviso del cambio | 08 |
 
 CA08 es de la capa web.
 
@@ -82,5 +84,5 @@ CA08 es de la capa web.
 
 ## Qué NO incluyen estas UT
 
-- Cambio de contraseña con sesión iniciada.
+- Cambio de contraseña con sesión iniciada (ver HU-INICIAL-CambiarPassword).
 - Gestión de usuarios.

@@ -36,33 +36,93 @@ describe('protecciones de las pruebas de navegador', () => {
     assert.equal(await puertoOcupado(port), false);
   });
 
-  it('solo borra lo que creó, por su identificador', () => {
+  /** Docker simulado: `restos` es lo que devuelve la búsqueda por etiqueta. */
+  function dockerSimulado({ restos = '', fallaAlCrear = false, fallosAlBorrar = 0 } = {}) {
     const llamadas = [];
-    const registro = crearRegistro((args) => {
+    let fallos = fallosAlBorrar;
+    const docker = (args) => {
       llamadas.push(args);
+      if (args[0] === 'ps') return restos;
+      if (args[0] === 'rm' && fallos-- > 0) throw new Error('interrumpido');
+      if (args[0] === 'run' && fallaAlCrear) throw new Error('Conflict. The container name is already in use');
       return `id-${llamadas.length}`;
-    });
+    };
+    const borrados = () => llamadas.filter((a) => a[0] === 'rm').map((a) => a.at(-1));
+    return { docker, llamadas, borrados };
+  }
+
+  it('solo borra lo que creó, por su identificador', () => {
+    const { docker, llamadas, borrados } = dockerSimulado();
+    const registro = crearRegistro(docker, 'abc');
     registro.crear('postgres', ['imagen']);
     registro.crear('redis', ['imagen']);
 
     registro.limpiar();
     registro.limpiar();
 
-    assert.deepEqual(llamadas.filter((a) => a[0] === 'rm'), [['rm', '-f', '-v', 'id-2'], ['rm', '-f', '-v', 'id-1']]);
+    assert.deepEqual(borrados(), ['id-2', 'id-1']);
+    assert.ok(llamadas.filter((a) => a[0] === 'rm').every((a) => a.slice(0, 3).join(' ') === 'rm -f -v'));
   });
 
-  it('si crear un contenedor falla, no intenta borrarlo', () => {
-    const borrados = [];
-    const registro = crearRegistro((args) => {
-      if (args[0] === 'rm') borrados.push(args);
-      else throw new Error('Conflict. The container name is already in use');
-      return '';
+  it('además solo busca por la etiqueta de esta ejecución', () => {
+    const { docker, llamadas } = dockerSimulado();
+    const registro = crearRegistro(docker, 'abc');
+    registro.crear('postgres', ['imagen']);
+
+    registro.limpiar();
+
+    assert.deepEqual(llamadas.find((a) => a[0] === 'ps'), ['ps', '-a', '-q', '--filter', 'label=e2e-nav-run=abc']);
+    assert.ok(llamadas[0].includes('e2e-nav-run=abc'));
+  });
+
+  it('cada ejecución usa una etiqueta distinta', () => {
+    const etiquetas = [1, 2].map(() => {
+      const { docker, llamadas } = dockerSimulado();
+      crearRegistro(docker).crear('postgres', []);
+      return llamadas[0].find((a) => a.startsWith('e2e-nav-run='));
     });
+
+    assert.notEqual(etiquetas[0], etiquetas[1]);
+  });
+
+  it('borra el contenedor que quedó creado aunque la orden se interrumpiera', () => {
+    const { docker, borrados } = dockerSimulado({ fallaAlCrear: true, restos: 'huerfano' });
+    const registro = crearRegistro(docker, 'abc');
+    assert.throws(() => registro.crear('postgres', []));
+
+    registro.limpiar();
+
+    assert.deepEqual(borrados(), ['huerfano']);
+  });
+
+  it('si crear falla porque el contenedor es de otro, no borra nada', () => {
+    // * El ajeno no lleva nuestra etiqueta: la búsqueda no lo devuelve.
+    const { docker, borrados } = dockerSimulado({ fallaAlCrear: true });
+    const registro = crearRegistro(docker, 'abc');
     assert.throws(() => registro.crear('postgres', []), /already in use/);
 
     registro.limpiar();
 
-    assert.deepEqual(borrados, []);
+    assert.deepEqual(borrados(), []);
+  });
+
+  it('sin haber intentado crear nada, no llama a Docker', () => {
+    const { docker, llamadas } = dockerSimulado();
+
+    crearRegistro(docker).limpiar();
+
+    assert.deepEqual(llamadas, []);
+  });
+
+  it('si borrar se interrumpe, reintenta y sigue con los demás', () => {
+    const { docker, borrados } = dockerSimulado({ fallosAlBorrar: 1 });
+    const registro = crearRegistro(docker, 'abc');
+    registro.crear('postgres', []);
+    registro.crear('redis', []);
+
+    registro.limpiar();
+
+    assert.deepEqual(borrados(), ['id-2', 'id-2', 'id-1']);
   });
 
   it('no crea contenedores fuera de su lista', () => {
@@ -82,6 +142,13 @@ describe('protecciones de las pruebas de navegador', () => {
     const codigo = readFileSync(new URL('./e2e.mjs', import.meta.url), 'utf8');
 
     assert.ok(codigo.indexOf('exigirSinChoques(existentes, ocupados)') < codigo.indexOf("registro.crear('postgres'"));
+  });
+
+  it('sigue atendiendo las señales mientras limpia', () => {
+    const codigo = readFileSync(new URL('./e2e.mjs', import.meta.url), 'utf8');
+
+    assert.ok(codigo.includes('process.on(senal'));
+    assert.ok(!codigo.includes('process.once(senal'));
   });
 
   it('publica los puertos de los contenedores solo en 127.0.0.1 y no lee ningún .env', () => {

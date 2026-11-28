@@ -124,9 +124,13 @@ web, el backend, el propio script o las dependencias. Detalle de lo que cubre en
 - Entorno desechable: Postgres, Redis y Mailpit con prefijo `e2e-nav-`, puertos
   propios en `127.0.0.1`, secretos generados en cada corrida y sin leer ningún
   `.env`.
-- **Solo borra lo que él creó**, por identificador; si ya hay un contenedor con sus
-  nombres o un puerto ocupado, se detiene sin tocar nada. Esas protecciones tienen
-  tests en `e2e.test.mjs`: **no se relajan**.
+- **Solo borra lo que él creó**, por identificador y por una etiqueta única de la
+  corrida (cubre una interrupción mientras Docker crea un contenedor); si ya hay un
+  contenedor con sus nombres o un puerto ocupado, se detiene sin tocar nada. Esas
+  protecciones tienen tests en `e2e.test.mjs`: **no se relajan**.
+- **Interrumpirlo no deja restos**, tampoco con un segundo Ctrl+C durante la
+  limpieza. `e2e-interrupcion.test.mjs` lo comprueba con señales reales sobre el
+  script, en Linux (job `scripts`; en Windows queda omitido).
 - Sin reintentos. Una prueba inestable se corrige.
 - El informe y las trazas se suben solo si falla (7 días); traen datos desechables.
 

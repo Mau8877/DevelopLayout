@@ -58,6 +58,7 @@ que originó el envío:
 | --- | --- |
 | Recuperación de contraseña | El de quien la pide |
 | Invitación y reenvío | El del administrador que invita |
+| Aviso de contraseña cambiada | El de quien la cambia o la restablece |
 
 Si el envío ocurre en otro hilo, el idioma **se captura en la petición** y se pasa
 como dato: el hilo del ejecutor no tiene contexto.

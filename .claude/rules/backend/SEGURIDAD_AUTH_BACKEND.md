@@ -152,7 +152,7 @@ El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
   cambiado).
 - Los enlaces de recuperación e invitación se anulan **antes de confirmar**; las
   sesiones se revocan al final, porque la lista de Redis no se deshace.
-- El aviso por correo va por el ejecutor acotado, con el idioma de la petición.
+- El aviso por correo lo envía `AvisoCambioPassword`, con el idioma de la petición.
 
 ## Administración de usuarios
 
@@ -203,6 +203,9 @@ que **no se relajan**:
   usuario (exclusivo) y el login la relee con bloqueo compartido **y exige que el
   hash sea el que verificó**. Todo flujo futuro que cambie la contraseña usa el
   mismo bloqueo, revoca las sesiones y llama a `LoginAttemptService.reiniciar`.
+- **Aviso del cambio:** `AvisoCambioPassword`, con el cambio ya confirmado. Lo usan
+  la recuperación y el cambio con sesión; todo flujo futuro que cambie la
+  contraseña también.
 - **Correo:** `CorreoCuentaService` valida servidor, remitente y URL (HTTPS
   salvo localhost) al arrancar. `management.health.mail.enabled=false`: un SMTP
   caído no marca la app como no sana. Los fallos se registran **sin el mensaje de

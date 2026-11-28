@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -26,6 +27,8 @@ import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.system.CapturedOutput;
@@ -131,11 +134,16 @@ class AuthPasswordResetTest extends AuthSesionIntegrationTest {
 
     /** Pide un enlace por la API y devuelve el token del correo. */
     private String pedirToken() throws Exception {
-        int antes = correosA(email).size();
+        // * Solo cuentan los correos con enlace: el aviso de un cambio llega por su lado.
+        int antes = enlaces().size();
         assertThat(estado(olvide(email))).isEqualTo(200);
-        await().atMost(Duration.ofSeconds(15)).until(() -> correosA(email).size() == antes + 1);
+        await().atMost(Duration.ofSeconds(15)).until(() -> enlaces().size() == antes + 1);
         esperarEjecutorLibre();
-        return tokenDe(correosA(email).getLast());
+        return tokenDe(enlaces().getLast());
+    }
+
+    private List<SimpleMailMessage> enlaces() {
+        return correosA(email).stream().filter(c -> c.getText().contains("#token=")).toList();
     }
 
     private static String tokenDe(SimpleMailMessage correo) {
@@ -158,6 +166,56 @@ class AuthPasswordResetTest extends AuthSesionIntegrationTest {
         return dueno().queryForObject("SELECT string_agg(coalesce(b." + columna + "::text, ''), '|') "
                 + "FROM authentication.bitacora b JOIN authentication.usuario u ON u.codigo_usuario = b.usuario_codigo "
                 + "WHERE u.email = ? AND b.accion = ?", String.class, email, accion);
+    }
+
+    // ---------------------------------------------------------------- aviso del cambio
+
+    private List<SimpleMailMessage> avisos() {
+        return correosA(email).stream().filter(c -> !c.getText().contains("#token=")).toList();
+    }
+
+    @ParameterizedTest
+    @CsvSource(delimiter = '|', value = {
+        "es | Tu contraseña cambió",
+        "en | Your password was changed",
+    })
+    void restablecer_avisaPorCorreoEnElIdiomaDeQuienLoHace(String idioma, String asunto) throws Exception {
+        String token = pedirToken();
+
+        MvcResult res = mvc.perform(publico("password/reset", cuerpoReset(token, NUEVA))
+                .header("Accept-Language", idioma)).andReturn();
+
+        assertThat(estado(res)).isEqualTo(200);
+        await().atMost(Duration.ofSeconds(15)).until(() -> !avisos().isEmpty());
+        esperarEjecutorLibre();
+        assertThat(avisos()).singleElement().satisfies(aviso -> {
+            assertThat(aviso.getSubject()).isEqualTo(asunto);
+            assertThat(aviso.getText()).doesNotContain("http", token, NUEVA);
+        });
+    }
+
+    @Test
+    void restablecer_rechazado_noEnviaAviso() throws Exception {
+        String token = pedirToken();
+
+        assertThat(estado(restablecer(token, PASSWORD))).isEqualTo(400);
+        assertThat(estado(restablecer("token-inventado", NUEVA))).isEqualTo(400);
+        esperarEjecutorLibre();
+
+        assertThat(avisos()).isEmpty();
+    }
+
+    @Test
+    void restablecer_conElCorreoCaido_cambiaLaContrasenaIgual(CapturedOutput salida) throws Exception {
+        String token = pedirToken();
+        doThrow(new MailSendException("rechazado " + email)).when(mail).send(any(SimpleMailMessage.class));
+
+        assertThat(estado(restablecer(token, NUEVA))).isEqualTo(200);
+        esperarEjecutorLibre();
+
+        assertThat(login(NUEVA, "10.9.8.7")).isEqualTo(200);
+        assertThat(salida.getOut()).contains("No se pudo enviar el aviso de cambio de contraseña")
+                .doesNotContain("rechazado " + email);
     }
 
     // ---------------------------------------------------------------- solicitar

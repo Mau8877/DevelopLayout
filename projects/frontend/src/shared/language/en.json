@@ -44,10 +44,8 @@
   },
   "cabecera": {
     "alternarMenu": "Show or hide the menu",
-    "miPerfil": "My profile",
     "cambiarPassword": "Change password",
     "cambiarTema": "Change theme",
-    "configuracion": "Settings",
     "cerrarSesion": "Sign out",
     "rutaActual": "Breadcrumb",
     "formatoFecha": "dddd, MMMM D, YYYY - HH:mm"
