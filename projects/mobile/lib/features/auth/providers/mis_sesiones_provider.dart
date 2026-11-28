@@ -4,6 +4,7 @@ import '../../../core/network/api_client.dart';
 import '../models/pagina_sesiones.dart';
 import '../services/sesiones_service.dart';
 import 'auth_provider.dart';
+import '../../../shared/language/idioma_provider.dart';
 
 final sesionesServiceProvider = Provider<SesionesService>((ref) => SesionesService(ApiClient.instance));
 
@@ -25,6 +26,8 @@ class MisSesionesNotifier extends AsyncNotifier<PaginaSesiones> {
   @override
   Future<PaginaSesiones> build() {
     ref.watch(authProvider.select((auth) => auth.value?.codigo));
+    // * Al cambiar de idioma se pide de nuevo: los mensajes del servidor cambian.
+    ref.watch(idiomaProvider);
     return ref.watch(sesionesServiceProvider).listar(1);
   }
 

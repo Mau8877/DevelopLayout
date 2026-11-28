@@ -11,6 +11,7 @@ import 'package:mobile/features/auth/screens/forgot_password_screen.dart';
 import 'package:mobile/features/auth/screens/login_screen.dart';
 import 'package:mobile/features/auth/services/auth_service.dart';
 
+import '../../support/app_de_prueba.dart';
 import '../../support/fake_adapter.dart';
 import '../../support/memory_store.dart';
 
@@ -30,7 +31,7 @@ FakeAdapter _limitado() => FakeAdapter((_) async => FakeAdapter.jsonBody(
 Future<void> _montar(WidgetTester tester, FakeAdapter adapter) async {
   await tester.pumpWidget(ProviderScope(
     overrides: [authServiceProvider.overrideWithValue(_servicio(adapter))],
-    child: const MaterialApp(home: ForgotPasswordScreen()),
+    child: const AppDePrueba(home: ForgotPasswordScreen()),
   ));
 }
 
@@ -72,7 +73,7 @@ void main() {
 
       await _enviar(tester, ' a@b.co ');
 
-      expect(find.text(mensajeEnlacePedido), findsOneWidget);
+      expect(find.textContaining('Si hay una cuenta con ese correo'), findsOneWidget);
       expect(find.text('Enviar enlace'), findsNothing);
       expect(adapter.requests.single.data, {'email': 'a@b.co'});
     });
@@ -112,7 +113,7 @@ void main() {
     await tester.pumpWidget(ProviderScope(
       overrides: [authServiceProvider.overrideWithValue(_servicio(_ok()))],
       child: Consumer(
-        builder: (context, ref, _) => MaterialApp.router(routerConfig: ref.watch(routerProvider)),
+        builder: (context, ref, _) => AppDePrueba(router: ref.watch(routerProvider)),
       ),
     ));
     await tester.runAsync(() async => Future<void>.delayed(const Duration(milliseconds: 100)));

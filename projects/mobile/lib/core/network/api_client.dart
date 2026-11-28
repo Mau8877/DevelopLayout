@@ -7,13 +7,15 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../logging/app_logger.dart';
 import '../storage/secure_token_storage.dart';
 import 'refresh_interceptor.dart';
+import '../../shared/language/idiomas.dart';
 
 /// Excepción tipada para cualquier fallo de una llamada a la API -- nunca se
 /// deja propagar un [DioException] crudo, sin código, hasta la UI.
 ///
 /// * Errores de negocio del backend (`status: "failed"`, ver
 /// * RESPONSES_BACKEND.md): `code` es el `ERR_*` del backend.
-/// * Fallos sin sobre: `CLIENT_NETWORK`, `CLIENT_TIMEOUT` o `CLIENT_UNKNOWN`.
+/// * Fallos sin sobre: `CLIENT_NETWORK`, `CLIENT_TIMEOUT` o `CLIENT_UNKNOWN`,
+/// * con una clave de idioma como mensaje.
 class ApiException implements Exception {
   final String code;
   final String message;
@@ -110,6 +112,8 @@ class ApiClient {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          // * El servidor responde en el idioma que se está viendo (también el refresh).
+          options.headers['Accept-Language'] = IdiomaActual.codigo;
           final token = await tokenStorage.leerAccess();
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
@@ -174,33 +178,21 @@ class ApiClient {
     if (envelope is Map<String, dynamic> && envelope['error'] != null) {
       return ApiException(
         code: envelope['error'] as String,
-        message: envelope['message'] as String? ?? 'Ocurrió un error inesperado',
+        message: envelope['message'] as String? ?? 'shared:cliente.desconocido',
       );
     }
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return ApiException(
-          code: 'CLIENT_TIMEOUT',
-          message: 'La solicitud tardó demasiado. Intentá de nuevo.',
-        );
+        return ApiException(code: 'CLIENT_TIMEOUT', message: 'shared:cliente.tiempo');
       case DioExceptionType.connectionError:
-        return ApiException(
-          code: 'CLIENT_NETWORK',
-          message: 'No pudimos conectarnos. Revisá tu conexión e intentá de nuevo.',
-        );
+        return ApiException(code: 'CLIENT_NETWORK', message: 'shared:cliente.red');
       default:
         if (error.error is SocketException) {
-          return ApiException(
-            code: 'CLIENT_NETWORK',
-            message: 'No pudimos conectarnos. Revisá tu conexión e intentá de nuevo.',
-          );
+          return ApiException(code: 'CLIENT_NETWORK', message: 'shared:cliente.red');
         }
-        return ApiException(
-          code: 'CLIENT_UNKNOWN',
-          message: 'Ocurrió un error inesperado. Intentá de nuevo.',
-        );
+        return ApiException(code: 'CLIENT_UNKNOWN', message: 'shared:cliente.desconocido');
     }
   }
 }

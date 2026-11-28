@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../language/app_texts.dart';
 
 /// Pide confirmación antes de una acción. `true` solo si se confirmó (cerrar
 /// el diálogo de cualquier otra forma es cancelar).
@@ -7,7 +8,7 @@ Future<bool> pedirConfirmacion(
   required String titulo,
   required String mensaje,
   required String confirmar,
-  String cancelar = 'Cancelar',
+  String? cancelar,
 }) async {
   final respuesta = await showDialog<bool>(
     context: context,
@@ -15,7 +16,7 @@ Future<bool> pedirConfirmacion(
       title: Text(titulo),
       content: Text(mensaje),
       actions: [
-        TextButton(onPressed: () => Navigator.of(dialogo).pop(false), child: Text(cancelar)),
+        TextButton(onPressed: () => Navigator.of(dialogo).pop(false), child: Text(cancelar ?? dialogo.t('shared:comun.cancelar'))),
         FilledButton(onPressed: () => Navigator.of(dialogo).pop(true), child: Text(confirmar)),
       ],
     ),

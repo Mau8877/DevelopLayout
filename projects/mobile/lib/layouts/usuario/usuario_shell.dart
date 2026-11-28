@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/routing/app_router.dart';
 import '../../features/auth/providers/auth_provider.dart';
+import '../../core/marca.dart';
+import '../../shared/language/app_texts.dart';
+import '../../shared/widgets/selector_idioma.dart';
 
 /// Shell del rol Usuario -- AppBar + `NavigationBar` (Material 3) inferior,
 /// tres secciones. Equivalente mobile de `UsuarioLayout` en el frontend
@@ -18,16 +21,17 @@ class UsuarioShell extends ConsumerStatefulWidget {
 }
 
 class _UsuarioSeccion {
-  final String label;
+  /// Clave de idioma, nunca el texto.
+  final String clave;
   final IconData icon;
 
-  const _UsuarioSeccion(this.label, this.icon);
+  const _UsuarioSeccion(this.clave, this.icon);
 }
 
 const _secciones = [
-  _UsuarioSeccion('Inicio', Icons.home_outlined),
-  _UsuarioSeccion('Pedidos', Icons.list_alt_outlined),
-  _UsuarioSeccion('Perfil', Icons.person_outline),
+  _UsuarioSeccion('shared:navegacion.inicio', Icons.home_outlined),
+  _UsuarioSeccion('shared:navegacion.pedidos', Icons.list_alt_outlined),
+  _UsuarioSeccion('shared:navegacion.perfil', Icons.person_outline),
 ];
 
 class _UsuarioShellState extends ConsumerState<UsuarioShell> {
@@ -39,16 +43,17 @@ class _UsuarioShellState extends ConsumerState<UsuarioShell> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('App'),
+        title: const Text(appName),
         actions: [
+          const SelectorIdioma(),
           IconButton(
             icon: const Icon(Icons.devices_outlined),
-            tooltip: 'Mis sesiones',
+            tooltip: context.t('shared:navegacion.misSesiones'),
             onPressed: () => context.push(rutaMisSesiones),
           ),
           IconButton(
             icon: const Icon(Icons.logout),
-            tooltip: 'Cerrar sesión',
+            tooltip: context.t('shared:cabecera.cerrarSesion'),
             onPressed: () => ref.read(authProvider.notifier).logout(),
           ),
         ],
@@ -58,10 +63,10 @@ class _UsuarioShellState extends ConsumerState<UsuarioShell> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(seccionActual.label, style: Theme.of(context).textTheme.headlineSmall),
+            Text(context.t(seccionActual.clave), style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 8),
             Text(
-              'Pantalla de prueba del layout -- acá va el contenido real de "${seccionActual.label}" cuando exista esa feature.',
+              context.t('shared:layout.ejemplo', args: {'seccion': context.t(seccionActual.clave)}),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
@@ -72,7 +77,7 @@ class _UsuarioShellState extends ConsumerState<UsuarioShell> {
         onDestinationSelected: (index) => setState(() => _selected = index),
         destinations: [
           for (final seccion in _secciones)
-            NavigationDestination(icon: Icon(seccion.icon), label: seccion.label),
+            NavigationDestination(icon: Icon(seccion.icon), label: context.t(seccion.clave)),
         ],
       ),
     );

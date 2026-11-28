@@ -1,0 +1,12 @@
+{
+  "titulo": "Diagnóstico de conexión",
+  "salud": "GET /health (fuera de /api/v1)",
+  "consultando": "Consultando el servidor...",
+  "sinConexion": "No se pudo conectar: {{error}}",
+  "conectado": "Servidor conectado: {{estado}}",
+  "rutaInexistente": "GET /api/v1/ping-ruta-que-no-existe",
+  "explicacion": "Comprueba que un error real del servidor llega como ApiException.",
+  "probar": "Probar",
+  "respuestaInesperada": "Respondió 2xx (inesperado para una ruta que no existe)",
+  "sinApiException": "DioException sin ApiException: estado {{estado}}, cuerpo: {{cuerpo}}"
+}

@@ -10,17 +10,17 @@ class SesionesService {
 
   Future<PaginaSesiones> listar(int page) async {
     final response = await _dio.get<Map<String, dynamic>>(
-      '/auth/sesiones',
+      '/auth/sessions',
       queryParameters: {'page': page, 'pageSize': 20},
     );
     return PaginaSesiones.fromJson(response.data!);
   }
 
   Future<void> cerrar(String codigo) async {
-    await _dio.delete<dynamic>('/auth/sesiones/$codigo');
+    await _dio.delete<dynamic>('/auth/sessions/$codigo');
   }
 
   Future<void> cerrarOtras() async {
-    await _dio.post<dynamic>('/auth/sesiones/cerrar-otras');
+    await _dio.post<dynamic>('/auth/sessions/revoke-others');
   }
 }

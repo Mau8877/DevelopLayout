@@ -1,0 +1,44 @@
+{
+  "comun": {
+    "correo": "Email",
+    "password": "Password"
+  },
+  "validacion": {
+    "correoObligatorio": "Email is required",
+    "correoInvalido": "The email is not valid",
+    "passwordObligatoria": "Password is required",
+    "passwordCorta": "The password must be at least 8 characters long",
+    "passwordLarga": "The password is too long"
+  },
+  "login": {
+    "titulo": "Sign in",
+    "entrar": "Sign in",
+    "olvidaste": "Forgot your password?"
+  },
+  "recuperar": {
+    "titulo": "Recover password",
+    "enviado": "If there is an account with that email, we sent you a link to reset the password. Open it from the email: it opens in the browser. Check your spam folder too.",
+    "enviar": "Send link",
+    "volver": "Back to sign in"
+  },
+  "sesiones": {
+    "titulo": "My sessions",
+    "cerrarDemas": "Close all others",
+    "avisoDemas": "The other devices will lose access immediately. This session stays open.",
+    "tituloCerrar": "Close session",
+    "avisoUna": "That device will lose access immediately.",
+    "cargarMas": "Load more",
+    "actual": "This session",
+    "cerrarEsta": "Close this other session",
+    "movil": "Mobile",
+    "web": "Web",
+    "ipDesconocida": "Unknown IP",
+    "iniciada": "Started: {{fecha}}",
+    "ultimoUso": "Last used: {{fecha}}"
+  },
+  "dispositivo": {
+    "appMovil": "Mobile app",
+    "desconocido": "Unknown device",
+    "navegadorEn": "{{navegador}} on {{sistema}}"
+  }
+}

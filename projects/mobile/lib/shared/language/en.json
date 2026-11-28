@@ -1,0 +1,32 @@
+{
+  "idioma": {
+    "cambiar": "Change language"
+  },
+  "comun": {
+    "reintentar": "Retry",
+    "cancelar": "Cancel",
+    "cerrar": "Close"
+  },
+  "error": {
+    "inesperado": "An unexpected error occurred."
+  },
+  "cliente": {
+    "red": "We could not connect. Check your connection and try again.",
+    "tiempo": "The request took too long. Try again.",
+    "desconocido": "An unexpected error occurred. Try again."
+  },
+  "cabecera": {
+    "cerrarSesion": "Sign out"
+  },
+  "navegacion": {
+    "panel": "Dashboard",
+    "inicio": "Home",
+    "usuarios": "Users",
+    "pedidos": "Orders",
+    "perfil": "Profile",
+    "misSesiones": "My sessions"
+  },
+  "layout": {
+    "ejemplo": "Sample screen. The content of \"{{seccion}}\" will go here once that feature exists."
+  }
+}
