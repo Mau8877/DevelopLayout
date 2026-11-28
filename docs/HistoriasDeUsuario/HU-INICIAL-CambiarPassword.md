@@ -2,7 +2,9 @@
 
 | Id | Nombre corto de HU | Prioridad | PHU | Estado |
 | --- | --- | --- | --- | --- |
-| HU-INICIAL-CAMBIARPASSWORD | Cambiar mi contraseña | Media |  | Pendiente |
+| HU-INICIAL-CAMBIARPASSWORD | Cambiar mi contraseña | Media |  | En progreso |
+
+> **Avance:** implementada en backend, web y mobile con pruebas automáticas; el flujo web y el correo, también en un navegador real. Falta la validación mobile en emulador.
 
 **Como:** usuario con la sesión iniciada
 **Quiero:** cambiar mi contraseña indicando la actual
