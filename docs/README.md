@@ -4,44 +4,63 @@ Documentación oficial del proyecto.
 
 ## Poniendo en marcha un proyecto nuevo a partir de esta plantilla
 
-Este repo es un esqueleto de arquitectura (Spring Boot + React/Vite + Flutter + Docker). Todos los identificadores están puestos como placeholder genérico (`app`, `com.example`, etc.) para que se reemplacen por el nombre real del proyecto nuevo. Sigue esta lista en orden.
+Este repo es un esqueleto de arquitectura (Spring Boot + React/Vite + Flutter + Docker) con nombres genéricos (`app`, `com.example`, `mobile`). Un script los cambia todos por los de tu proyecto.
 
-### 1. Elegí el nombre del proyecto
+### 1. Copiá la plantilla y elegí los nombres
 
-Antes de tocar nada, definí:
+Partí de una copia recién clonada, **sin cambios sin commitear** (en GitHub: «Use this template»; o cloná y reemplazá el historial con `rm -rf .git && git init`, y hacé el primer commit).
 
-- **Nombre del proyecto** (ej: `Acme`) → se usa en textos y README.
-- **Slug en minúsculas con guiones** (ej: `acme`) → se usa en nombres de contenedores, red, artefactos.
-- **Paquete reverso de dominio** (ej: `com.acme`) → se usa en Java (backend) y en bundle IDs (mobile).
+| Dato | Ejemplo | Dónde se usa |
+| --- | --- | --- |
+| `--nombre` | `"Acme Tienda"` | Textos visibles de la web y la app, y el título de los README |
+| `--slug` | `acme-tienda` | Contenedores, red, volúmenes, bucket, imágenes, artefacto Maven, base (`acme_tienda_db`) y paquete Dart (`acme_tienda_mobile`) |
+| `--paquete` | `com.acme` | Paquete Java (`com.acme.backend`) e identificador de la app (`com.acme.mobile`) |
 
-En los ejemplos de abajo se usa `acme` / `com.acme` como referencia.
+El paquete es tu dominio al revés, en minúsculas y **sin guiones ni guiones bajos** (iOS y Android no admiten lo mismo).
 
-### 2. Raíz del repo
+### 2. Ejecutá el inicializador
 
-- [ ] `README.md`: cambiá el título y la descripción.
-- [ ] `package.json`: cambiá `"name": "developlayout"` por el slug del proyecto.
-- [ ] `docker-compose.yml` **y `docker-compose.prod.yml`**: reemplazá todas las ocurrencias de `app` por el slug elegido (en ambos archivos, con los mismos nombres de contenedor, porque `prometheus.yml` y los dos `nginx*.conf` los referencian):
-  - `name: app` / `name: app-prod` (nombre del stack de compose)
-  - `container_name: app-*` (proxy, frontend, backend, postgres, redis, minio, minio-init, mailpit, prometheus, grafana); el backend de desarrollo apunta a `app-mailpit`
-  - `networks: app-network` / `app-prod-network`
-  - `volumes: app-postgres_data`, `app-redis_data`, `app-minio_data` (y sus equivalentes `app-prod-*` en el compose de producción) — **importante:** si esta máquina corre varios proyectos hechos con esta plantilla, no dejes estos nombres sin el prefijo del proyecto. Docker Compose solo corre la inicialización de Postgres (crear la DB/usuario del `.env`) la primera vez que un volumen está vacío; si dos proyectos comparten el mismo nombre de volumen, el segundo hereda los datos del primero y su base de datos nunca se crea.
-- [ ] `.env.example` (raíz): actualizá `POSTGRES_DB` y `POSTGRES_USER` con el nuevo slug, y generá tu propio `.env` real (no se commitea) reemplazando **cada** `CAMBIAME` por una contraseña propia (`openssl rand -base64 24`): `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, `GRAFANA_ADMIN_PASSWORD` y `MINIO_ROOT_PASSWORD`. Ninguna tiene valor por defecto: `docker compose` falla si falta alguna. `MINIO_ROOT_USER` necesita mínimo 3 caracteres y `MINIO_ROOT_PASSWORD` mínimo 8 — si son más cortos, el contenedor de MinIO termina en `exited (1)` y todo lo que depende de él (`minio-init`, `backend`) nunca arranca. Si ya tenés un Postgres en el puerto 5432 de tu máquina, descomentá `POSTGRES_HOST_PORT` (ej. `5433`) para publicar el del contenedor en otro puerto del host.
+```bash
+pnpm project:init --nombre "Acme Tienda" --slug acme-tienda --paquete com.acme --dry-run  # solo muestra los cambios
+pnpm project:init --nombre "Acme Tienda" --slug acme-tienda --paquete com.acme
+```
 
-### 3. Backend (Spring Boot)
+No necesita `pnpm install` (alcanza con Node y git: también sirve `node scripts/init-project.mjs`). Edita los archivos, mueve las carpetas de Java y de Kotlin y renombra la clase principal. Se usa **una sola vez**: se niega si ya se ejecutó o si hay cambios sin commitear. Revisá el resultado con `git status` y `git diff`; para deshacerlo, `git checkout -- . && git clean -fd`.
 
-- [ ] Renombrá el paquete Java `com.example.backend` → `com.acme.backend` en:
-  - `projects/backend/src/main/java/com/example/...` (mover **todo** el árbol de carpetas, incluidas las que solo tienen un `.gitkeep` como `common/constant`, `common/util` y `features` — no alcanza con buscar solo archivos `.java`, esas carpetas vacías también hay que moverlas)
-  - `projects/backend/src/test/java/com/example/...` (mover carpetas)
-  - El `package` / `import` dentro de cada `.java`
-- [ ] Renombrá la clase principal `AppBackendApplication` (y su test) por el nombre que prefieras (ej: `AcmeBackendApplication`).
-- [ ] `pom.xml`: `groupId` (`com.example` → `com.acme`) y `artifactId` (`app-backend` → `acme-backend`).
-- [ ] `application.properties`:
-  - `spring.application.name`
-  - URL de datasource por defecto (`app_db` → tu nombre de base de datos; el usuario y la contraseña no tienen default, vienen de `.env`)
-  - namespace `app.minio.*` (y actualizá el prefijo si cambiás el nombre)
-  - `app.minio.bucket-name`
-- [ ] `projects/backend/.env.example`: mismo ajuste de `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`, y una contraseña real en `SPRING_DATA_REDIS_PASSWORD` (la misma que `REDIS_PASSWORD` de la raíz). `CORS_ALLOWED_ORIGINS` ya trae por defecto los orígenes del frontend en desarrollo (`http://localhost:5173` directo, `http://localhost` vía el proxy nginx) — solo hace falta tocarlo si agregás otros orígenes (otro puerto, un dominio de producción, etc.).
-- [ ] `src/main/resources/db/migration/V1__init_schema.sql`: cambiá el valor `'App'` de `project_name` (o borrá esa migración de ejemplo cuando tengas tu esquema real).
+**A propósito, no cambia:**
+
+- Ningún `.env` (tienen secretos). Se crean en el paso siguiente.
+- El rol de base `app_runtime` ni las propiedades `app.*`: son nombres internos, y el rol está en migraciones.
+- Las historias de usuario y sus tareas (`docs/HistoriasDeUsuario/`, `docs/UnidadesTrabajo/`) ni esta guía: son el registro de cómo se construyó la plantilla.
+
+> Si en la misma máquina corrés varios proyectos de esta plantilla, usá un slug distinto en cada uno: los volúmenes llevan ese prefijo, y dos proyectos con el mismo comparten base de datos.
+
+### 3. Preparar y levantar
+
+```bash
+pnpm install
+pnpm setup:env   # crea los .env con secretos aleatorios (ver scripts/README.md)
+# Cambiá INITIAL_ADMIN_EMAIL en .env y en projects/backend/.env por un correo real.
+docker compose up
+```
+
+`MINIO_ROOT_USER` necesita al menos 3 caracteres y `MINIO_ROOT_PASSWORD`, 8 (los generados ya cumplen). Si ya tenés un Postgres en el puerto 5432, descomentá `POSTGRES_HOST_PORT`. Confirmá el backend con:
+
+```bash
+curl http://localhost:8080/health        # "status":"UP"
+curl http://localhost:8080/prometheus | head   # métricas en texto plano
+```
+
+### 4. Lo que queda a mano
+
+- [ ] Descripción de `README.md` y de `pubspec.yaml`, y el titular de `LICENSE`.
+- [ ] Íconos y pantalla de inicio: `android/.../mipmap-*`, `ios/Runner/Assets.xcassets`, `macos/Runner/Assets.xcassets`, `web/icons` y `windows/runner/resources`.
+- [ ] Solo si vas a publicar la app de escritorio: el nombre del ejecutable (`BINARY_NAME` en `linux/` y `windows/CMakeLists.txt`, `PRODUCT_NAME` en `macos/Runner/Configs/AppInfo.xcconfig` y los textos de `windows/runner/Runner.rc`).
+- [ ] Colores de marca (`projects/frontend/src/index.css` y `projects/mobile/lib/core/theme/app_theme.dart`).
+- [ ] Reemplazá las pantallas de ejemplo por las tuyas: `routes/index.tsx` y `_authenticated/panel.tsx` en la web (sin dejar `_authenticated/` sin ninguna ruta hija: el build falla) y `lib/features/health/` en mobile. Quitá del menú los enlaces de ejemplo.
+- [ ] Borrá la migración de ejemplo (`V1__init_schema.sql`) **antes** de crear tu primera base, si no la querés.
+
+Después de renombrar el identificador de la app, corré `flutter pub get` y reabrí el proyecto en Android Studio o Xcode para que regeneren sus archivos.
 
 El scaffold ya trae configurado, sin nada más que hacer:
 - **Health check** en `GET /health` (Actuator, base-path movido a la raíz — no es `/actuator/health`).
@@ -52,64 +71,6 @@ El scaffold ya trae configurado, sin nada más que hacer:
 - **CORS** habilitado vía `SecurityConfig` para los orígenes en `app.cors.allowed-origins` (property `CORS_ALLOWED_ORIGINS`).
 
 Si más adelante exponés otros endpoints de Actuator (`/metrics`, `/env`, `/beans`, etc.), agregalos a `management.endpoints.web.exposure.include` y decidí con cuidado si van en `permitAll()` en `SecurityConfig` — quedarían públicos sin autenticación si los dejás ahí sin querer.
-
-### 4. Frontend (React + Vite)
-
-- [ ] `projects/frontend/package.json`: `"name": "frontend"` → el nombre que quieras.
-- [ ] `projects/frontend/index.html`: `<title>frontend</title>`.
-- [ ] `projects/frontend/src/routes/`: el scaffold trae `login.tsx` (funcional), y `index.tsx` y `_authenticated/panel.tsx` como pantallas mínimas (no hay `App.tsx`). Reemplazá `panel.tsx` por tu primera pantalla real, sin dejar `_authenticated/` sin ninguna ruta hija: el build falla (ver `.claude/rules/frontend/RUTAS_NAVEGACION_FRONTEND.md`).
-- [ ] `projects/frontend/.env.example`: revisá `VITE_API_BASE_URL` si cambiás rutas/puertos. Es solo para desarrollo: la imagen de producción lo fija al construir (`--build-arg`, por defecto `/api/v1`, relativa porque frontend y API comparten origen detrás del proxy).
-
-### 5. Mobile (Flutter)
-
-- [ ] `projects/mobile/pubspec.yaml`: `name: mobile` y `description`.
-- [ ] Bundle ID / application ID `com.example.mobile` → `com.acme.mobile` en:
-  - `android/app/build.gradle.kts` (`namespace`, `applicationId`)
-  - `android/app/src/main/kotlin/com/example/mobile/MainActivity.kt` (mover el paquete y actualizar el `package` declarado)
-  - `ios/Runner.xcodeproj/project.pbxproj` (`PRODUCT_BUNDLE_IDENTIFIER`, todas las ocurrencias)
-  - `macos/Runner.xcodeproj/project.pbxproj` y `macos/Runner/Configs/AppInfo.xcconfig` (`PRODUCT_BUNDLE_IDENTIFIER`, `PRODUCT_NAME`, `PRODUCT_COPYRIGHT`)
-  - `linux/CMakeLists.txt` (`APPLICATION_ID`)
-  - `windows/runner/Runner.rc` (`CompanyName`, `LegalCopyright`)
-- [ ] Íconos y splash (`android/.../mipmap-*`, `ios/Runner/Assets.xcassets`, `macos/Runner/Assets.xcassets`, `web/icons`, `windows/runner/resources`): reemplazalos por los del proyecto real.
-- [ ] `lib/core/` (cliente `dio`, router, almacenamiento seguro, tema) y `lib/features/auth/` (login, sesión y cierre) ya están implementados. `lib/features/health/` es un chequeo de conectividad de ejemplo que se borra o reemplaza cuando haya una feature real.
-- [ ] `.env` de mobile: `pubspec.yaml` lo declara como asset y no se commitea, así que creá el tuyo con `cp projects/mobile/.env.example projects/mobile/.env`; sin él `flutter analyze` falla con `asset_does_not_exist`.
-- [ ] Todos los `import 'package:mobile/...'` de `lib/` y `test/` (por ejemplo `test/widget_test.dart` importa `package:mobile/core/theme/app_theme.dart`) — actualizalos al nuevo nombre de paquete (`name:` de `pubspec.yaml`), por ejemplo `package:acme_mobile/...`. En Dart el nombre del import depende exclusivamente de ese `name:`, así que si no lo actualizás `flutter analyze`/`flutter test` van a fallar con `uri_does_not_exist`.
-
-> Nota: después de renombrar el bundle ID, corré `flutter pub get` y, si usás Android Studio/Xcode, reabrí el proyecto para que regenere los archivos `ephemeral`/`Generated.xcconfig` (se excluyen del repo a propósito, son generados).
-
-### 6. Infraestructura Docker
-
-- [ ] `infrastructure/nginx/nginx.conf` **y `nginx.prod.conf`**: los `proxy_pass` apuntan a `app-frontend` / `app-backend` — actualizá si cambiaste esos nombres de contenedor.
-- [ ] `infrastructure/prometheus/prometheus.yml`: `job_name` y `targets: ['app-backend:8080']` (el `metrics_path: '/prometheus'` no lleva el slug, no hace falta tocarlo).
-- [ ] `infrastructure/grafana/provisioning/datasources/datasource.yml`: `url: http://app-prometheus:9090`.
-- [ ] `infrastructure/minio/create-buckets.sh`: nombre del bucket `app-storage` (tiene que coincidir con `app.minio.bucket-name` de `application.properties`).
-
-### 7. Verificación final
-
-Buscá que no quede ningún rastro del placeholder:
-
-```bash
-grep -ril "com\.example\|app-network\|app-prod\|app_db\|app-backend\|app-frontend\|app-storage\|app-postgres_data\|app-redis_data\|app-minio_data" . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=target
-```
-
-Si el comando no devuelve nada, ya no queda nada del template. Después corré:
-
-```bash
-pnpm install
-pnpm setup:env   # crea los .env con secretos aleatorios (ver scripts/README.md)
-# Cambiá INITIAL_ADMIN_EMAIL en .env por un correo real.
-docker compose up
-```
-
-(`pnpm setup:env` reemplaza el paso manual de copiar los `.env.example` y cambiar cada
-`CAMBIAME`; nunca pisa valores que ya tengas.)
-
-para confirmar que el stack completo (proxy, frontend, backend, postgres, redis, minio, prometheus, grafana) levanta correctamente con los nuevos nombres, y confirmá el backend con:
-
-```bash
-curl http://localhost:8080/health        # "status":"UP"
-curl http://localhost:8080/prometheus | head   # métricas en texto plano
-```
 
 ## Actualizando versiones (Spring Boot, React, Flutter, Docker)
 
