@@ -9,3 +9,7 @@
 # Contraseña inventada en un test de la web que simula la API (sin servidor ni cuenta
 # real). La línea actual lleva `gitleaks:allow`; esto cubre el commit anterior.
 3095438573c3621e86f55768f4514ce446a53797:projects/frontend/src/features/auth/tests/LoginScreen.test.tsx:generic-api-key:80
+
+# Contraseña inventada en el test de la pantalla de cambio, que simula la API. La
+# línea actual lleva `gitleaks:allow`; esto cubre el commit anterior.
+8930165841d2d3a65698cf36c74461383f7b27e7:projects/frontend/src/features/auth/tests/CambiarPasswordScreen.test.tsx:generic-api-key:72
