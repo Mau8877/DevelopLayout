@@ -29,7 +29,7 @@ const DOMINIO = /(?<![A-Za-z0-9])com\.example(?![A-Za-z0-9])/g;
 // * los nombres de la plantilla, este script y sus pruebas, y los lockfiles.
 const EXCLUIDOS = [
   'docs/HistoriasDeUsuario/', 'docs/UnidadesTrabajo/', 'docs/README.md', 'docs/TUTORIAL.md',
-  'scripts/init-project.mjs', 'scripts/init-project.test.mjs', 'pnpm-lock.yaml', 'projects/mobile/pubspec.lock',
+  'scripts/proyecto/init-project.mjs', 'scripts/proyecto/init-project.test.mjs', 'pnpm-lock.yaml', 'projects/mobile/pubspec.lock',
 ];
 
 /** Palabras que no pueden ser parte de un paquete de Java, Kotlin o Dart. */
@@ -248,7 +248,7 @@ export function leerArgumentos(argumentos) {
 const USO = 'uso: pnpm project:init --nombre "Acme Tienda" --slug acme-tienda --paquete com.acme [--dry-run]';
 
 function main() {
-  const raiz = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+  const raiz = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
   try {
     const opciones = leerArgumentos(process.argv.slice(2));
     const valores = crearValores(opciones);

@@ -30,7 +30,7 @@ import {
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { leerClaves } from './setup-env.mjs';
+import { leerClaves } from '../proyecto/setup-env.mjs';
 
 const IDENTIFICADOR = /^[A-Za-z0-9_]+$/;
 
@@ -253,11 +253,11 @@ function leerOpciones(args) {
 async function main() {
   const [comando, ...resto] = process.argv.slice(2);
   const aqui = dirname(fileURLToPath(import.meta.url));
-  const root = resolve(aqui, '..');
+  const root = resolve(aqui, '..', '..');
   const dir = join(root, 'backups');
 
   if (!['backup', 'verify', 'restore'].includes(comando)) {
-    console.error('Uso: node scripts/db-backup.mjs <backup|verify|restore> [archivo] [--keep N] [--prod] [--confirmar]');
+    console.error('Uso: node scripts/base-datos/db-backup.mjs <backup|verify|restore> [archivo] [--keep N] [--prod] [--confirmar]');
     process.exit(2);
   }
   const { prod, confirmado, conservar, archivo } = leerOpciones([comando, ...resto]);

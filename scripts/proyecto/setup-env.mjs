@@ -228,7 +228,7 @@ function main() {
   const soloVerificar = args.includes('--check');
   const i = args.indexOf('--root');
   const aqui = dirname(fileURLToPath(import.meta.url));
-  const root = i >= 0 ? resolve(args[i + 1]) : resolve(aqui, '..');
+  const root = i >= 0 ? resolve(args[i + 1]) : resolve(aqui, '..', '..');
 
   const reporte = prepararEntornos({ root, soloVerificar });
   for (const r of reporte) {

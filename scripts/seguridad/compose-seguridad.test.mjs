@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-const raiz = join(dirname(fileURLToPath(import.meta.url)), '..');
+const raiz = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 /** Bloque de un servicio: desde `  nombre:` hasta el siguiente servicio o sección. */
 function servicio(archivo, nombre) {

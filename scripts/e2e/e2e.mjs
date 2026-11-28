@@ -18,7 +18,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { generarSecreto } from './setup-env.mjs';
+import { generarSecreto } from '../proyecto/setup-env.mjs';
 
 export const PREFIJO = 'e2e-nav-';
 
@@ -172,7 +172,7 @@ const docker = (argumentos, env = process.env) =>
   execFileSync('docker', argumentos, { encoding: 'utf8', env, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 
 async function main(argumentos) {
-  const raiz = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+  const raiz = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
   const backend = join(raiz, 'projects/backend');
   const frontend = join(raiz, 'projects/frontend');
   const resultados = join(frontend, 'test-results');

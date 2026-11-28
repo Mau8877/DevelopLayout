@@ -18,8 +18,8 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { crearDocker, hacerBackup, restaurarBackup, verificarBackup } from './db-backup.mjs';
-import { generarSecreto } from './setup-env.mjs';
+import { crearDocker, hacerBackup, restaurarBackup, verificarBackup } from '../base-datos/db-backup.mjs';
+import { generarSecreto } from '../proyecto/setup-env.mjs';
 
 export const PROYECTO = 'e2eprod-ci';
 const PUERTOS = { http: 18080, https: 18443 };
@@ -375,7 +375,7 @@ function comprobarBucket(compose) {
 }
 
 async function main() {
-  const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+  const root = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
   const carpeta = mkdtempSync(join(tmpdir(), `${PROYECTO}-`));
   let compose;
   let aislado = false;

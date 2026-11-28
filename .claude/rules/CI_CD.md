@@ -30,7 +30,7 @@ proyecto).
   `HIGH,CRITICAL` y `ignore-unfixed`.
 - **Job `docker`**: construye las imágenes de producción (backend, web y proxy),
   las escanea con Trivy, valida `docker-compose.prod.yml` y **levanta el stack
-  completo** (`scripts/prod-smoke.mjs`, `pnpm test:prod` en local). Corre si
+  completo** (`scripts/produccion/prod-smoke.mjs`, `pnpm test:prod` en local). Corre si
   cambian el backend, el frontend, `infrastructure/`, el compose de producción,
   `.env.example`, `ci.yml` o los scripts que usa la prueba. No publica nada.
 - **`permissions: contents: read`** a nivel de workflow: ningún job
@@ -47,11 +47,11 @@ proyecto).
 > primera corrida real en GitHub puede pedir ajustes (versiones de las
 > acciones, falsos positivos de Trivy). Un falso positivo se documenta y se
 > agrega a un `.trivyignore`, no se baja la severidad del escaneo.
-> `scripts/{linux,windows}/update-deps.*` hace la misma auditoría en local.
+> `scripts/dependencias/update-deps.*` hace la misma auditoría en local.
 
 ## Prueba de producción de punta a punta
 
-`scripts/prod-smoke.mjs` comprueba arranque, puertos publicados, redirección y
+`scripts/produccion/prod-smoke.mjs` comprueba arranque, puertos publicados, redirección y
 cabeceras (incluido `no-referrer` en `/reset-password`), rutas internas, sesiones
 web y mobile, la recuperación de contraseña y el alta de un usuario con el
 correo caído (la app sigue sana), el cambio de roles, bucket de MinIO privado, y
@@ -113,7 +113,7 @@ se rota.**
 Toda acción externa se referencia por el SHA completo de su release, con la
 versión como comentario: `uses: owner/accion@<sha-de-40-caracteres> # vX.Y.Z`
 (un tag como `@v4` es mutable: el incidente de `trivy-action` de marzo de 2026
-mostró el riesgo). `scripts/ci-seguridad.test.mjs` falla si alguna no lo cumple.
+mostró el riesgo). `scripts/seguridad/ci-seguridad.test.mjs` falla si alguna no lo cumple.
 Dependabot (`github-actions`) actualiza SHA y comentario. Para agregar o subir una
 a mano, el SHA se toma de `git ls-remote https://github.com/owner/accion
 'refs/tags/vX.Y.Z*'` (si el tag es anotado, el de `^{}`), nunca de memoria, y
@@ -124,7 +124,7 @@ base de Trivy, sus propias dependencias).
 
 ## Pruebas de navegador
 
-El job `e2e` corre `scripts/e2e.mjs` (en local, `pnpm test:e2e`) cuando cambian la
+El job `e2e` corre `scripts/e2e/e2e.mjs` (en local, `pnpm test:e2e`) cuando cambian la
 web, el backend, el propio script o las dependencias. Detalle de lo que cubre en
 [TESTING_FRONTEND.md](frontend/TESTING_FRONTEND.md#pruebas-de-navegador).
 
@@ -142,6 +142,11 @@ web, el backend, el propio script o las dependencias. Detalle de lo que cubre en
 - El informe y las trazas se suben solo si falla (7 días); traen datos desechables.
 
 ## Un job por proyecto, no uno solo para todo
+
+`paths-filter` no avisa si una ruta ya no existe: el job deja de correr y el CI
+sigue en verde. `scripts/seguridad/rutas-scripts.test.mjs` falla si `ci.yml` o
+`package.json` nombran un script que no está. No detecta un filtro al que le
+falte una ruta: eso se revisa al cambiar qué importa un script.
 
 El pipeline usa un job `changes` (con la acción `dorny/paths-filter`) que
 detecta qué carpetas cambiaron en el PR/push, y cada job de proyecto
@@ -180,7 +185,7 @@ sin nada adicional inventado solo para CI:
 | `frontend` | `pnpm install --frozen-lockfile` (desde la raíz, ver [docs/README.md](../../docs/README.md)) → `pnpm lint` → `pnpm test` → `pnpm build` → `pnpm audit --audit-level moderate` |
 | `mobile` | `flutter pub get` → `flutter analyze` → `flutter test` |
 | `scripts` | `node --test "scripts/**/*.test.mjs"` |
-| `e2e` | `pnpm install --frozen-lockfile` → `playwright install --with-deps chromium` → `node scripts/e2e.mjs` |
+| `e2e` | `pnpm install --frozen-lockfile` → `playwright install --with-deps chromium` → `node scripts/e2e/e2e.mjs` |
 
 - El job de `backend` levanta `postgres:18-alpine` y `redis:8-alpine` como
   `services:` del job (mismas versiones que `docker-compose.yml`) y le pasa

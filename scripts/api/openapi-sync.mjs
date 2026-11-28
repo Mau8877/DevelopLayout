@@ -74,7 +74,7 @@ async function main() {
   const args = process.argv.slice(2);
   const i = args.indexOf('--url');
   const url = i >= 0 ? args[i + 1] : 'http://localhost:8080/v3/api-docs';
-  const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+  const root = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
   const soloVerificar = args.includes('--check');
 
   const resultado = guardar(root, await descargar(url), { soloVerificar });

@@ -5,7 +5,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-const workflows = join(dirname(fileURLToPath(import.meta.url)), '..', '.github', 'workflows');
+const workflows = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '.github', 'workflows');
 
 // SHA completo y, como comentario, la versión (Dependabot actualiza los dos).
 const FIJADA = /^[\w.-]+\/[\w./-]+@[0-9a-f]{40} # v\d+\.\d+\.\d+$/;

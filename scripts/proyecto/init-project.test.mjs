@@ -167,7 +167,7 @@ describe('sobre un repositorio', () => {
   });
 });
 
-const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const esPlantilla = readFileSync(join(REPO, 'projects/backend/pom.xml'), 'utf8').includes('<groupId>com.example</groupId>');
 
 // * Solo en la plantilla: si alguien agrega un nombre que el script no sabe cambiar,

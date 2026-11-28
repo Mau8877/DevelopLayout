@@ -13,7 +13,7 @@ import { dirname, join } from 'node:path';
 import { afterEach, describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-const SCRIPTS = dirname(fileURLToPath(import.meta.url));
+const SCRIPTS = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 const COMUN = `
 const fs = require('node:fs');
@@ -97,8 +97,8 @@ function proyectoFalso() {
     writeFileSync(join(base, ruta), texto);
     if (ejecutable) chmodSync(join(base, ruta), 0o755);
   };
-  mkdirSync(join(base, 'repo/scripts'), { recursive: true });
-  for (const archivo of ['e2e.mjs', 'setup-env.mjs']) {
+  for (const archivo of ['e2e/e2e.mjs', 'proyecto/setup-env.mjs']) {
+    mkdirSync(dirname(join(base, 'repo/scripts', archivo)), { recursive: true });
     copyFileSync(join(SCRIPTS, archivo), join(base, 'repo/scripts', archivo));
   }
   escribir('bin/docker', DOCKER, true);
@@ -137,7 +137,7 @@ describe('interrumpir las pruebas de navegador', { skip: process.platform !== 'l
     base = proyectoFalso();
     let salida = '';
     // * `detached`: grupo propio, para poder señalar al grupo entero como hace Ctrl+C.
-    proceso = spawn(process.execPath, [join(base, 'repo/scripts/e2e.mjs')], {
+    proceso = spawn(process.execPath, [join(base, 'repo/scripts/e2e/e2e.mjs')], {
       detached: true,
       env: {
         PATH: `${join(base, 'bin')}:${process.env.PATH}`,

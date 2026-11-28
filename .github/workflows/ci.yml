@@ -58,8 +58,8 @@ jobs:
               - '.github/workflows/ci.yml'
               - 'projects/backend/**'
               - 'projects/frontend/**'
-              - 'scripts/e2e.mjs'
-              - 'scripts/setup-env.mjs'
+              - 'scripts/e2e/e2e.mjs'
+              - 'scripts/proyecto/setup-env.mjs'
               - 'package.json'
               - 'pnpm-lock.yaml'
               - 'pnpm-workspace.yaml'
@@ -68,9 +68,9 @@ jobs:
               - 'docker-compose.prod.yml'
               - '.env.example'
               - '.github/workflows/ci.yml'
-              - 'scripts/prod-smoke.mjs'
-              - 'scripts/db-backup.mjs'
-              - 'scripts/setup-env.mjs'
+              - 'scripts/produccion/prod-smoke.mjs'
+              - 'scripts/base-datos/db-backup.mjs'
+              - 'scripts/proyecto/setup-env.mjs'
 
   backend:
     needs: changes
@@ -173,7 +173,7 @@ jobs:
       # Falla con cualquier vulnerabilidad conocida (moderada o peor).
       - run: pnpm audit --audit-level moderate
 
-  # Flujos clave en un navegador real contra un entorno desechable (scripts/e2e.mjs):
+  # Flujos clave en un navegador real contra un entorno desechable (scripts/e2e/e2e.mjs):
   # genera sus secretos y no usa ninguno del repositorio.
   e2e:
     needs: changes
@@ -213,7 +213,7 @@ jobs:
       - name: Instalar Chromium
         run: pnpm --dir projects/frontend exec playwright install --with-deps chromium
       - name: Pruebas de navegador
-        run: node scripts/e2e.mjs
+        run: node scripts/e2e/e2e.mjs
       # Solo si falla. Contiene únicamente datos desechables.
       - name: Informe y trazas
         if: failure()
@@ -361,7 +361,7 @@ jobs:
       # Arranque, entrada por HTTPS, sesiones, bucket privado, y respaldo restaurado en
       # un servidor vacío. Genera sus secretos y su certificado; usa volúmenes propios.
       - name: Producción de punta a punta y recuperación
-        run: node scripts/prod-smoke.mjs
+        run: node scripts/produccion/prod-smoke.mjs
         env:
           # Mismo tag que los builds de arriba: reutiliza sus capas.
           APP_VERSION: ci
