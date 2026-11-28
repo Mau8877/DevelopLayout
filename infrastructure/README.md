@@ -14,5 +14,8 @@ monta cada servicio:
 | `grafana/` | Provisioning del datasource de Prometheus |
 | `docker/` | Reservada para configuración Docker adicional (vacía por ahora) |
 
+El correo de desarrollo (Mailpit) no necesita archivos: se configura en
+`docker-compose.yml`.
+
 Detalle de cada servicio, volúmenes y variables de entorno en
 [`docs/INFRAESTRUCTURA.md`](../docs/INFRAESTRUCTURA.md).

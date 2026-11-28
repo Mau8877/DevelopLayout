@@ -1,7 +1,7 @@
 # Infraestructura
 
 Este documento describe **todo** lo que compone la infraestructura de
-DevelopLayout: los 9 servicios de `docker-compose.yml`, la carpeta
+DevelopLayout: los servicios de `docker-compose.yml`, la carpeta
 `infrastructure/`, las redes, los volúmenes, las variables de entorno, y
 los dos `Dockerfile` de producción. El objetivo es que después de leer esto
 no quede ninguna duda sobre qué es cada pieza, para qué sirve, y por qué
@@ -22,7 +22,8 @@ está configurada como está.
                     │           ──▶ minio    (:9000)            │
                     │           ──▶ Docker socket (Testcontainers)│
                     │                                           │
-                    │  minio-init ──▶ minio (crea el bucket)    │
+                    │           ──▶ mailpit  (:1025, correo)    │
+                    │  minio-permisos, minio-init (una corrida) │
                     │  prometheus ──▶ scrapea backend (:8080)   │
                     │  grafana    ──▶ lee de prometheus         │
                     └─────────────────────────────────────────┘
@@ -42,12 +43,13 @@ pasar por el proxy.
 | `5432` | `postgres` | Conectar un cliente SQL (DBeaver, pgAdmin, etc.) directo |
 | `6379` | `redis` | Conectar un cliente Redis directo |
 | `9000` / `9001` | `minio` | API S3 (`9000`) y consola web de administración (`9001`) |
+| `8025` / `1025` | `mailpit` | Bandeja del correo de prueba (`8025`) y SMTP (`1025`) |
 | `9090` | `prometheus` | UI de Prometheus (ver targets, correr queries PromQL) |
 | `3000` | `grafana` | Dashboards (sin ninguno provisionado todavía, ver sección 8) |
 
 Todos esos puertos se publican **solo en `127.0.0.1`**: el stack de desarrollo no queda expuesto a tu red local. El de Postgres es configurable con `POSTGRES_HOST_PORT` (por defecto `5432`; usá otro, ej. `5433`, si ya tenés un Postgres propio en esa máquina). Dentro de la red de Docker, el backend siempre usa `5432`.
 
-## 2. Los 9 servicios de `docker-compose.yml`
+## 2. Los servicios de `docker-compose.yml`
 
 ### 2.1 `proxy` — reverse proxy (nginx)
 
@@ -120,7 +122,7 @@ Todos esos puertos se publican **solo en `127.0.0.1`**: el stack de desarrollo n
 - **Imagen**: `postgres:18-alpine`.
 - **Credenciales/DB**: vienen de `${POSTGRES_DB}`, `${POSTGRES_USER}`,
   `${POSTGRES_PASSWORD}` (del `.env` de la raíz — ver [sección 6](#6-variables-de-entorno)). La contraseña no tiene default: `docker compose` falla si falta.
-  La app todavía se conecta con este superusuario, que **ignora RLS**; el rol `app_runtime` se crea junto con la autenticación.
+  Es el **dueño** del esquema y solo lo usa Flyway. La aplicación se conecta con `app_runtime` (sin DDL y sin saltarse RLS), que crea una migración con `APP_RUNTIME_PASSWORD`.
 - **Volúmenes**:
   - `postgres_data:/var/lib/postgresql` — los datos reales, persistentes
     entre reinicios del contenedor.
@@ -129,7 +131,8 @@ Todos esos puertos se publican **solo en `127.0.0.1`**: el stack de desarrollo n
     primera vez que se inicializa un volumen vacío (convención propia de
     la imagen oficial de Postgres). **Hoy está vacía** (`.gitkeep`), no hay
     ningún script de inicialización custom todavía — el esquema real lo
-    crea Flyway desde el backend (`V1__init_schema.sql`), no este mecanismo.
+    crea Flyway desde las migraciones del backend
+    (`src/main/resources/db/migration/`), no este mecanismo.
 - **Healthcheck**: `pg_isready` cada 10s — es lo que usa `backend` para
   saber cuándo arrancar.
 
@@ -150,14 +153,16 @@ Todos esos puertos se publican **solo en `127.0.0.1`**: el stack de desarrollo n
 - **Volumen**: `redis_data:/data` — para que la persistencia AOF de arriba
   tenga dónde escribir.
 - **Contraseña obligatoria**: arranca con `--requirepass ${REDIS_PASSWORD}` (el valor viene del `.env`, nunca de `redis.conf`, que se commitea), y su healthcheck se autentica con ella. El backend la recibe como `SPRING_DATA_REDIS_PASSWORD`.
-- **Estado de uso real**: el backend lo usa para el bloqueo por intentos de
-  login y para consultar las sesiones revocadas.
+- **Estado de uso real**: el backend guarda ahí los contadores de intentos de
+  login y de cambio de contraseña, la lista de sesiones revocadas, y los tokens
+  y límites de recuperación e invitación.
 
 ### `mailpit` — correo de desarrollo
 
 `axllent/mailpit` atrapa todo lo que envía el backend de desarrollo; no entrega
-nada afuera. Bandeja en `http://127.0.0.1:8025`, SMTP en `127.0.0.1:1025` (para
-correr el backend sin Docker). Sin root y sin capabilities. No existe en el compose
+nada afuera (invitaciones, recuperación y avisos de contraseña). Bandeja en
+`http://127.0.0.1:8025`, SMTP en `127.0.0.1:1025` (para correr el backend sin
+Docker). Sin root y sin capabilities. No existe en el compose
 de producción.
 
 ### 2.6 `minio` + `minio-init` — almacenamiento de archivos (S3-compatible)
@@ -339,9 +344,9 @@ de 0 y es visible en `docker ps -a`.
 
 ## 6. Variables de entorno
 
-Hay **tres** archivos `.env` (ninguno se commitea — `.gitignore` los
-excluye, salvo los `.env.example` correspondientes que sí son parte del
-repo y sirven de plantilla).
+Hay **cuatro** archivos `.env`: raíz, backend, frontend y mobile. Ninguno se
+commitea (`.gitignore` los excluye); sus `.env.example` sí son parte del repo y
+sirven de plantilla. `pnpm setup:env` los crea todos.
 
 ### 6.1 Raíz (`.env`, a partir de `.env.example`)
 
@@ -368,8 +373,11 @@ Solo para producción (ver sección 7c): `TLS_CERT_DIR`, `CORS_ALLOWED_ORIGINS`,
 
 ### 6.2 Backend (`projects/backend/.env`, a partir de `.env.example`)
 
-Usadas directamente por Spring Boot (`application.properties` las lee vía
-`${VARIABLE:default}`):
+Para correr el backend **fuera de Docker**. `application.properties` lee
+variables de entorno (`${VARIABLE:default}`), pero **Spring Boot no carga este
+archivo solo**: hay que pasarle las variables desde el IDE o la terminal (ver el
+[tutorial](TUTORIAL.md#backend-fuera-de-docker)). Con Docker Compose no se usa:
+las variables salen del `.env` de la raíz.
 
 | Variable | Para qué | Default si no está |
 | --- | --- | --- |
@@ -386,6 +394,12 @@ Usadas directamente por Spring Boot (`application.properties` las lee vía
 | `CORS_ALLOWED_ORIGINS` | Orígenes permitidos para CORS (separados por coma) | `http://localhost:5173,http://localhost` |
 | `RATE_LIMIT_CAPACITY` | Cupo del rate limit por IP (ver `SEGURIDAD_AUTH_BACKEND.md#rate-limit`) | `100` |
 | `RATE_LIMIT_REFILL_PER_MINUTE` | Cuántos tokens se regeneran por minuto | `100` |
+| `APP_RUNTIME_PASSWORD` | Contraseña con la que la migración crea el rol `app_runtime` | sin default |
+| `JWT_SECRET` / `REFRESH_TOKEN_SECRET` | Claves de los tokens (32 caracteres o más, distintas) | sin default |
+| `INITIAL_ADMIN_EMAIL` / `INITIAL_ADMIN_PASSWORD` | Primer `SUPER_ADMIN` | sin default |
+| `SPRING_MAIL_*`, `MAIL_FROM`, `APP_FRONTEND_BASE_URL` | Correo y dirección de la web (ver 7c) | el perfil `dev` apunta a Mailpit y a `localhost:5173` |
+| `LOGIN_MAX_ATTEMPTS_PER_ACCOUNT` | Tope de intentos por cuenta sumando todas las IP | `100` |
+| `BITACORA_RETENTION_MONTHS` | Meses que se conserva la bitácora | `12` |
 
 > `CORS_ALLOWED_ORIGINS` y las dos de `RATE_LIMIT_*` tienen default
 > razonable en `application.properties`, así que no es obligatorio
@@ -458,7 +472,7 @@ limitado a `projects/frontend/` no puede ver.
    frontend...` (falla si el lockfile no está sincronizado,
    en vez de regenerarlo silenciosamente), copia el código y buildea con
    `pnpm --filter frontend build`.
-2. **Etapa runtime** (`nginxinc/nginx-unprivileged:stable-alpine`): sirve
+2. **Etapa runtime** (`nginxinc/nginx-unprivileged:stable-alpine-slim`): sirve
    los archivos estáticos compilados (`dist/`) en el puerto `8080`, como
    usuario sin privilegios, con `projects/frontend/nginx.conf` (fallback a
    `index.html` para el router SPA, assets con hash cacheados un año,
