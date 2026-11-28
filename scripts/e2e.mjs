@@ -11,6 +11,7 @@
 // * configuración de quien lo corre. Todo escucha solo en 127.0.0.1.
 
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import { copyFileSync, createWriteStream, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { createConnection } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -60,22 +61,47 @@ export function exigirSinChoques(contenedoresExistentes, puertosOcupados) {
 }
 
 /**
- * Lleva la cuenta de lo creado en esta ejecución. `limpiar` borra solo eso, por su
- * identificador: nunca por nombre ni por patrón.
+ * Lleva la cuenta de lo creado en esta ejecución y borra solo eso: por su
+ * identificador y, además, por una etiqueta ÚNICA de esta ejecución. Nunca por
+ * nombre ni por patrón.
+ *
+ * * La etiqueta cubre la interrupción mientras Docker crea un contenedor: ya
+ * * existe, pero su identificador no llegó a anotarse.
  */
-export function crearRegistro(docker) {
+export function crearRegistro(docker, corrida = randomUUID()) {
+  const etiqueta = `e2e-nav-run=${corrida}`;
   const creados = [];
+  let intentos = 0;
+
+  // * Un segundo Ctrl+C también llega al `docker` que está borrando: se reintenta.
+  const insistir = (argumentos) => {
+    for (let intento = 1; ; intento++) {
+      try {
+        return docker(argumentos);
+      } catch (error) {
+        if (intento === 3) {
+          console.error(`No se pudo ejecutar «docker ${argumentos.join(' ')}»: ${error.message}`);
+          return null;
+        }
+      }
+    }
+  };
+  // * `-v` borra también el volumen anónimo que declara la imagen de Postgres.
+  const borrar = (id) => insistir(['rm', '-f', '-v', id]);
+
   return {
     crear(servicio, argumentos) {
       const nombre = CONTENEDORES[servicio];
       if (!nombre) throw new Error(`servicio desconocido: ${servicio}`);
-      creados.push(docker(['run', '-d', '--name', nombre, '--label', 'e2e-nav=1', ...argumentos]));
+      intentos++;
+      creados.push(docker(['run', '-d', '--name', nombre, '--label', 'e2e-nav=1', '--label', etiqueta, ...argumentos]));
     },
     limpiar() {
-      while (creados.length) {
-        // * `-v` borra también el volumen anónimo que declara la imagen de Postgres.
-        docker(['rm', '-f', '-v', creados.pop()]);
-      }
+      if (!intentos) return;
+      while (creados.length) borrar(creados.pop());
+      const restos = insistir(['ps', '-a', '-q', '--filter', `label=${etiqueta}`]);
+      for (const id of (restos ?? '').split('\n').filter(Boolean)) borrar(id);
+      intentos = 0;
     },
   };
 }
@@ -173,7 +199,9 @@ async function main(argumentos) {
     }
   };
   for (const senal of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
-    process.once(senal, () => {
+    // ! `on` y no `once`: sin oyente, un segundo Ctrl+C mataría el proceso a mitad
+    // ! de la limpieza.
+    process.on(senal, () => {
       console.error('\nInterrumpido: limpiando…');
       limpiar();
       process.exit(130);
