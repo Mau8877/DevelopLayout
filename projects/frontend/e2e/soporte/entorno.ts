@@ -1,4 +1,4 @@
-/** Lo que entrega scripts/e2e.mjs. Nada de esto sale de un archivo del proyecto. */
+/** Lo que entrega scripts/e2e/e2e.mjs. Nada de esto sale de un archivo del proyecto. */
 function exigir(nombre: string): string {
   const valor = process.env[nombre]
   if (!valor) throw new Error(`Falta ${nombre}: las pruebas se corren con «pnpm test:e2e»`)

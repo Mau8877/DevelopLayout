@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test'
 
-// * Se corre con `pnpm test:e2e` (scripts/e2e.mjs), que levanta el entorno desechable.
+// * Se corre con `pnpm test:e2e` (scripts/e2e/e2e.mjs), que levanta el entorno desechable.
 export default defineConfig({
   testDir: '.',
   outputDir: '../test-results',
