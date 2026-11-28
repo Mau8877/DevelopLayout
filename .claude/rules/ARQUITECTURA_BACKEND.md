@@ -22,6 +22,7 @@ capa** y cómo fluye una request a través de ellas:
 ```
 com.example.backend
 ├── common/          # Compartido entre 2+ módulos (nunca "por las dudas")
+│                    #   bitacora/, idioma/, exception/, response/, model/, util/
 ├── config/          # Beans de configuración de Spring (SecurityConfig, etc.)
 ├── security/        # JWT, filtros, @CurrentUserId
 └── features/
@@ -85,6 +86,8 @@ detalle completo:
 | --- | --- | --- |
 | Sobre de respuesta (`ApiResponse`, `PageMeta`) | `common/response/` | [RESPONSES_BACKEND.md](backend/RESPONSES_BACKEND.md) |
 | Jerarquía de excepciones + `GlobalExceptionHandler` | `common/exception/` | [EXCEPCIONES_BACKEND.md](backend/EXCEPCIONES_BACKEND.md) |
+| Idiomas (`Mensajes`, selección por `Accept-Language`) | `common/idioma/` y `resources/i18n/{modulo}/` | [IDIOMAS_BACKEND.md](backend/IDIOMAS_BACKEND.md) |
+| Bitácora (`BitacoraService`, escritura y consulta de datos) | `common/bitacora/` (la API de consulta vive en `features/bitacora/`) | [BITACORA_BACKEND.md](backend/BITACORA_BACKEND.md) |
 | `BaseModel` (id interno + codigo UUID público, timestamps, soft delete) | `common/model/` | [CONVENCIONES_JAVA_BACKEND.md](backend/CONVENCIONES_JAVA_BACKEND.md) |
 | Autenticación JWT, `RateLimitFilter`, `@CurrentUserId` | `security/` | [SEGURIDAD_AUTH_BACKEND.md](backend/SEGURIDAD_AUTH_BACKEND.md) |
 | `SecurityConfig` y demás config de Spring | `config/` | — |
@@ -102,3 +105,19 @@ módulo de `features/` directo salvo que la relación de negocio lo
 justifique explícitamente (ej. `pedidos` necesita leer `usuarios`) — y en
 ese caso, a través del `service` del módulo dueño del dato, nunca accediendo
 a su `repository` desde afuera.
+
+`features/usuarios` usa servicios de `features/auth` (sesiones, invitación y
+recuperación) porque administrar una cuenta revoca sus sesiones y enlaces. Eso
+cumple la regla (va por `service`), aunque también importa `AuthErrorCodes` y el
+enum `MotivoRevocacion`.
+
+### Excepciones que existen hoy
+
+Son deuda conocida de la autenticación, **no un permiso general**: no se
+agrega ninguna dependencia nueva de este tipo sin anotarla acá con su motivo.
+
+| Quién | De qué depende | Motivo |
+| --- | --- | --- |
+| `security/` (resolvers, `JwtService`, respuestas 401 y 403) | `features/auth/AuthErrorCodes` | Responden con códigos del catálogo de `auth` |
+| `security/UserDetailsServiceImpl` | Model, enum y repositorios de `features/usuarios` | Solo existe para que Spring Boot no cree su usuario en memoria; el login no lo usa |
+| Servicios de `features/auth` (`AuthService`, `SesionService`, `RecuperacionService`, `CambioPasswordService`, `InvitacionService`) | Model y repositorios de `features/usuarios` | La autenticación lee y bloquea la fila del usuario dentro de sus propias transacciones, con su contexto de RLS (login, cambio y restablecimiento de contraseña) |

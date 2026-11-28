@@ -133,3 +133,8 @@ Dos criterios distintos según dónde vive el código, ambos documentados en
 `lib/`, `utils/` y `shared/` — nunca al revés. Ninguna carpeta transversal
 (`store/`, `components/ui/`, etc.) importa nada de `features/`, porque
 dejaría de ser transversal (quedaría acoplada a una feature puntual).
+
+**Única excepción:** `layouts/`, que arma el shell de cada rol y por eso importa
+de `features/auth` el cierre de sesión (`useLogout`) y el tipo del usuario en
+sesión (`UsuarioSesion`), siempre por el barril. `components/layout/` no: recibe
+todo por props.

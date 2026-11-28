@@ -95,6 +95,13 @@ mismo cambio. **Pendiente:** a partir de la 3.47 hay que migrar a `material_ui`.
 
 ## Falsos positivos de gitleaks
 
+**Se previenen al escribir la prueba:** una contraseña o un token inventado
+asignado a una propiedad o variable con nombre de secreto
+(`passwordActual: '...'`, `PASSWORD = "..."`) lleva `// gitleaks:allow` **en el
+mismo commit que la crea**. gitleaks no se ejecuta en local ni en el pre-commit,
+así que si se olvida solo aparece en el CI, y entonces hace falta además el
+fingerprint. Ya pasó varias veces.
+
 Se anotan uno por uno: `gitleaks:allow` en la línea y, si el hallazgo está en un
 commit ya hecho, su fingerprint en `.gitleaksignore` con el motivo. Nunca se
 desactiva una regla ni se excluye una carpeta. gitleaks revisa cada commit del

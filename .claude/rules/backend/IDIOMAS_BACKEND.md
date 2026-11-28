@@ -26,6 +26,14 @@ src/main/resources/i18n/
   `fallbackToSystemLocale=false`. Una clave inexistente es un error, no se
   muestra la clave al cliente.
 
+### Al agregar un módulo
+
+Se crea `i18n/{modulo}/messages.properties` y su `_en`, y **se registra en dos
+sitios**: los `basenames` de `common/idioma/Mensajes.java` y la expresión
+`CLAVE_USADA` de `ArchivosDeIdiomaTest`. Las pruebas fallan si falta alguno.
+Las claves de correo se escriben en el código sin la terminación
+(`"auth.correo.cambio"`): así las reconoce la prueba.
+
 ## Idioma de cada petición
 
 - Lo decide `common/idioma/SelectorDeIdioma`. **No** se usa `request.getLocale()` ni

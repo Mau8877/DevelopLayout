@@ -16,14 +16,23 @@ etc.) directo desde código de negocio.
 public abstract class BusinessException extends RuntimeException {
     private final String errorCode;
     private final HttpStatus httpStatus;
+    private final transient Object[] argumentos;
 
-    protected BusinessException(String errorCode, HttpStatus httpStatus, String message) {
-        super(message);
-        this.errorCode = errorCode;
-        this.httpStatus = httpStatus;
+    /** `clave` es la del mensaje en resources/i18n; `getMessage()` la devuelve. */
+    protected BusinessException(String errorCode, HttpStatus httpStatus, String clave, Object... argumentos) {
+        super(clave);
+        // ...
     }
     // getters
 }
+```
+
+La excepción lleva **código, clave del mensaje y argumentos**, nunca una frase:
+quien la lanza no sabe en qué idioma responderá (ver
+[IDIOMAS_BACKEND.md](IDIOMAS_BACKEND.md)).
+
+```java
+throw new NotFoundException(AuthErrorCodes.ERR_AUTH_09, "auth.error.sesionNoExiste");
 ```
 
 `common/exception/` se mantiene **plano** (sin subcarpetas) mientras
@@ -84,8 +93,8 @@ falla de infraestructura (DB caída, etc.), cae en el handler genérico del
 
 - Un `@ExceptionHandler(BusinessException.class)` (o uno por subtipo si hace
   falta lógica distinta) que arma la respuesta con
-  `ApiResponse.error(ex.getErrorCode(), ex.getMessage())` y el `HttpStatus`
-  de la excepción.
+  `ApiResponse.error(ex.getErrorCode(), mensajes.de(ex.getMessage(), ex.getArgumentos()))`
+  (traduce la clave al idioma de la petición) y el `HttpStatus` de la excepción.
 - Un `@ExceptionHandler(MethodArgumentNotValidException.class)` para errores
   de `@Valid`/Bean Validation → `400`, con el código genérico de validación
   del módulo correspondiente (ej. `ERR_SYS_01` si no aplica a un módulo

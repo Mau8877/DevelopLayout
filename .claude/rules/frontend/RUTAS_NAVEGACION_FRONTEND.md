@@ -45,8 +45,7 @@ plugins: [
 **Toda URL de la web va en inglés y en kebab-case** (`/users`, `/my-sessions`),
 aunque lo que se ve en la pantalla esté en el idioma de la persona: el título sale
 de los archivos de idioma y la URL no cambia con él. Como la URL la define el
-nombre del archivo, los archivos de `routes/` también van en inglés. Los ejemplos
-en español de esta rule describen el código anterior a la migración.
+nombre del archivo, los archivos de `routes/` también van en inglés.
 
 > La migración de lo escrito antes es
 > [HU-INICIAL-Convenciones](../../../docs/HistoriasDeUsuario/HU-INICIAL-Convenciones.md).

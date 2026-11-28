@@ -38,6 +38,16 @@ src/
   no importa código de ninguna feature, así que la regla de dependencia se
   mantiene.
 
+### Al agregar una feature con textos
+
+Además de sus dos JSON, se actualizan estos puntos:
+
+1. `src/i18next.d.ts`: sus tipos (una prueba lo exige).
+2. La expresión de espacios de nombres de
+   `shared/language/sinTextoFijo.test.ts`: reconoce los mensajes de Zod.
+3. `ClaveDeMenu` en `layouts/navegacion/navegacion.ts`, solo si el menú usa
+   claves de la feature.
+
 ## Claves tipadas
 
 `src/i18next.d.ts` declara los `es.json` como recursos (solo tipos). Una clave

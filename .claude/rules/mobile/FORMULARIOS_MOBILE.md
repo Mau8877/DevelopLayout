@@ -15,13 +15,17 @@ CRUD estándar) no justifica esa dependencia extra.
 ```dart
 final _formKey = GlobalKey<FormState>();
 
-TextFormField(
-  decoration: const InputDecoration(labelText: 'Correo'),
-  validator: (value) {
-    if (value == null || value.isEmpty) return 'El correo es obligatorio';
-    if (!value.contains('@')) return 'El correo no es válido';
-    return null;
-  },
+// La regla es una función pura que devuelve una CLAVE (o null): se prueba sola.
+String? validarCorreo(String? value) {
+  final texto = value?.trim() ?? '';
+  if (texto.isEmpty) return 'auth:validacion.correoObligatorio';
+  return null;
+}
+
+AppTextField(
+  label: context.t('auth:campos.correo'),
+  controller: _correoController,
+  validator: context.validador(validarCorreo),
 )
 
 // Al enviar:
@@ -32,9 +36,10 @@ if (_formKey.currentState!.validate()) {
 
 ## Mensajes: archivos de idioma
 
-El proyecto es multi-idioma (ver [IDIOMAS_MOBILE.md](IDIOMAS_MOBILE.md)): cada
-`validator` devuelve `context.t('...')`, nunca una frase escrita en el código. El
-ejemplo de arriba muestra la forma de la validación, no el texto.
+El proyecto es multi-idioma (ver [IDIOMAS_MOBILE.md](IDIOMAS_MOBILE.md)): las
+reglas devuelven claves y `context.validador(...)` las traduce al mostrarlas.
+Nunca una frase escrita en el código. El límite de 72 de una contraseña se mide
+en **bytes** (`utf8.encode`), como en la web y el backend.
 
 ## Consistencia de reglas de negocio con el frontend web
 

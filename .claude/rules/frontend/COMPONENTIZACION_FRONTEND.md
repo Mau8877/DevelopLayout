@@ -38,6 +38,12 @@ componente genérico no tiene dueño de dominio.
 
 ## Qué se componentiza siempre
 
+Antes de crear uno, revisa los que ya existen: `FormField`,
+`CheckboxGroupField`, `ErrorState`, `ModalConfirmacion`, `ModalDestructive`,
+`modal-layout/`, `tanstack-table/` y los avisos de `toast.ts` en
+`components/ui/`; `CenteredCardLayout`, `SelectorIdioma` y
+`PaginaNoEncontrada` en `components/layout/`.
+
 Cada patrón de esta lista es un componente, no markup repetido:
 
 - Campo de formulario (label + input + error inline + descripción) — la forma en

@@ -15,8 +15,8 @@ distinta cuando el lenguaje ya tiene una establecida:
 | --- | --- | --- | --- |
 | Variables / funciones / métodos | `camelCase` | `camelCase` | `camelCase` |
 | Clases / tipos / interfaces / enums | `PascalCase` | `PascalCase` | `PascalCase` |
-| Constantes | `UPPER_SNAKE_CASE` | `UPPER_SNAKE_CASE` | `UPPER_SNAKE_CASE` (Dart suele usar `lowerCamelCase` para constantes locales, pero las constantes de configuración/catálogo del proyecto — ej. códigos de error, claves de storage — usan `UPPER_SNAKE_CASE` para que se distingan a simple vista de una variable normal) |
-| Archivos | `PascalCase.java` (nombre = nombre de la clase pública) | `camelCase.ts`/`PascalCase.tsx` (componentes React en `PascalCase`) | `snake_case.dart` (convención oficial de Dart/Flutter) |
+| Constantes | `UPPER_SNAKE_CASE` | `UPPER_SNAKE_CASE` | `lowerCamelCase` (la convención oficial de Dart, que exige `flutter_lints`: `rutaLogin`, `appName`) |
+| Archivos | `PascalCase.java` (nombre = nombre de la clase pública) | `camelCase.ts`/`PascalCase.tsx` (componentes React en `PascalCase`). Excepciones: `components/ui/` sigue al CLI de shadcn (`kebab-case.tsx`) y los archivos de `routes/` se nombran como su URL (`my-sessions.tsx`) | `snake_case.dart` (convención oficial de Dart/Flutter) |
 
 ## Enforcement automático (pre-commit)
 

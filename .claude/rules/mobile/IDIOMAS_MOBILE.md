@@ -44,7 +44,9 @@ Text(context.t('auth:sesiones.cantidad', count: total))
   se muestra la clave, nunca una pantalla rota.
 - Providers, services y `core/` no devuelven frases: devuelven **claves** o el
   mensaje que ya vino del servidor, y la pantalla traduce.
-- Los `validator` de formularios devuelven `context.t(...)`.
+- Las reglas de validación devuelven claves y se pasan al campo con
+  `context.validador(...)`. Un mensaje que puede ser clave o texto del servidor
+  se muestra con `context.traducir(...)`.
 - Los widgets de `shared/widgets/` reciben textos por parámetro; sus valores por
   defecto salen de `shared`.
 

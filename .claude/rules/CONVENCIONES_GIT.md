@@ -46,7 +46,7 @@ chore[REPO]: Actualizar dependencias del workspace
 | `MOBILE` | Cambios dentro de `projects/mobile/` |
 | `INFRA` | Cambios dentro de `infrastructure/`, `docker-compose.yml` |
 | `DOCS` | Cambios dentro de `docs/`, o documentación suelta en cualquier proyecto |
-| `REPO` | Cambios que afectan a todo el repositorio (config raíz: `package.json`, `pnpm-workspace.yaml`, `.editorconfig`, `.prettierrc`, `.claude/`, etc.) |
+| `REPO` | Cambios que afectan a todo el repositorio (config raíz: `package.json`, `pnpm-workspace.yaml`, `.editorconfig`, `.prettierrc`, `.husky/`, `.github/`, `.gitleaksignore`, `scripts/`, `README.md` raíz, `.claude/`, etc.) |
 
 No hay scope libre fuera de esta lista — un cambio que no encaja
 claramente en ninguno se piensa dos veces antes de forzarlo; si de verdad no
@@ -71,3 +71,9 @@ tocar el otro.
   que se decida explícitamente. Hasta entonces, cualquier trabajo que no sea
   una feature nueva puede seguir usando `feature/{modulo}` como default
   provisorio.
+- Cada trabajo sale de `main` actualizado, en una rama nueva: una rama ya
+  fusionada no se reutiliza.
+- El **CI corre en el Pull Request hacia `main`** (y en el push a `main`), no al
+  subir una rama.
+- Si `.gitleaksignore` anota un commit de la rama, no se rebasea ni se juntan
+  commits antes de fusionar: cambiaría su identificador.

@@ -57,6 +57,11 @@ es estado local de pantalla.
 | Notifier con mutaciones | `{feature}Provider` | `usuariosProvider` |
 | Estado puro de UI de una feature | `{feature}UiProvider` | `usuarioFormUiProvider` |
 
+La tabla es para el CRUD de un recurso. Lo demás se nombra por lo que expone,
+igual con prefijo: `{nombre}ServiceProvider` para un service
+(`authServiceProvider`), `authProvider` para la sesión, `misSesionesProvider`
+(un `AsyncNotifier` con su listado y sus acciones) e `idiomaProvider`.
+
 No se usa un nombre genérico como `provider` o `state` sin el prefijo de la
 feature — con varias features activas, un nombre así genérico hace
 imposible saber de dónde viene solo con autocompletado/búsqueda.

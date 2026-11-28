@@ -30,6 +30,10 @@ tenía dominio, se baja a `shared/widgets/`.
 
 ## Qué se componentiza siempre
 
+Ya existen en `shared/widgets/`: `AppTextField` (con `obscureText` también apaga
+el autocorrector y las sugerencias del teclado), `AppButton`, `EstadoError`,
+`pedirConfirmacion`, `mostrarError` (el `SnackBar` de error) y `SelectorIdioma`.
+
 - Campo de texto con label, error y estilo del tema (sobre `TextFormField`, ver
   [FORMULARIOS_MOBILE.md](FORMULARIOS_MOBILE.md)).
 - Botón primario/secundario con estado de carga.

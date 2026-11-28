@@ -150,6 +150,12 @@ del archivo** — no se deja vacía "por si acaso".}
   de error). Cada CA debe ser verificable de forma binaria (pasa/no pasa),
   formato "Dado que \{contexto\}, el sistema debe \{resultado\}" — no una
   frase vaga tipo "el sistema debe funcionar bien".
+- Mientras no esté `Hecha`, puede llevar bajo la tabla una nota
+  `> **Avance:**` que diga qué falta. Al cerrarla se reemplaza por
+  `> **Validación:**` con cómo se comprobó. Una historia solo pasa a `Hecha` con
+  todos sus criterios comprobados; lo que no se pudo probar se escribe.
+- Un cambio de comportamiento en una historia ya escrita agrega un criterio
+  nuevo (sin renumerar) y su Unidad de Trabajo.
 - **`PHU`** (Puntos de Historia de Usuario) puede quedar vacío hasta que
   el equipo lo estime — no bloquea la creación de la HU, pero si sigue
   vacío al momento de planificar el sprint, se estima antes de empezar a

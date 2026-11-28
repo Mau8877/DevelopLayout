@@ -16,7 +16,7 @@ lo comprueban.
 
 | Proyecto | Tecnología |
 | --- | --- |
-| **Backend** (`projects/backend`) | Java 21 + Spring Boot 4.2 (Maven), PostgreSQL + Flyway, Redis (caché), MinIO (preparado para archivos; todavía sin código que lo use), JasperReports 7 (preparado para reportes) |
+| **Backend** (`projects/backend`) | Java 21 + Spring Boot 4.2 (Maven), PostgreSQL + Flyway, Redis (límites de intentos, sesiones revocadas y tokens), MinIO (preparado para archivos; todavía sin código que lo use), JasperReports 7 (preparado para reportes) |
 | **Frontend** (`projects/frontend`) | React 19 + TypeScript + Vite, TanStack (Query/Router/Form/Table), Tailwind CSS 4 + shadcn, i18next; Playwright para las pruebas de navegador |
 | **Mobile** (`projects/mobile`) | Flutter/Dart, Riverpod (estado), `go_router` (navegación), `dio` (HTTP) |
 | **Infraestructura** (`infrastructure/`) | Docker Compose (desarrollo y producción): nginx (proxy), postgres, redis, minio, prometheus, grafana y, en desarrollo, Mailpit (correo de prueba) |
