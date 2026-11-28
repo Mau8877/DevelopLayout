@@ -124,3 +124,26 @@ pnpm test:prod
 
 Levanta `docker-compose.prod.yml` con secretos, certificado y volúmenes descartables, comprueba que funciona, borra los datos, restaura un respaldo en un servidor vacío y limpia. Necesita Docker, `openssl` (en Windows viene con Git) y los puertos `18080` y `18443` libres. Se niega a correr si hay contenedores con los nombres del proyecto (`docker compose down` antes; **no** uses `-v`, que borra tus datos). Deja las imágenes construidas con el tag `e2e-prod`. Tarda varios minutos. Es la misma prueba que corre el job `docker` de CI.
 
+
+## `test:e2e`: pruebas de navegador
+
+```bash
+pnpm --dir projects/frontend exec playwright install chromium   # solo la primera vez
+pnpm test:e2e
+pnpm test:e2e sesiones                                          # un solo archivo
+```
+
+Necesita Docker y JDK 21. Levanta Postgres, Redis y Mailpit desechables
+(prefijo `e2e-nav-`), compila y arranca el backend, arranca la web, corre
+Playwright y lo borra todo. No lee ningún `.env` ni usa tu base de desarrollo.
+
+Usa los puertos 25432, 26379, 21025, 28025, 28080 y 25173, solo en `127.0.0.1`.
+Si alguno está ocupado, o ya hay un contenedor con esos nombres, se detiene sin
+tocar nada. Si una ejecución se corta de golpe y quedan restos:
+
+```bash
+docker rm -f -v e2e-nav-postgres e2e-nav-redis e2e-nav-mailpit
+```
+
+Cuando algo falla, el informe queda en `projects/frontend/playwright-report/` y
+las trazas y el log del backend en `projects/frontend/test-results/`.

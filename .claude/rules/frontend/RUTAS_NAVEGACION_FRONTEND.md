@@ -40,6 +40,17 @@ plugins: [
   que pide TanStack Router), no `<App />` — ese componente boilerplate de
   Vite ya no existe en el proyecto.
 
+## URL en inglés
+
+**Toda URL de la web va en inglés y en kebab-case** (`/users`, `/my-sessions`),
+aunque lo que se ve en la pantalla esté en el idioma de la persona: el título sale
+de los archivos de idioma y la URL no cambia con él. Como la URL la define el
+nombre del archivo, los archivos de `routes/` también van en inglés. Los ejemplos
+en español de esta rule describen el código anterior a la migración.
+
+> La migración de lo escrito antes es
+> [HU-INICIAL-Convenciones](../../../docs/HistoriasDeUsuario/HU-INICIAL-Convenciones.md).
+
 ## File-based routing
 
 - Carpeta `src/routes/`, un archivo por ruta.
@@ -84,7 +95,7 @@ no se copia la validación de sesión adentro de cada ruta nueva.
 > — un layout pathless sin hijos resuelve su propio `fullPath` como `/`, lo
 > que choca con `index.tsx`. No es un bug, es cómo funciona el file-based
 > routing de esta librería. Por eso hoy existe
-> `_authenticated/panel.tsx` — una pantalla mínima, no una feature real, que
+> `_authenticated/dashboard.tsx` — una pantalla mínima, no una feature real, que
 > le da al guard un hijo válido y monta el layout según el rol. **Se
 > reemplaza (o se le suman hermanos al lado) en cuanto exista la primera
 > feature real detrás del login** — no se borra sin poner al menos otra
@@ -114,16 +125,18 @@ para el esquema de roles del lado del backend — el frontend usa el mismo
   estructural (en qué carpeta vive el archivo), no una condición en runtime
   dentro de un layout único.
 - `_authenticated/_admin.tsx` es el layout de administrador: su `beforeLoad`
-  manda a `/panel` a quien no es `SUPER_ADMIN` y monta `AdminLayout`. El título
+  manda a `/dashboard` a quien no es `SUPER_ADMIN` y monta `AdminLayout`. El título
   de cada pantalla es el `staticData.breadcrumb` de su ruta. Toda pantalla de
   administrador va dentro de `_authenticated/_admin/`.
-- **Pantallas comunes a todos los roles** (`/panel`, `/mis-sesiones`): usan
+- **Pantallas comunes a todos los roles** (`/dashboard`, `/my-sessions`): usan
   `layouts/LayoutPorRol.tsx`, que elige el layout según el usuario. Es solo para
   ellas; una pantalla de un solo rol se agrupa bajo el layout de ese rol.
 - El menú lateral navega con `Link` (sin recargar la app).
 - Los layouts de rol conectan "Cerrar sesión" (`useLogout`) y se lo pasan a
   `AppShell` como `onLogout`.
-- Los `navItems` de ejemplo apuntan a rutas que todavía no existen.
+- Los `navItems` solo enlazan rutas que existen. Guardan la clave de idioma de su
+  etiqueta (`clave`) y `useMenuTraducido` (`layouts/navegacion/`) la traduce.
+- `staticData.breadcrumb` es una clave de idioma (`shared:navegacion.usuarios`).
 - El layout no vuelve a validar el rol contra el backend en cada render —
   confía en el rol resuelto una vez por el guard de `_authenticated.tsx` (o
   por el hook de sesión que este consulte), para no repetir la misma

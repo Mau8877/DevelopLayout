@@ -18,7 +18,7 @@ Todo fallo de una llamada a la API llega a hooks y componentes como `ApiError`
 - **Fallos sin sobre** (sin conexión, timeout, respuesta no JSON de un proxy,
   `502/504`) → también `ApiError`, con códigos propios del cliente
   `CLIENT_NETWORK`, `CLIENT_TIMEOUT`, `CLIENT_UNKNOWN` y un mensaje genérico en
-  español (`normalizeError`).
+  el idioma vigente, desde `shared/language` (`normalizeError`).
 - Un componente nunca inspecciona `AxiosError`, `error.response` ni
   `error.message` de una excepción que no sea `ApiError`.
 
@@ -31,7 +31,7 @@ Todo fallo de una llamada a la API llega a hooks y componentes como `ApiError`
 | Falla de una query (carga de datos) | Componente de estado de error con "Reintentar", no un toast que desaparece |
 | Error de render inesperado | Error boundary del router (ver abajo) |
 
-- Se muestra `ApiError.message` (mensaje de negocio en español ya definido por el
+- Se muestra `ApiError.message` (mensaje de negocio, ya en el idioma pedido, del
   backend). Nunca `error.stack`, el body completo, ni un `JSON.stringify` del error.
 - Sin `alert()`/`confirm()` del navegador.
 - Los avisos (`components/ui/toast.ts`) necesitan `<Toaster />`, montado una sola

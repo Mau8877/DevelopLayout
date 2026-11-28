@@ -14,7 +14,7 @@ muestra un error crudo, y ningún `catch` se traga un error en silencio.
   (`code` + `message`). **Fallos sin sobre** (sin conexión, timeout, respuesta
   no JSON, `502/504`) llegan como `ApiException` con códigos propios del
   cliente (`CLIENT_NETWORK`, `CLIENT_TIMEOUT`, `CLIENT_UNKNOWN`) y mensaje
-  genérico en español.
+  genérico en el idioma vigente (ver [IDIOMAS_MOBILE.md](IDIOMAS_MOBILE.md)).
 - Una función única, `mensajeDeError(Object error)` (`core/network/`),
   traduce cualquier error a un texto para el usuario. Las pantallas la usan; no
   hacen `error.toString()`, no leen `DioException.response` ni muestran el body.

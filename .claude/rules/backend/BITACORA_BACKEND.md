@@ -51,7 +51,7 @@ que cambiaron con sus nombres, nunca valores sensibles.
 ## Consulta y retención
 
 - Solo `SUPER_ADMIN` consulta (`@PreAuthorize` en el service), paginada, con
-  `pageSize` máximo 100 (`GET /api/v1/bitacora`). La lectura vive en
+  `pageSize` máximo 100 (`GET /api/v1/audit-log`). La lectura vive en
   `BitacoraConsultaRepository` (Criteria, solo lectura). No uses
   `JpaSpecificationExecutor` en repositorios de solo lectura: incluye `delete` y
   `update`.

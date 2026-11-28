@@ -125,7 +125,7 @@ El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
 
 ## Mis sesiones
 
-`MisSesionesService` en `/api/v1/auth/sesiones`. Reglas que **no se relajan**:
+`MisSesionesService` en `/api/v1/auth/sessions`. Reglas que **no se relajan**:
 
 - El usuario sale del token y la sesión actual de su `sid`. **Nunca** usa el
   contexto de administrador, tampoco para un `SUPER_ADMIN`.
@@ -138,7 +138,7 @@ El estado de cada flujo vive en `docs/HistoriasDeUsuario/`.
 
 ## Administración de usuarios
 
-`UsuarioAdminService` (`/api/v1/usuarios`). Reglas que **no se relajan**:
+`UsuarioAdminService` (`/api/v1/users`). Reglas que **no se relajan**:
 
 - **Todo cambio pasa por `GuardiaAdministradores.exigirVigente`**, dentro de la
   transacción y antes de leer entidades: toma un bloqueo que pone los cambios en

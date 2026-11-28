@@ -33,13 +33,18 @@ Si el schema de creación y el de edición difieren (ej. edición no pide
 password), se definen como schemas separados pero uno puede derivar del otro
 con `.partial()`/`.omit()`/`.extend()` en vez de copiar los campos a mano.
 
-## Mensajes en español
+## Mensajes: claves de idioma
 
-El proyecto no es multi-idioma — todos los mensajes de error de Zod se
-escriben en español directo en el schema (`.min(1, "El correo es obligatorio")`),
-no se arma una capa de i18n para esto. Se muestran **inline, debajo del
-campo correspondiente**, no en un toast/alert genérico que no indica qué
-campo falló.
+El proyecto es multi-idioma (ver [IDIOMAS_FRONTEND.md](IDIOMAS_FRONTEND.md)). El
+mensaje de cada regla es una **clave**, nunca una frase:
+
+```ts
+z.string().min(1, 'auth:validacion.correoObligatorio')
+```
+
+Los ejemplos de esta rule con frases escritas muestran la forma del schema, no el
+texto. Los errores se traducen al mostrarse y van **inline, debajo del campo
+correspondiente**, no en un aviso genérico que no indica qué campo falló.
 
 ## Integración con TanStack Form
 

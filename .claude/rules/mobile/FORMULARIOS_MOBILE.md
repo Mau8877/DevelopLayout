@@ -30,12 +30,11 @@ if (_formKey.currentState!.validate()) {
 }
 ```
 
-## Mensajes en español
+## Mensajes: archivos de idioma
 
-Igual que en el frontend web (ver
-[FORMULARIOS_ZOD_TANSTACK_FRONTEND.md](../frontend/FORMULARIOS_ZOD_TANSTACK_FRONTEND.md)):
-todos los mensajes de `validator` en español, directo en el string
-retornado — no hay capa de i18n en el proyecto.
+El proyecto es multi-idioma (ver [IDIOMAS_MOBILE.md](IDIOMAS_MOBILE.md)): cada
+`validator` devuelve `context.t('...')`, nunca una frase escrita en el código. El
+ejemplo de arriba muestra la forma de la validación, no el texto.
 
 ## Consistencia de reglas de negocio con el frontend web
 

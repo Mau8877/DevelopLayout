@@ -62,7 +62,8 @@ crea en `components/ui/` — no lo deja para "después" y no lo escribe inline.
 - **Composición antes que flags:** `children`/slots y variantes (`cva`, como
   hace shadcn) en vez de acumular booleans (`showX`, `hasY`, `isZ`). Si un
   componente pasa de ~8 props, probablemente son dos componentes.
-- **Textos por props**, con defaults genéricos en español solo si son universales
+- **Textos por props**, con defaults tomados de `shared/language` (ver
+  [IDIOMAS_FRONTEND.md](IDIOMAS_FRONTEND.md)) solo si son universales
   ("Cancelar", "Reintentar"); nunca un texto de negocio fijo adentro.
 - **Estilos:** solo clases de tema (ver [TAILWIND_STYLES_FRONTEND.md](TAILWIND_STYLES_FRONTEND.md)).
   Sin colores ni tamaños arbitrarios.
