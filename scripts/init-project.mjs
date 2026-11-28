@@ -109,14 +109,6 @@ export function crearReglas(v) {
       id: 'titulos-de-codigo', donde: bajo('projects/frontend/src/', 'projects/mobile/lib/', 'projects/mobile/test/'),
       buscar: /(['"])App( Admin)?\1/g, poner: (_, comilla, admin) => `${comilla}${v.nombre}${admin ?? ''}${comilla}`,
     },
-    {
-      id: 'pie-del-menu', donde: en('projects/frontend/src/components/layout/AppSidebar.tsx'),
-      buscar: /· App(?=\s*$)/gm, poner: `· ${v.nombre}`,
-    },
-    {
-      id: 'portada-web', donde: en('projects/frontend/src/routes/index.tsx'),
-      buscar: />App<\/h1>/g, poner: `>${v.nombre}</h1>`,
-    },
     { id: 'titulo-web', donde: en('projects/frontend/index.html'), buscar: /<title>frontend<\/title>/g, poner: `<title>${v.nombre}</title>` },
     {
       id: 'dato-de-ejemplo', donde: en('projects/backend/src/main/resources/db/migration/V1__init_schema.sql'),

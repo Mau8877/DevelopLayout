@@ -15,6 +15,7 @@
 		"openapi:sync": "node scripts/openapi-sync.mjs",
 		"openapi:types": "pnpm --filter ./projects/frontend run openapi:types",
 		"test:prod": "node scripts/prod-smoke.mjs",
+		"test:e2e": "node scripts/e2e.mjs",
 		"test:scripts": "node --test \"scripts/**/*.test.mjs\""
 	},
 	"lint-staged": {
